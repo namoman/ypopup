@@ -4,3 +4,6 @@ obj/
 *.user
 *.suo
 publish/
+
+debug-*.log
+tools/_patch_settings.py

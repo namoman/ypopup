@@ -1,0 +1,198 @@
+﻿<Window x:Class="Ypopup.App.Views.SettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Y-popup 설정"
+        Width="500"
+        Height="480"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TabControl Grid.Row="0">
+            <!-- 프로필: UDP Announce -->
+            <TabItem Header="프로필">
+                <StackPanel Margin="12">
+                    <TextBlock Text="LAN에 공개되는 내 정보 (UDP Announce)"
+                               Foreground="Gray"
+                               Margin="0,0,0,12"/>
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="80"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="표시 이름" VerticalAlignment="Center"/>
+                        <TextBox x:Name="DisplayNameTextBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="그룹" VerticalAlignment="Center"/>
+                        <TextBox x:Name="GroupTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="이메일" VerticalAlignment="Center"/>
+                        <TextBox x:Name="EmailTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="메모" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                        <TextBox x:Name="MemoTextBox"
+                                 Grid.Row="3"
+                                 Grid.RowSpan="2"
+                                 Grid.Column="1"
+                                 MinHeight="100"
+                                 AcceptsReturn="True"
+                                 TextWrapping="Wrap"
+                                 VerticalScrollBarVisibility="Auto"/>
+                    </Grid>
+                </StackPanel>
+            </TabItem>
+
+            <!-- 네트워크 -->
+            <TabItem Header="네트워크" GotFocus="NetworkTab_GotFocus">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="포트 변경은 프로그램 재시작 후 적용됩니다."
+                                   Foreground="Gray"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,12"/>
+
+                        <Grid Margin="0,0,0,16">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="공개 IP" VerticalAlignment="Center"/>
+                            <ComboBox x:Name="LocalIpComboBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"
+                                      ToolTip="다중 랜카드 PC에서 다른 PC가 접속할 IP"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="UDP 탐색 포트" VerticalAlignment="Center"/>
+                            <TextBox x:Name="DiscoveryPortTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="TCP 메시지 포트" VerticalAlignment="Center"/>
+                            <TextBox x:Name="TcpPortTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8"/>
+
+                            <CheckBox x:Name="OnlySameGroupCheckBox"
+                                      Grid.Row="3"
+                                      Grid.Column="1"
+                                      Content="같은 그룹 사용자만 목록에 표시"/>
+                        </Grid>
+
+                        <GroupBox Header="Windows 방화벽">
+                            <StackPanel Margin="8">
+                                <TextBlock Text="LAN 탐색(UDP)과 메시지 수신(TCP)을 위해 방화벽 허용이 필요합니다.&#x0a;처음 실행 시 허용 창에서 차단했다면 아래 버튼을 사용하세요."
+                                           Foreground="Gray"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,8"/>
+
+                                <TextBlock x:Name="FirewallStatusTextBlock"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,4"/>
+                                <TextBlock x:Name="FirewallExePathTextBlock"
+                                           Foreground="Gray"
+                                           FontSize="11"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,8"/>
+
+                                <Button Content="방화벽 허용 추가 (관리자)"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,0,0,8"
+                                        Click="AddFirewallRuleButton_Click"/>
+                                <Button Content="Windows 방화벽 설정 열기"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,0,0,8"
+                                        Click="OpenFirewallSettingsButton_Click"/>
+                                <Button Content="상태 새로고침"
+                                        HorizontalAlignment="Left"
+                                        Click="RefreshFirewallStatusButton_Click"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- 일반 -->
+            <TabItem Header="일반">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <CheckBox x:Name="RunAtStartupCheckBox" Content="Windows 시작 시 자동 실행" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="CloseComposeAfterSendCheckBox" Content="전송 후 작성 창 닫기" Margin="0,0,0,8"/>
+                        <CheckBox x:Name="CloseReceiveOnReplyCheckBox" Content="답장 시 수신 창 닫기" Margin="0,0,0,16"/>
+
+                        <GroupBox Header="수신 알림" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="SoundEnabledCheckBox" Content="알림음 사용" Margin="0,0,0,4"/>
+                                <CheckBox x:Name="PlayMessageSoundCheckBox" Content="메시지 수신" Margin="16,0,0,4"/>
+                                <CheckBox x:Name="PlayFileSoundCheckBox" Content="파일 수신" Margin="16,0,0,0"/>
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="수신 파일" Margin="0,0,0,12">
+                            <DockPanel Margin="8">
+                                <Button Content="찾기" DockPanel.Dock="Right" Click="BrowseFolderButton_Click"/>
+                                <TextBox x:Name="ReceiveDirectoryTextBox" Margin="0,0,8,0"/>
+                            </DockPanel>
+                        </GroupBox>
+
+                        <GroupBox Header="쪽지 글꼴">
+                            <StackPanel Margin="8">
+                                <TextBlock x:Name="FontPreviewTextBlock" Margin="0,0,0,8"/>
+                                <Button Content="글꼴 변경" HorizontalAlignment="Left" Click="ChangeFontButton_Click"/>
+                            </StackPanel>
+                        </GroupBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <!-- 부재 -->
+            <TabItem Header="부재">
+                <StackPanel Margin="12">
+                    <TextBlock Text="부재 중에는 UDP Announce에 IsAway=true가 전송되고,&#x0a;수신 메시지에 자동 답장(TCP)이 발송됩니다."
+                               Foreground="Gray"
+                               TextWrapping="Wrap"
+                               Margin="0,0,0,12"/>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <CheckBox x:Name="AwayIdleCheckBox" VerticalAlignment="Center" Content=""/>
+                        <TextBox x:Name="AwayIdleMinutesTextBox" Width="40" Margin="8,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="분간 입력 없으면 부재 처리" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <TextBlock Text="자동 답장 메시지" Margin="0,0,0,4"/>
+                    <TextBox x:Name="AwayMessageTextBox"
+                             MinHeight="120"
+                             AcceptsReturn="True"
+                             TextWrapping="Wrap"
+                             VerticalScrollBarVisibility="Auto"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+
+        <TextBlock Grid.Row="1"
+                   Margin="0,8,0,8"
+                   Foreground="Gray"
+                   Text="namoman.com · namolove@gmail.com"/>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Content="취소" Width="80" Click="CancelButton_Click" Margin="0,0,8,0"/>
+            <Button Content="저장" Width="80" IsDefault="True" Click="SaveButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

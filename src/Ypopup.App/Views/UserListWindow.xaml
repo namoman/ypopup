@@ -1,0 +1,46 @@
+﻿<Window x:Class="Ypopup.App.Views.UserListWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Y-popup - 사용자 목록"
+        Width="320"
+        Height="420"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="CanMinimize"
+        Topmost="True">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="같은 네트워크 사용자"
+                   FontWeight="SemiBold"
+                   Margin="0,0,0,8"/>
+
+        <ListBox x:Name="PeerListBox"
+                 Grid.Row="1"
+                 MouseDoubleClick="PeerListBox_MouseDoubleClick">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding ListDisplayName}" ToolTip="{Binding Memo}"/>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,12,0,0">
+            <Button Content="쪽지 보내기"
+                    Click="SendButton_Click"
+                    Margin="0,0,8,0"/>
+            <Button Content="새로고침"
+                    Click="RefreshButton_Click"
+                    Margin="0,0,8,0"/>
+            <Button Content="닫기"
+                    Click="CloseButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
+    <AssemblyName>Y-popup</AssemblyName>
+    <RootNamespace>Ypopup.App</RootNamespace>
+    <Authors>namoman</Authors>
+    <Company>namoman</Company>
+    <Product>Y-popup</Product>
+    <Description>X-Popup 오마주 LAN 메신저</Description>
+    <Copyright>Copyright © namoman</Copyright>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Ypopup.Core\Ypopup.Core.csproj" />
+    <ProjectReference Include="..\Ypopup.Network\Ypopup.Network.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\icon.png" />
+    <Resource Include="Assets\tray.ico" />
+  </ItemGroup>
+
+</Project>
