@@ -11,6 +11,7 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     private readonly DiscoveryService _discoveryService;
     private readonly TcpHostService _tcpHostService;
     private readonly CancellationTokenSource _appCts = new();
+    private readonly Dictionary<string, DateTime> _lastAutoReplyTimes = new(StringComparer.OrdinalIgnoreCase);
     private int _disposed;
 
     public event Action<IReadOnlyList<PeerInfo>>? PeersChanged;
@@ -53,27 +54,42 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     {
         if (IsAway && !message.IsAutoReply && !string.IsNullOrWhiteSpace(Settings.AwayMessage))
         {
-            try
+            var shouldReply = false;
+            lock (_lastAutoReplyTimes)
             {
-                var peer = _discoveryService.FindPeer(message.SenderId)
-                           ?? new PeerInfo
-                           {
-                               MachineId = message.SenderId,
-                               DisplayName = message.SenderName,
-                               IpAddress = message.SenderIpAddress,
-                               TcpPort = Settings.TcpPort
-                           };
-
-                await SendMessageAsync(new OutgoingMessage
+                var now = DateTime.UtcNow;
+                if (!_lastAutoReplyTimes.TryGetValue(message.SenderId, out var lastTime)
+                    || now - lastTime > TimeSpan.FromMinutes(1))
                 {
-                    Recipient = peer,
-                    Body = Settings.AwayMessage,
-                    IsAutoReply = true
-                }).ConfigureAwait(false);
+                    _lastAutoReplyTimes[message.SenderId] = now;
+                    shouldReply = true;
+                }
             }
-            catch (Exception ex)
+
+            if (shouldReply)
             {
-                System.Diagnostics.Debug.WriteLine($"Auto-reply failed: {ex.Message}");
+                try
+                {
+                    var peer = _discoveryService.FindPeer(message.SenderId)
+                               ?? new PeerInfo
+                               {
+                                   MachineId = message.SenderId,
+                                   DisplayName = message.SenderName,
+                                   IpAddress = message.SenderIpAddress,
+                                   TcpPort = Settings.TcpPort
+                               };
+
+                    await SendMessageAsync(new OutgoingMessage
+                    {
+                        Recipient = peer,
+                        Body = Settings.AwayMessage,
+                        IsAutoReply = true
+                    }).ConfigureAwait(false);
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Auto-reply failed: {ex.Message}");
+                }
             }
         }
 

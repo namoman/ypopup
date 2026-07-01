@@ -1,60 +1,220 @@
-﻿<Window x:Class="Ypopup.App.Views.ComposeWindow"
+<Window x:Class="Ypopup.App.Views.ComposeWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Y-popup - 쪽지 보내기"
         Width="460"
-        Height="420"
+        Height="480"
         WindowStartupLocation="CenterScreen"
-        Topmost="True">
-    <Grid Margin="12">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        AllowsTransparency="True"
+        WindowStyle="None"
+        Background="Transparent"
+        AllowDrop="True"
+        Drop="Window_Drop"
+        PreviewDragOver="Window_PreviewDragOver">
+    
+    <Window.Resources>
+        <!-- Title Bar Buttons -->
+        <Style x:Key="TitleBarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Width" Value="34"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="MinWidth" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <!-- Round Action Button -->
+        <Style x:Key="RoundActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="18" Width="36" Height="36">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#1EFFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
-        <TextBlock x:Name="RecipientTextBlock"
-                   Grid.Row="0"
-                   FontWeight="SemiBold"
-                   Margin="0,0,0,8"/>
+    <Border Background="#E60F172A" CornerRadius="16" BorderBrush="#1CFFFFFF" BorderThickness="1.5">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/> <!-- Title Bar -->
+                <RowDefinition Height="*"/>    <!-- Chat Log (Bubbles) -->
+                <RowDefinition Height="Auto"/> <!-- Attachment Items -->
+                <RowDefinition Height="Auto"/> <!-- Message Input Area -->
+            </Grid.RowDefinitions>
 
-        <TextBox x:Name="MessageTextBox"
-                 Grid.Row="1"
-                 AcceptsReturn="True"
-                 TextWrapping="Wrap"
-                 VerticalScrollBarVisibility="Auto"
-                 AllowDrop="True"
-                 Drop="MessageTextBox_Drop"
-                 PreviewDragOver="MessageTextBox_PreviewDragOver"/>
+            <!-- 1. Title Bar -->
+            <Grid Grid.Row="0" Height="30" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-        <StackPanel Grid.Row="2"
-                    Orientation="Horizontal"
-                    Margin="0,8,0,0">
-            <Button Content="파일 첨부"
-                    Click="AttachButton_Click"/>
-            <TextBlock x:Name="AttachmentSummaryTextBlock"
-                       VerticalAlignment="Center"
-                       Margin="12,0,0,0"
-                       Foreground="Gray"/>
-        </StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock x:Name="TitleTextBlock" Text="Chat: Sarah Jones" FontSize="11" Foreground="#64748B" FontWeight="Medium"/>
+                </StackPanel>
 
-        <ListBox x:Name="AttachmentListBox"
-                 Grid.Row="3"
-                 Height="80"
-                 Margin="0,8,0,0"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="—" Foreground="#94A3B8" Click="MinimizeButton_Click" Style="{StaticResource TitleBarButtonStyle}"/>
+                    <Button Content="✕" Foreground="#EF4444" Click="CloseButton_Click" Style="{StaticResource TitleBarButtonStyle}"/>
+                </StackPanel>
+            </Grid>
 
-        <StackPanel Grid.Row="4"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    Margin="0,12,0,0">
-            <Button x:Name="SendButton"
-                    Content="전송"
-                    Click="SendButton_Click"
-                    Margin="0,0,8,0"/>
-            <Button Content="닫기"
-                    Click="CloseButton_Click"/>
-        </StackPanel>
-    </Grid>
+            <!-- 2. Chat Log / Bubbles -->
+            <ListBox x:Name="ChatLogListBox"
+                     Grid.Row="1"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     Padding="12,8"
+                     HorizontalContentAlignment="Stretch"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,8" HorizontalAlignment="{Binding HorizontalAlignment}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Left Avatar -->
+                            <Grid Grid.Column="0" x:Name="LeftAvatar" Width="32" Height="32" Margin="0,0,8,0" VerticalAlignment="Top" Visibility="Collapsed">
+                                <Ellipse Fill="#334155" Width="32" Height="32"/>
+                                <TextBlock Text="👤" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+                            </Grid>
+
+                            <!-- Bubble Content -->
+                            <StackPanel Grid.Column="1" MaxWidth="280">
+                                <!-- Name and Time -->
+                                <StackPanel Orientation="Horizontal" Margin="4,0,4,2" HorizontalAlignment="{Binding HorizontalAlignment}">
+                                    <TextBlock Text="{Binding SenderName}" FontSize="10.5" Foreground="#64748B" FontWeight="SemiBold"/>
+                                    <TextBlock Text="{Binding TimeText}" FontSize="9.5" Foreground="#64748B" Margin="6,1,0,0"/>
+                                </StackPanel>
+
+                                <!-- Message Bubble Border -->
+                                <Border Background="{Binding BubbleBackground}" CornerRadius="12" Padding="12,8" BorderBrush="#0DFFFFFF" BorderThickness="1">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding Body}" Foreground="#F8FAFC" TextWrapping="Wrap" FontSize="13"/>
+                                        
+                                        <!-- Attachment Files inside bubble -->
+                                        <ItemsControl ItemsSource="{Binding Attachments}" Margin="0,4,0,0" Visibility="{Binding AttachmentVisibility}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                        <TextBlock Text="📎" Foreground="#38BDF8" FontSize="11" Margin="0,0,4,0"/>
+                                                        <TextBlock Text="{Binding}" Foreground="#38BDF8" FontSize="11.5" TextDecorations="Underline" Cursor="Hand" MouseDown="AttachmentFile_MouseDown"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Right Avatar -->
+                            <Grid Grid.Column="2" x:Name="RightAvatar" Width="32" Height="32" Margin="8,0,0,0" VerticalAlignment="Top" Visibility="Collapsed">
+                                <Ellipse Fill="#ef4444" Width="32" Height="32"/>
+                                <TextBlock Text="👤" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14"/>
+                            </Grid>
+                        </Grid>
+
+                        <DataTemplate.Triggers>
+                            <!-- If not me, show left avatar -->
+                            <DataTrigger Binding="{Binding IsMe}" Value="False">
+                                <Setter TargetName="LeftAvatar" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                            <!-- If me, show right avatar -->
+                            <DataTrigger Binding="{Binding IsMe}" Value="True">
+                                <Setter TargetName="RightAvatar" Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <!-- 3. Current Attachment Items -->
+            <Grid Grid.Row="2" x:Name="AttachmentArea" Background="#0DFFFFFF" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <StackPanel Orientation="Horizontal" Margin="12,6,12,0">
+                    <TextBlock Text="📎 첨부파일: " FontSize="11" Foreground="#94A3B8"/>
+                    <TextBlock x:Name="AttachmentSummaryTextBlock" Text="0개 파일" FontSize="11" Foreground="#38BDF8" FontWeight="SemiBold"/>
+                </StackPanel>
+
+                <ListBox x:Name="AttachmentListBox"
+                         Grid.Row="1"
+                         Height="60"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="12,4"
+                         Margin="0,0,0,4"
+                         KeyDown="AttachmentListBox_KeyDown">
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="제거" Click="RemoveAttachment_Click"/>
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                </ListBox>
+            </Grid>
+
+            <!-- 4. Message Input Area -->
+            <Grid Grid.Row="3" Margin="12,0,12,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Clip Attach button -->
+                <Button Grid.Column="0" Style="{StaticResource RoundActionButtonStyle}" Click="AttachButton_Click" ToolTip="파일 첨부">
+                    <TextBlock Text="📎" FontSize="18" Foreground="#94A3B8"/>
+                </Button>
+
+                <!-- Input TextBox -->
+                <TextBox x:Name="MessageTextBox"
+                         Grid.Column="1"
+                         Padding="12,8"
+                         Margin="8,0"
+                         Background="#1E293B"
+                         Foreground="#F8FAFC"
+                         BorderThickness="0"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Auto"
+                         MaxHeight="80"/>
+
+                <!-- Send button -->
+                <Button x:Name="SendButton"
+                        Grid.Column="2"
+                        Style="{StaticResource RoundActionButtonStyle}"
+                        Click="SendButton_Click"
+                        Background="#EF4444"
+                        ToolTip="전송">
+                    <TextBlock Text="➔" FontSize="16" Foreground="White" Margin="2,0,0,0"/>
+                </Button>
+            </Grid>
+        </Grid>
+    </Border>
 </Window>

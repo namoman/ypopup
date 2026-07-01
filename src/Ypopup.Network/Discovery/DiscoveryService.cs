@@ -125,8 +125,31 @@ public sealed class DiscoveryService : IAsyncDisposable
         };
 
         var payload = PacketCodec.Serialize(packet);
-        var endpoint = new IPEndPoint(IPAddress.Broadcast, settings.DiscoveryPort);
-        _udpClient.Send(payload, payload.Length, endpoint);
+        var broadcastIps = LocalNetworkHelper.GetLocalSubnetBroadcastAddresses();
+
+        if (broadcastIps.Count == 0)
+        {
+            var endpoint = new IPEndPoint(IPAddress.Broadcast, settings.DiscoveryPort);
+            _udpClient.Send(payload, payload.Length, endpoint);
+        }
+        else
+        {
+            foreach (var ipStr in broadcastIps)
+            {
+                if (IPAddress.TryParse(ipStr, out var ip))
+                {
+                    try
+                    {
+                        var endpoint = new IPEndPoint(ip, settings.DiscoveryPort);
+                        _udpClient.Send(payload, payload.Length, endpoint);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Failed to send announce on {ipStr}: {ex.Message}");
+                    }
+                }
+            }
+        }
     }
 
     private void HandleAnnounce(byte[] buffer, IPEndPoint remoteEndPoint)

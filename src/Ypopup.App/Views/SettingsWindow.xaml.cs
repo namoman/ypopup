@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Forms;
 using Ypopup.App.Helpers;
 using Ypopup.App.Services;
@@ -35,6 +35,7 @@ public partial class SettingsWindow : Window
         TcpPortTextBox.Text = _workingSettings.TcpPort.ToString();
         OnlySameGroupCheckBox.IsChecked = _workingSettings.OnlySameGroup;
 
+        KeepWindowTopmostCheckBox.IsChecked = _workingSettings.KeepWindowTopmost;
         RunAtStartupCheckBox.IsChecked = StartupRegistryService.IsEnabled();
         CloseComposeAfterSendCheckBox.IsChecked = _workingSettings.CloseComposeWindowAfterSend;
         CloseReceiveOnReplyCheckBox.IsChecked = _workingSettings.CloseReceiveWindowOnReply;
@@ -94,6 +95,12 @@ public partial class SettingsWindow : Window
         if (!int.TryParse(DiscoveryPortTextBox.Text, out var discoveryPort) || discoveryPort is < 1024 or > 65535)
         {
             MessageBox.Show(this, "UDP 포트는 1024~65535 사이여야 합니다.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (tcpPort == discoveryPort)
+        {
+            MessageBox.Show(this, "TCP 포트와 UDP 포트는 다른 번호여야 합니다.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -170,10 +177,20 @@ public partial class SettingsWindow : Window
             return;
         }
 
-        if (!int.TryParse(AwayIdleMinutesTextBox.Text, out var awayIdleMinutes) || awayIdleMinutes < 1)
+        if (tcpPort == discoveryPort)
         {
-            MessageBox.Show(this, "부재 유휴 시간은 1분 이상이어야 합니다.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, "TCP 포트와 UDP 포트는 다른 번호여야 합니다.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
+        }
+
+        int awayIdleMinutes = 10;
+        if (AwayIdleCheckBox.IsChecked == true)
+        {
+            if (!int.TryParse(AwayIdleMinutesTextBox.Text, out awayIdleMinutes) || awayIdleMinutes < 1)
+            {
+                MessageBox.Show(this, "부재 유휴 시간은 1분 이상이어야 합니다.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
         }
 
         if (string.IsNullOrWhiteSpace(DisplayNameTextBox.Text))
@@ -190,6 +207,7 @@ public partial class SettingsWindow : Window
         _workingSettings.DiscoveryPort = discoveryPort;
         _workingSettings.TcpPort = tcpPort;
         _workingSettings.OnlySameGroup = OnlySameGroupCheckBox.IsChecked == true;
+        _workingSettings.KeepWindowTopmost = KeepWindowTopmostCheckBox.IsChecked == true;
         _workingSettings.CloseComposeWindowAfterSend = CloseComposeAfterSendCheckBox.IsChecked == true;
         _workingSettings.CloseReceiveWindowOnReply = CloseReceiveOnReplyCheckBox.IsChecked == true;
         _workingSettings.SoundEnabled = SoundEnabledCheckBox.IsChecked == true;
@@ -239,6 +257,7 @@ public partial class SettingsWindow : Window
             OnlySameGroup = source.OnlySameGroup,
             Email = source.Email,
             Memo = source.Memo,
+            KeepWindowTopmost = source.KeepWindowTopmost,
             CloseComposeWindowAfterSend = source.CloseComposeWindowAfterSend,
             CloseReceiveWindowOnReply = source.CloseReceiveWindowOnReply,
             SoundEnabled = source.SoundEnabled,
@@ -253,5 +272,18 @@ public partial class SettingsWindow : Window
             AwayIdleMinutes = source.AwayIdleMinutes,
             AwayMessage = source.AwayMessage
         };
+    }
+
+    private void Hyperlink_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+            e.Handled = true;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Failed to open link: {ex.Message}");
+        }
     }
 }

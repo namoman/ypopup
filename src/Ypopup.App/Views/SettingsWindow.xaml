@@ -1,11 +1,13 @@
-﻿<Window x:Class="Ypopup.App.Views.SettingsWindow"
+<Window x:Class="Ypopup.App.Views.SettingsWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Y-popup 설정"
         Width="500"
         Height="480"
         WindowStartupLocation="CenterScreen"
-        ResizeMode="NoResize">
+        ResizeMode="NoResize"
+        Background="#0f172a"
+        Foreground="#f8fafc">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -16,9 +18,9 @@
         <TabControl Grid.Row="0">
             <!-- 프로필: UDP Announce -->
             <TabItem Header="프로필">
-                <StackPanel Margin="12">
+                <StackPanel Margin="12" TextElement.Foreground="#f8fafc">
                     <TextBlock Text="LAN에 공개되는 내 정보 (UDP Announce)"
-                               Foreground="Gray"
+                               Foreground="#94A3B8"
                                Margin="0,0,0,12"/>
 
                     <Grid>
@@ -58,10 +60,10 @@
 
             <!-- 네트워크 -->
             <TabItem Header="네트워크" GotFocus="NetworkTab_GotFocus">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" TextElement.Foreground="#f8fafc">
                     <StackPanel Margin="12">
                         <TextBlock Text="포트 변경은 프로그램 재시작 후 적용됩니다."
-                                   Foreground="Gray"
+                                   Foreground="#94A3B8"
                                    TextWrapping="Wrap"
                                    Margin="0,0,0,12"/>
 
@@ -96,7 +98,7 @@
                         <GroupBox Header="Windows 방화벽">
                             <StackPanel Margin="8">
                                 <TextBlock Text="LAN 탐색(UDP)과 메시지 수신(TCP)을 위해 방화벽 허용이 필요합니다.&#x0a;처음 실행 시 허용 창에서 차단했다면 아래 버튼을 사용하세요."
-                                           Foreground="Gray"
+                                           Foreground="#94A3B8"
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,8"/>
 
@@ -104,7 +106,7 @@
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,4"/>
                                 <TextBlock x:Name="FirewallExePathTextBlock"
-                                           Foreground="Gray"
+                                           Foreground="#94A3B8"
                                            FontSize="11"
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,8"/>
@@ -128,8 +130,9 @@
 
             <!-- 일반 -->
             <TabItem Header="일반">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" TextElement.Foreground="#f8fafc">
                     <StackPanel Margin="12">
+                        <CheckBox x:Name="KeepWindowTopmostCheckBox" Content="창을 항상 위에 표시 (Topmost)" Margin="0,0,0,8"/>
                         <CheckBox x:Name="RunAtStartupCheckBox" Content="Windows 시작 시 자동 실행" Margin="0,0,0,8"/>
                         <CheckBox x:Name="CloseComposeAfterSendCheckBox" Content="전송 후 작성 창 닫기" Margin="0,0,0,8"/>
                         <CheckBox x:Name="CloseReceiveOnReplyCheckBox" Content="답장 시 수신 창 닫기" Margin="0,0,0,16"/>
@@ -161,15 +164,15 @@
 
             <!-- 부재 -->
             <TabItem Header="부재">
-                <StackPanel Margin="12">
+                <StackPanel Margin="12" TextElement.Foreground="#f8fafc">
                     <TextBlock Text="부재 중에는 UDP Announce에 IsAway=true가 전송되고,&#x0a;수신 메시지에 자동 답장(TCP)이 발송됩니다."
-                               Foreground="Gray"
+                               Foreground="#94A3B8"
                                TextWrapping="Wrap"
                                Margin="0,0,0,12"/>
 
                     <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
                         <CheckBox x:Name="AwayIdleCheckBox" VerticalAlignment="Center" Content=""/>
-                        <TextBox x:Name="AwayIdleMinutesTextBox" Width="40" Margin="8,0,8,0" VerticalAlignment="Center"/>
+                        <TextBox x:Name="AwayIdleMinutesTextBox" Width="40" Margin="8,0,8,0" VerticalAlignment="Center" IsEnabled="{Binding ElementName=AwayIdleCheckBox, Path=IsChecked}"/>
                         <TextBlock Text="분간 입력 없으면 부재 처리" VerticalAlignment="Center"/>
                     </StackPanel>
 
@@ -185,8 +188,11 @@
 
         <TextBlock Grid.Row="1"
                    Margin="0,8,0,8"
-                   Foreground="Gray"
-                   Text="namoman.com · namolove@gmail.com"/>
+                   Foreground="#94A3B8">
+            <Hyperlink NavigateUri="https://namoman.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#38BDF8">namoman.com</Hyperlink>
+            <Run Text=" · "/>
+            <Hyperlink NavigateUri="mailto:namolove@gmail.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#38BDF8">namolove@gmail.com</Hyperlink>
+        </TextBlock>
 
         <StackPanel Grid.Row="2"
                     Orientation="Horizontal"

@@ -47,4 +47,42 @@ public static class LocalNetworkHelper
 
         return addresses[0];
     }
+
+    public static IReadOnlyList<string> GetLocalSubnetBroadcastAddresses()
+    {
+        var broadcasts = new List<string>();
+
+        foreach (var networkInterface in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            if (networkInterface.OperationalStatus != OperationalStatus.Up
+                || networkInterface.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+            {
+                continue;
+            }
+
+            foreach (var address in networkInterface.GetIPProperties().UnicastAddresses)
+            {
+                if (address.Address.AddressFamily == AddressFamily.InterNetwork
+                    && !IPAddress.IsLoopback(address.Address))
+                {
+                    var ipBytes = address.Address.GetAddressBytes();
+                    var maskBytes = address.IPv4Mask?.GetAddressBytes();
+                    if (maskBytes == null || maskBytes.Length != 4)
+                    {
+                        continue;
+                    }
+
+                    var broadcastBytes = new byte[4];
+                    for (int i = 0; i < 4; i++)
+                    {
+                        broadcastBytes[i] = (byte)(ipBytes[i] | ~maskBytes[i]);
+                    }
+
+                    broadcasts.Add(new IPAddress(broadcastBytes).ToString());
+                }
+            }
+        }
+
+        return broadcasts.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+    }
 }

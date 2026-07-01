@@ -1,4 +1,6 @@
-﻿using System.Windows;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows;
 using Hardcodet.Wpf.TaskbarNotification;
 using Ypopup.App.Helpers;
 using Ypopup.App.Services;
@@ -10,6 +12,20 @@ namespace Ypopup.App;
 
 public partial class App : System.Windows.Application
 {
+    [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+    private static extern IntPtr FindWindow(string? lpClassName, string lpWindowName);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    private const int SW_RESTORE = 9;
+
+    private static Mutex? _mutex;
+
     private TaskbarIcon? _trayIcon;
     private YpopupCoordinator? _coordinator;
     private AwayMonitorService? _awayMonitor;
@@ -18,6 +34,19 @@ public partial class App : System.Windows.Application
 
     private async void Application_Startup(object sender, StartupEventArgs e)
     {
+        _mutex = new Mutex(true, "Global\\Ypopup-SingleInstance-Mutex", out bool createdNew);
+        if (!createdNew)
+        {
+            var hWnd = FindWindow(null, "Y-popup - 사용자 목록");
+            if (hWnd != IntPtr.Zero)
+            {
+                ShowWindow(hWnd, SW_RESTORE);
+                SetForegroundWindow(hWnd);
+            }
+            Shutdown();
+            return;
+        }
+
         try
         {
             _coordinator = new YpopupCoordinator();
@@ -37,6 +66,8 @@ public partial class App : System.Windows.Application
             await _coordinator.StartAsync();
             _awayMonitor = new AwayMonitorService(_coordinator);
             _awayMonitor.Start();
+
+            ShowUserList();
         }
         catch (Exception ex)
         {
@@ -82,6 +113,10 @@ public partial class App : System.Windows.Application
 
         if (_userListWindow is { IsVisible: true })
         {
+            if (_userListWindow.WindowState == WindowState.Minimized)
+            {
+                _userListWindow.WindowState = WindowState.Normal;
+            }
             _userListWindow.Activate();
             return;
         }
@@ -140,6 +175,16 @@ public partial class App : System.Windows.Application
         else
         {
             NotificationService.PlayMessageReceived(_coordinator.Settings);
+        }
+
+        var activeChat = Current.Windows
+            .OfType<ComposeWindow>()
+            .FirstOrDefault(w => string.Equals(w.RecipientMachineId, message.SenderId, StringComparison.OrdinalIgnoreCase));
+
+        if (activeChat != null)
+        {
+            activeChat.Activate();
+            return;
         }
 
         var receiveWindow = new ReceiveWindow(_coordinator, message);

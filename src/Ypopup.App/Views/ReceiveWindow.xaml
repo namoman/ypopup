@@ -1,11 +1,13 @@
-﻿<Window x:Class="Ypopup.App.Views.ReceiveWindow"
+<Window x:Class="Ypopup.App.Views.ReceiveWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Y-popup - 쪽지 수신"
         Width="460"
         Height="420"
         WindowStartupLocation="CenterScreen"
-        Topmost="True">
+        Topmost="True"
+        Background="#0f172a"
+        Foreground="#f8fafc">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

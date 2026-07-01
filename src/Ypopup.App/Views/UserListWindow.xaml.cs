@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Input;
 using Ypopup.Core.Models;
 using Ypopup.Network;
@@ -13,12 +13,32 @@ public partial class UserListWindow : Window
     {
         InitializeComponent();
         _coordinator = coordinator;
+        Topmost = _coordinator.Settings.KeepWindowTopmost;
         RefreshPeers();
     }
 
     public void RefreshPeers()
     {
-        PeerListBox.ItemsSource = _coordinator.GetPeers();
+        ApplyFilter();
+    }
+
+    private void ApplyFilter()
+    {
+        var text = SearchTextBox.Text.Trim();
+        var allPeers = _coordinator.GetPeers();
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            PeerListBox.ItemsSource = allPeers;
+        }
+        else
+        {
+            PeerListBox.ItemsSource = allPeers.Where(p =>
+                p.DisplayName.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                p.Group.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                p.IpAddress.Contains(text, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
     }
 
     private PeerInfo? GetSelectedPeer()
@@ -62,5 +82,31 @@ public partial class UserListWindow : Window
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left)
+        {
+            DragMove();
+        }
+    }
+
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var settingsWindow = new SettingsWindow(_coordinator);
+        settingsWindow.Owner = this;
+        settingsWindow.ShowDialog();
+        RefreshPeers();
+    }
+
+    private void SearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    {
+        ApplyFilter();
     }
 }

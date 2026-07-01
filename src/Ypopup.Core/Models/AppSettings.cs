@@ -29,6 +29,7 @@ public sealed class AppSettings
     public bool OnlySameGroup { get; set; }
 
     // UI · 동작
+    public bool KeepWindowTopmost { get; set; } = true;
     public bool CloseComposeWindowAfterSend { get; set; } = true;
     public bool CloseReceiveWindowOnReply { get; set; }
     public bool SoundEnabled { get; set; } = true;
@@ -37,9 +38,8 @@ public sealed class AppSettings
     public string MessageFontFamily { get; set; } = "Segoe UI";
     public double MessageFontSize { get; set; } = 13;
     public string ReceiveDirectory { get; set; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-        AppConstants.AppFolderName,
-        "Received");
+        Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory,
+        "down");
 
     // 부재 (Announce.IsAway + TCP 자동답장)
     public bool AwayEnabledByIdle { get; set; }
