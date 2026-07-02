@@ -327,9 +327,21 @@
         footer {
             border-top: 1px solid var(--border-color);
             padding: 3rem 2rem;
-            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1100px;
+            margin: 0 auto;
             color: var(--text-muted);
             font-size: 0.9rem;
+        }
+
+        @media (max-width: 640px) {
+            footer {
+                flex-direction: column;
+                gap: 1.5rem;
+                text-align: center;
+            }
         }
 
         footer a {
@@ -339,6 +351,110 @@
 
         footer a:hover {
             color: var(--primary-color);
+        }
+
+        /* Family Site Styles */
+        .family-site-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .family-site-btn {
+            background-color: #ffffff;
+            color: #0f172a;
+            border: 1.5px solid #3b82f6;
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.2s ease;
+        }
+
+        .family-site-btn:hover {
+            background-color: #f8fafc;
+            border-color: #2563eb;
+        }
+
+        .family-site-btn .arrow {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+
+        .family-site-btn.active .arrow {
+            transform: rotate(180deg);
+        }
+
+        .family-site-popup {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            right: 0;
+            width: 240px;
+            background-color: #ffffff;
+            border: 1px solid #94a3b8;
+            border-radius: 4px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 100;
+            text-align: left;
+            overflow: hidden;
+        }
+
+        .family-site-popup.show {
+            display: block;
+            animation: slideUp 0.15s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .popup-header {
+            background-color: #1967d2;
+            color: #ffffff;
+            padding: 8px 12px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+
+        .popup-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .popup-list li {
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .popup-list li:last-child {
+            border-bottom: none;
+        }
+
+        .popup-list a {
+            display: block;
+            padding: 10px 12px;
+            color: #334155 !important;
+            font-size: 0.875rem;
+            font-weight: 400;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .popup-list a:hover {
+            background-color: #f1f5f9;
+            color: #1967d2 !important;
         }
     </style>
 </head>
@@ -421,7 +537,40 @@
 
     <footer>
         <p>© 2026 namoman. All rights reserved. • <a href="https://namoman.com" target="_blank">namoman.com</a></p>
+        <div class="family-site-container">
+            <button class="family-site-btn" id="familySiteBtn">
+                <span>Family Site</span>
+                <span class="arrow">▼</span>
+            </button>
+            <div class="family-site-popup" id="familySitePopup">
+                <div class="popup-header">Family Site</div>
+                <ul class="popup-list">
+                    <li><a href="https://namoman.com" target="_blank">namoman.com 블로그</a></li>
+                    <li><a href="https://math.namoman.com" target="_blank">math.초등산수공부</a></li>
+                    <li><a href="https://stock.namoman.com" target="_blank">stock.주식게임</a></li>
+                    <li><a href="https://sam.namoman.com" target="_blank">sam.삼국지 전략판 유틸</a></li>
+                    <li><a href="https://forget-me-not.namoman.com" target="_blank">forget-me-not(웹소설 정리기)</a></li>
+                </ul>
+            </div>
+        </div>
     </footer>
 
+    <script>
+        const familySiteBtn = document.getElementById('familySiteBtn');
+        const familySitePopup = document.getElementById('familySitePopup');
+
+        familySiteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            familySitePopup.classList.toggle('show');
+            familySiteBtn.classList.toggle('active');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!familySitePopup.contains(e.target) && e.target !== familySiteBtn) {
+                familySitePopup.classList.remove('show');
+                familySiteBtn.classList.remove('active');
+            }
+        });
+    </script>
 </body>
 </html>
