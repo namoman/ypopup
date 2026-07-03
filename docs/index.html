@@ -121,11 +121,50 @@
         .hero-table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .hero-table td {
             vertical-align: top;
             padding: 4px;
+        }
+
+        .hero-table .hero-text {
+            width: 58%;
+        }
+
+        .hero-table .hero-preview {
+            width: 42%;
+            overflow: hidden;
+        }
+
+        .download-bar {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px groove #ece9d8;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px 8px;
+        }
+
+        .download-bar .download-note {
+            font-size: 10px;
+            color: #666;
+            margin-left: 4px;
+        }
+
+        .download-bar .download-sep {
+            color: #aca899;
+            font-size: 11px;
+            user-select: none;
+        }
+
+        .download-bar .download-links {
+            margin-left: auto;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
         }
 
         h1 {
@@ -259,6 +298,11 @@
             padding: 4px 12px;
             text-decoration: none;
             font-size: 11px;
+            color: #0000ee;
+        }
+
+        .family-popup li a:visited {
+            color: #551a8b;
         }
 
         .family-popup li a:hover {
@@ -298,8 +342,10 @@
 
         .win11-wallpaper {
             position: relative;
-            min-height: 240px;
-            padding: 16px 12px 44px;
+            height: 140px;
+            min-height: 0;
+            padding: 8px 6px;
+            overflow: hidden;
             background:
                 radial-gradient(ellipse 80% 60% at 70% 20%, rgba(96, 165, 250, 0.55) 0%, transparent 55%),
                 radial-gradient(ellipse 60% 50% at 20% 80%, rgba(167, 139, 250, 0.45) 0%, transparent 50%),
@@ -312,7 +358,7 @@
         .win11-app-window {
             max-width: 100%;
             width: 100%;
-            overflow: visible;
+            overflow: hidden;
             display: flex;
             justify-content: center;
         }
@@ -322,9 +368,9 @@
             position: relative;
             width: 620px;
             height: 360px;
-            transform: scale(0.52);
+            transform: scale(0.36);
             transform-origin: top center;
-            margin-bottom: -170px;
+            margin-bottom: -231px;
         }
 
         .yp-window {
@@ -693,7 +739,7 @@
         <div class="xp-body">
             <table class="hero-table">
                 <tr>
-                    <td style="width: 55%;">
+                    <td class="hero-text">
                         <h1>Windows 11 호환<br>LAN 메신저, <span>Y-popup</span></h1>
                         <p class="intro">
                             2000년대 추억의 <b>'X-Popup (빨간전화기)'</b> LAN 메신저를<br>
@@ -701,17 +747,8 @@
                             같은 네트워크(LAN)에 연결된 PC끼리<br>
                             <b>복잡한 가입 없이</b> 쪽지와 파일을 빠르게 주고받으세요!
                         </p>
-                        <p>
-                            <a href="./Y-popup.exe" class="xp-btn xp-btn-primary" download>▼ Y-popup.exe (설치 불필요, ~70MB)</a><br>
-                            <a href="./Y-popup-net8.exe" class="xp-btn" download style="margin-top:6px;">▼ Y-popup-net8.exe (.NET 8 필요, ~5MB)</a><br>
-                            <span style="font-size:10px; color:#666; line-height:1.6;">
-                                net8 버전은 <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Desktop Runtime</a> 설치 후 사용
-                            </span><br>
-                            <a href="#guide" class="xp-btn" style="margin-top:8px;">사용 방법 보기</a>
-                            <a href="https://github.com/namoman/ypopup" class="xp-btn" target="_blank">GitHub</a>
-                        </p>
                     </td>
-                    <td style="width: 45%;">
+                    <td class="hero-preview">
                         <div class="win11-desktop">
                             <div class="win11-wallpaper">
                                 <div class="win11-app-window">
@@ -818,6 +855,16 @@
                     </td>
                 </tr>
             </table>
+            <div class="download-bar">
+                <a href="./Y-popup.exe" class="xp-btn xp-btn-primary" download>▼ Y-popup.exe (~70MB)</a>
+                <a href="./Y-popup-net8.exe" class="xp-btn" download>▼ net8 (~5MB)</a>
+                <span class="download-note">net8는 <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Runtime</a> 필요</span>
+                <span class="download-sep">|</span>
+                <div class="download-links">
+                    <a href="#guide" class="xp-btn">사용 방법</a>
+                    <a href="https://github.com/namoman/ypopup" class="xp-btn" target="_blank">GitHub</a>
+                </div>
+            </div>
         </div>
     </div>
 
