@@ -155,3 +155,10 @@ Ypopup/
 - hero 제목을 **Y-popup(파란전화기)** 로 통일, 마퀴 문구도 파란전화기 반영
 - Windows 32-bit 행·관련 각주 제거 (64비트만 배포)
 - Windows .NET 8 Runtime 열: `Y-popup-win-x64-net8.zip` → `Y-popup-net8.exe` (framework-dependent 단일 exe, `publish.ps1`에서 이미 생성)
+
+## 2026-07-03 — 버전 2.0 릴리스
+
+- `AppInfo.Version` **1.2** → **2.0** (UI 표시: 설정·정보 창)
+- `Ypopup.Desktop.csproj` / `Ypopup.App.csproj`: `Version` **2.0.0**, `AssemblyVersion`·`FileVersion` **2.0.0.0**
+- `app.manifest` assemblyIdentity **2.0.0.0**
+- `publish.ps1`·`docs/index.html`·`README.md`에는 버전 문자열 없음 (csproj·AppInfo에서 빌드 시 반영)
