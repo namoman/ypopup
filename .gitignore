@@ -4,6 +4,11 @@ obj/
 *.user
 *.suo
 publish/
+publish-framework/
+publish-osx-arm64/
+publish-osx-arm64-framework/
+publish-osx-x64/
+publish-osx-x64-framework/
 
 debug-*.log
 tools/_patch_settings.py

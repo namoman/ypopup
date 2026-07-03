@@ -50,12 +50,12 @@ dotnet run --project src\Ypopup.App\Ypopup.App.csproj
 .\publish.ps1
 ```
 
-| 출력 | 설명 |
+| 출력 (로컬, `.gitignore`) | 설명 |
 |------|------|
-| `publish\Y-popup.exe` | Self-contained (~70MB). **.NET 설치 불필요** |
-| `publish-framework\Y-popup.exe` | Framework-dependent (~5MB). [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) 필요 |
+| `publish\Y-popup.exe` | Self-contained (~44MB). **.NET 설치 불필요** |
+| `publish-framework\Y-popup.exe` | Framework-dependent (~10MB). [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) 필요 |
 
-GitHub Pages용: `docs\Y-popup.exe`, `docs\Y-popup-net8.exe` 자동 복사
+`publish.ps1` 실행 후 **GitHub Pages·배포용**으로 `docs\`에만 복사됩니다 (`Y-popup.exe`, `Y-popup-net8.exe`, macOS zip 등). `publish*` 폴더는 빌드 중간 산출물이라 저장소에 포함하지 않습니다.
 
 수동 빌드 (self-contained만):
 

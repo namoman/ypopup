@@ -193,7 +193,7 @@ Ypopup/
 - `Ypopup.Desktop.csproj` / `Ypopup.App.csproj`: `Version` **2.0.0**, `AssemblyVersion`·`FileVersion` **2.0.0.0**
 - `app.manifest` assemblyIdentity **2.0.0.0**
 - `publish.ps1`·`docs/index.html`·`README.md`에는 버전 문자열 없음 (csproj·AppInfo에서 빌드 시 반영)
-- `publish.ps1` 실행 후 `docs/`·`publish*/` 바이너리를 GitHub Pages·저장소에 반영 (설정 창·스타일 수정 포함 2.0 빌드)
+- `publish.ps1` 실행 후 `docs/` 바이너리만 GitHub Pages·저장소에 반영 (`publish*` 중간 폴더는 제외)
 
 ## 2026-07-03 — 사용자 목록 정렬·설정 창 종료 수정
 
@@ -226,3 +226,8 @@ Ypopup/
 - Avalonia `AppStyles.axaml`에 동일 템플릿·`Horizontal/VerticalContentAlignment` 적용
 - 쪽지/사용자 목록 하단 버튼 영역 `VerticalAlignment="Center"` 보강
 - 사용자 목록 창 배경은 투명(`Transparent`) 유지
+
+## 2026-07-03 — publish 중간 폴더 Git 제외
+
+- `publish-framework/`, `publish-osx-*` 등은 `publish.ps1` **로컬 중간 산출물** (재생성 가능)
+- `.gitignore`에 추가하고 Git 추적 제거 — 배포 파일은 `docs/`만 유지
