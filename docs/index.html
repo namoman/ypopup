@@ -236,6 +236,64 @@
             color: #003399;
         }
 
+        .download-table-wrap {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px groove #ece9d8;
+        }
+
+        .download-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border: 2px inset #808080;
+            margin-bottom: 8px;
+        }
+
+        .download-table th,
+        .download-table td {
+            border: 1px solid #aca899;
+            padding: 8px 10px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        .download-table th {
+            background: linear-gradient(180deg, #fff 0%, #ece9d8 100%);
+            color: #003399;
+            font-size: 11px;
+        }
+
+        .download-table td.platform {
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .download-table .size {
+            color: #666;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .download-table .na {
+            color: #999;
+            font-style: italic;
+        }
+
+        .download-footnote {
+            font-size: 10px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .download-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
         .footer-bar {
             text-align: center;
             padding: 10px;
@@ -855,15 +913,61 @@
                     </td>
                 </tr>
             </table>
-            <div class="download-bar">
-                <a href="./Y-popup.exe" class="xp-btn xp-btn-primary" download>▼ Y-popup.exe (설치 불필요, ~70MB)</a>
-                <a href="./Y-popup-net8.exe" class="xp-btn" download>▼ Y-popup-net8.exe (.NET 8, ~15MB)</a>
-                <span class="download-note">net8는 <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Runtime</a> 필요</span>
-                <span class="download-sep">|</span>
-                <a href="./Y-popup-wpf.exe" class="xp-btn" download>▼ WPF (~70MB)</a>
-                <a href="./Y-popup-wpf-net8.exe" class="xp-btn" download>▼ WPF net8 (~5MB)</a>
-                <span class="download-sep">|</span>
-                <div class="download-links">
+            <div class="download-table-wrap">
+                <table class="download-table">
+                    <thead>
+                        <tr>
+                            <th>플랫폼</th>
+                            <th>독립 실행 (런타임 포함)</th>
+                            <th>.NET 8 Runtime 필요</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="platform">Windows 64-bit</td>
+                            <td>
+                                <a href="./Y-popup.exe" class="xp-btn xp-btn-primary" download>Y-popup.exe</a>
+                                <span class="size">(44 MB)</span>
+                            </td>
+                            <td>
+                                <a href="./Y-popup-win-x64-net8.zip" class="xp-btn" download>zip</a>
+                                <span class="size">(10 MB)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="platform">Windows 32-bit</td>
+                            <td colspan="2"><span class="na">미배포 — 64비트 Windows 권장</span></td>
+                        </tr>
+                        <tr>
+                            <td class="platform">macOS (Apple Silicon)</td>
+                            <td>
+                                <a href="./Y-popup-osx-arm64.zip" class="xp-btn" download>zip</a>
+                                <span class="size">(39 MB)</span>
+                            </td>
+                            <td>
+                                <a href="./Y-popup-osx-arm64-net8.zip" class="xp-btn" download>zip</a>
+                                <span class="size">(12 MB)</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="platform">macOS (Intel)</td>
+                            <td>
+                                <a href="./Y-popup-osx-x64.zip" class="xp-btn" download>zip</a>
+                                <span class="size">(40 MB)</span>
+                            </td>
+                            <td>
+                                <a href="./Y-popup-osx-x64-net8.zip" class="xp-btn" download>zip</a>
+                                <span class="size">(12 MB)</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <p class="download-footnote">
+                    <b>독립 실행</b> — .NET 설치 없이 바로 실행 (Windows는 단일 exe, macOS는 zip 압축 해제 후 <code>Y-popup</code> 실행).<br>
+                    <b>.NET 8 Runtime</b> — <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Runtime</a> 설치 후 사용. Windows zip에는 필요한 DLL이 포함됩니다.<br>
+                    Windows 32-bit는 기술적으로 빌드 가능하나, 현재 PC 대부분이 64비트라 배포하지 않습니다.
+                </p>
+                <div class="download-actions">
                     <a href="#guide" class="xp-btn">사용 방법</a>
                     <a href="https://github.com/namoman/ypopup" class="xp-btn" target="_blank">GitHub</a>
                 </div>
@@ -903,9 +1007,9 @@
                     <th>01</th>
                     <td>
                         <b>파일 다운로드</b><br>
-                        <b>일반 사용자 (권장):</b> <code>Y-popup.exe</code> — Avalonia, 런타임 포함, 설치 불필요<br>
-                        <b>용량 절약:</b> <code>Y-popup-net8.exe</code> + <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Runtime</a> 설치<br>
-                        <b>Windows WPF (레거시):</b> <code>Y-popup-wpf.exe</code> / <code>Y-popup-wpf-net8.exe</code> + <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Desktop Runtime</a>
+                        상단 <b>다운로드 표</b>에서 OS에 맞는 파일을 선택하세요.<br>
+                        <b>Windows 64-bit (권장):</b> <code>Y-popup.exe</code> — 설치 불필요<br>
+                        <b>macOS:</b> zip 압축 해제 후 터미널 또는 Finder에서 <code>Y-popup</code> 실행 (최초 실행 시 보안 허용 필요할 수 있음)
                     </td>
                 </tr>
                 <tr>

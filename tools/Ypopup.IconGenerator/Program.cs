@@ -4,7 +4,7 @@ using System.Drawing.Imaging;
 
 var projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
 var sourcePath = Path.Combine(projectRoot, "ref", "icon.png");
-var assetsDir = Path.Combine(projectRoot, "src", "Ypopup.App", "Assets");
+var assetsDir = Path.Combine(projectRoot, "src", "Ypopup.Desktop", "Assets");
 var pngPath = Path.Combine(assetsDir, "icon.png");
 var trayIcoPath = Path.Combine(assetsDir, "tray.ico");
 var appIcoPath = Path.Combine(assetsDir, "app.ico");
