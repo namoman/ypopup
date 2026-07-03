@@ -85,6 +85,7 @@
 
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="공개 IP" VerticalAlignment="Center"/>
                             <ComboBox x:Name="LocalIpComboBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"
+                                      IsEditable="True"
                                       ToolTip="다중 랜카드 PC에서 다른 PC가 접속할 IP"/>
 
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="UDP 탐색 포트" VerticalAlignment="Center"/>
@@ -173,10 +174,16 @@
                         </GroupBox>
 
                         <GroupBox Header="수신 파일" Margin="0,0,0,12">
-                            <DockPanel Margin="8">
-                                <Button Content="찾기" DockPanel.Dock="Right" Click="BrowseFolderButton_Click"/>
-                                <TextBox x:Name="ReceiveDirectoryTextBox" Margin="0,0,8,0"/>
-                            </DockPanel>
+                            <StackPanel Margin="8">
+                                <TextBlock Text="받은 파일 저장 위치. 기본: exe 위치\down"
+                                           Foreground="#64748B"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,6"/>
+                                <DockPanel>
+                                    <Button Content="찾기" DockPanel.Dock="Right" Click="BrowseFolderButton_Click"/>
+                                    <TextBox x:Name="ReceiveDirectoryTextBox" Margin="0,0,8,0"/>
+                                </DockPanel>
+                            </StackPanel>
                         </GroupBox>
 
                         <GroupBox Header="쪽지 글꼴">
@@ -192,7 +199,7 @@
             <!-- 부재 -->
             <TabItem Header="부재">
                 <StackPanel Margin="12" TextElement.Foreground="#1E293B">
-                    <TextBlock Text="부재 중에는 UDP Announce에 IsAway=true가 전송되고,&#x0a;수신 메시지에 자동 답장(TCP)이 발송됩니다."
+                    <TextBlock Text="설정한 시간 동안 입력이 없으면 사용자 목록에 부재로 표시되고,&#x0a;수신 쪽지에 자동 답장이 발송됩니다."
                                Foreground="#64748B"
                                TextWrapping="Wrap"
                                Margin="0,0,0,12"/>

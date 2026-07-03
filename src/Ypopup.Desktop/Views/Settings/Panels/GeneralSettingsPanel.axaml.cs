@@ -29,6 +29,7 @@ public partial class GeneralSettingsPanel : UserControl
     public void Load(AppSettings settings)
     {
         _workingSettings = settings;
+        RunAtStartupCheckBox.IsVisible = OperatingSystem.IsWindows();
         KeepWindowTopmostCheckBox.IsChecked = settings.KeepWindowTopmost;
         RunAtStartupCheckBox.IsChecked = _startupService.IsEnabled();
         CloseComposeAfterSendCheckBox.IsChecked = settings.CloseComposeWindowAfterSend;
@@ -39,6 +40,7 @@ public partial class GeneralSettingsPanel : UserControl
         ReceiveDirectoryTextBox.Text = settings.ReceiveDirectory;
         ShareFolderEnabledCheckBox.IsChecked = settings.ShareFolderEnabled;
         ShareFolderPathTextBox.Text = settings.ShareFolderPath;
+        UpdateShareFolderStatus(settings.ShareFolderPath);
         MessageFontHelper.ApplyPreview(settings, FontPreviewTextBlock);
     }
 
@@ -60,6 +62,26 @@ public partial class GeneralSettingsPanel : UserControl
     public bool RunAtStartupEnabled => RunAtStartupCheckBox.IsChecked == true;
     public bool ShareFolderEnabled => ShareFolderEnabledCheckBox.IsChecked == true;
     public string ShareFolderPath => ShareFolderPathTextBox.Text?.Trim() ?? string.Empty;
+
+    private void UpdateShareFolderStatus(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            ShareFolderStatusTextBlock.Text = "공유 경로가 비어 있습니다.";
+            return;
+        }
+
+        if (!Directory.Exists(path))
+        {
+            ShareFolderStatusTextBlock.Text = "폴더가 없습니다. 저장 후 자동 생성되거나 경로를 확인하세요.";
+            return;
+        }
+
+        var fileCount = Directory.GetFiles(path).Length;
+        var folderCount = Directory.GetDirectories(path).Length;
+        ShareFolderStatusTextBlock.Text =
+            $"LAN에 공개되는 폴더: {path}\n파일 {fileCount}개, 하위 폴더 {folderCount}개";
+    }
 
     private IStorageProvider? GetStorageProvider()
         => TopLevel.GetTopLevel(this)?.StorageProvider;
@@ -191,6 +213,7 @@ public partial class GeneralSettingsPanel : UserControl
         {
             path = SharedFolderPathHelper.GetDefaultShareFolderPath();
             ShareFolderPathTextBox.Text = path;
+            UpdateShareFolderStatus(path);
         }
 
         try
@@ -223,6 +246,7 @@ public partial class GeneralSettingsPanel : UserControl
         if (!string.IsNullOrWhiteSpace(path))
         {
             ShareFolderPathTextBox.Text = path;
+            UpdateShareFolderStatus(path);
         }
     }
 }

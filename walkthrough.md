@@ -231,3 +231,93 @@ Ypopup/
 
 - `publish-framework/`, `publish-osx-*` 등은 `publish.ps1` **로컬 중간 산출물** (재생성 가능)
 - `.gitignore`에 추가하고 Git 추적 제거 — 배포 파일은 `docs/`만 유지
+
+## 2026-07-03 — 설정 탭 제목 스타일
+
+- WPF `App.xaml`의 `TabItem` 커스텀 템플릿(가운데 정렬·선택 시 빨간 밑줄)이 Avalonia에 없어 Fluent 기본 탭만 적용되던 문제
+- `AppStyles.axaml`에 동일 `TabItem` 템플릿 이식 (hover/selected Foreground·BorderBrush)
+
+## 2026-07-03 — 부재 탭 안내문 정리
+
+- 기술 용어(`IsAway=true`, UDP/TCP) 안내문 → 사용자용 문구로 변경
+- WIP에 있던 수정본 기준: 부재 표시 + 자동 답장을 일반어로 설명
+
+## 2026-07-03 — WPF·Avalonia 설정 패리티 및 레거시 경로 마이그레이션
+
+### 배경
+
+- lanpopup에서 정리했던 수신/공유 기본 폴더(`exe\down`, `exe\share`) 등이 Avalonia 쪽에 누락·회귀된 항목이 계속 발견됨
+- WPF를 기준으로 Core·UI를 맞춤 (Less is more: 공통 로직은 Core로, UI 차이만 최소 수정)
+
+### Core (`SettingsService`, `SharedFolderPathHelper`)
+
+- `GetDefaultReceiveDirectory()` 추가 — 수신 기본 경로 `exe\down` 단일 정의
+- 로드 시 레거시 경로 자동 마이그레이션 후 `settings.json`에 즉시 저장:
+  - 수신: `Documents\Y-popup\Received` → `exe\down`
+  - 공유: `Documents\Y-popup\공유폴더`, `publish\share` → `exe\share`
+- 저장 시에도 동일 정규화 적용
+
+### Avalonia 설정 UI
+
+- **네트워크**: 공개 IP `ComboBox` `IsEditable` + `Text` 기반 로드/저장 (WPF와 동일)
+- **일반**: 수신 폴더 안내 문구 추가; Windows가 아니면 자동 실행 체크박스 숨김
+- **프로필**: 메모 필드 스크롤 + 전체 패널 `ScrollViewer`
+- **공유폴더 시작 실패**: 안내 문구를 WPF와 동일하게 (`설정 > 네트워크 > 방화벽`)
+
+### 설정 저장 후 연동
+
+- `YpopupCoordinator.SettingsSaved` 이벤트 추가
+- 저장 후 부재 상태 갱신 (`AwayMonitorService.RefreshAwayStatus`)
+- 사용자 목록 창 `Topmost` 설정 즉시 반영 (`RefreshPeers`)
+
+### WPF
+
+- 공개 IP `IsEditable`, 수신 폴더 안내 문구, `RefreshPeers` 시 `Topmost` 갱신 동기화
+
+## 2026-07-03 — 아이콘 미반영 원인 수정 및 클린 빌드
+
+### 왜 PC에서 아이콘이 안 바뀌어 보였나
+
+1. **아이콘 생성기가 Desktop만 갱신** — `Ypopup.App/Assets`는 예전 `.ico`가 남아 있었음
+2. **창 헤더 로고가 이모지(☎)** — `ref/icon.png`를 쓰지 않고 빨간 박스+전화 이모지가 하드코딩되어 있었음
+3. **이전 exe 실행** — `dotnet run` 캐시·바탕화면 바로가기·Windows 아이콘 캐시로 예전 아이콘이 보일 수 있음
+
+### 수정
+
+- `IconGenerator`: `ref/icon.png` → **Desktop + App** 양쪽 `Assets/`에 `icon.png`, `tray.ico`, `app.ico` 동시 생성
+- 사용자 목록 창 헤더: `icon.png` 이미지로 교체 (WPF·Avalonia)
+- `bin/`·`obj/`·`publish*` 삭제 후 `publish.ps1`로 재빌드 → `docs/Y-popup.exe` 갱신
+
+### 확인 방법
+
+- 새 빌드 실행: `D:\sw\dev\Ypopup\docs\Y-popup.exe` 또는 `D:\sw\dev\Ypopup\publish\Y-popup.exe` (publish 폴더는 빌드 후 삭제됨)
+- 트레이·작업 표시줄 아이콘이 여전히 예전이면: Y-popup 완전 종료 후 새 exe 실행 (Windows 탐색기 아이콘 캐시는 재부팅 또는 exe를 다른 폴더로 복사하면 갱신됨)
+
+## 2026-07-03 — 메인 헤더·설정 탭 UI 조정
+
+- **창 안 로고**: `icon.png` → 빨간 박스 + ☎ 이모지로 복원 (exe/트레이 아이콘만 `ref/icon.png` 사용)
+- **메인 헤더 제목**: `Y-popup` → 현재 사용자 **표시 이름** (`Settings.DisplayName`, 설정 저장 후 갱신)
+- **설정 탭**: Fluent 기본 큰 글씨 대신 12px·얇은 회색/선택 시 빨간 밑줄 스타일 (`HeaderTemplate` + `MinHeight=0`)
+
+## 2026-07-03 — 사용자 목록 영역 배경 구분
+
+- 목록 `ListBox`를 `#F1F5F9` 패널(둥근 모서리·연한 테두리)로 감싸 창 본문(`#F5FFFFFF`)과 시각적으로 구분
+- 목록 항목 hover 시 `#E2E8F0` 배경 (Avalonia `peer-list` 스타일)
+
+## 2026-07-03 — 공유폴더 상대방 미표시 원인·수정
+
+### 흔한 원인
+
+1. **파일 위치 오류** — 공유되는 폴더는 설정의 `ShareFolderPath`(기본: **실행 exe 옆 `share`**)입니다. 다른 경로에 넣으면 상대는 빈 목록만 봅니다.
+2. **공유 서버 미실행** — 방화벽 TCP 50507 차단 시 서버가 안 떠도 예전에는 UDP로 “공유 있음”만 알려질 수 있었음.
+3. **HTTP 클라이언트 호환** — 공유폴더는 경량 TCP HTTP 서버인데 `HttpClient`와 맞지 않을 수 있어 직접 TCP 요청으로 교체.
+
+### 수정
+
+- `SharedFolderHttpIO` + TCP 기반 목록/다운로드 클라이언트
+- 서버: HTTP 헤더 전체 수신 후 응답
+- UDP Announce: **공유폴더 서버가 실제 실행 중일 때만** `ShareFolderEnabled` 전송
+- 앱 시작 순서: 공유폴더 호스트 → 탐색(Announce) → 메시지 TCP
+- 설정 > 일반: 공유 폴더 경로·파일/하위폴더 개수 표시
+- 상대가 빈 공유폴더를 열면 안내 메시지 표시
+- 존재하지 않는 공유 경로는 로드 시 `exe\share`로 정규화

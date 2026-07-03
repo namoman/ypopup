@@ -19,13 +19,21 @@ public partial class UserListWindow : Window
         InitializeComponent();
         _coordinator = coordinator;
         Topmost = _coordinator.Settings.KeepWindowTopmost;
+        UpdateDisplayName();
         RefreshPeers();
         UpdateSearchPlaceholder();
     }
 
     public void RefreshPeers()
     {
+        Topmost = _coordinator.Settings.KeepWindowTopmost;
+        UpdateDisplayName();
         ApplyFilter();
+    }
+
+    private void UpdateDisplayName()
+    {
+        DisplayNameTextBlock.Text = _coordinator.Settings.DisplayName;
     }
 
     private void ApplyFilter()

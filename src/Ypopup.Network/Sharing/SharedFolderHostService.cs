@@ -123,7 +123,7 @@ public sealed class SharedFolderHostService : IAsyncDisposable
             try
             {
                 await using var stream = client.GetStream();
-                var requestLine = await ReadRequestLineAsync(stream, cancellationToken).ConfigureAwait(false);
+                var requestLine = await SharedFolderHttpIO.ReadRequestLineAsync(stream, cancellationToken).ConfigureAwait(false);
                 if (requestLine is null)
                 {
                     return;
@@ -166,20 +166,6 @@ public sealed class SharedFolderHostService : IAsyncDisposable
                 System.Diagnostics.Debug.WriteLine($"Share folder client error: {ex.Message}");
             }
         }
-    }
-
-    private static async Task<string?> ReadRequestLineAsync(NetworkStream stream, CancellationToken cancellationToken)
-    {
-        var buffer = new byte[4096];
-        var read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken).ConfigureAwait(false);
-        if (read <= 0)
-        {
-            return null;
-        }
-
-        var text = Encoding.UTF8.GetString(buffer, 0, read);
-        var lineEnd = text.IndexOf("\r\n", StringComparison.Ordinal);
-        return lineEnd < 0 ? text.Trim() : text[..lineEnd];
     }
 
     private static string? GetQueryParameter(string query, string key)

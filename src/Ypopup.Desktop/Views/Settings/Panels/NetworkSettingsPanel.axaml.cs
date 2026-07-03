@@ -35,9 +35,7 @@ public partial class NetworkSettingsPanel : UserControl
         var addresses = LocalNetworkHelper.GetLocalIPv4Addresses().ToList();
         var resolved = LocalNetworkHelper.ResolvePreferredIp(settings.PreferredLocalIp);
         LocalIpComboBox.ItemsSource = addresses;
-        LocalIpComboBox.SelectedItem = addresses.FirstOrDefault(ip =>
-            ip.Equals(resolved, StringComparison.OrdinalIgnoreCase))
-            ?? addresses.FirstOrDefault();
+        LocalIpComboBox.Text = resolved;
 
         DiscoveryPortTextBox.Text = settings.DiscoveryPort.ToString();
         TcpPortTextBox.Text = settings.TcpPort.ToString();
@@ -49,7 +47,7 @@ public partial class NetworkSettingsPanel : UserControl
 
     public void ApplyTo(AppSettings settings)
     {
-        settings.PreferredLocalIp = LocalIpComboBox.SelectedItem?.ToString()?.Trim() ?? string.Empty;
+        settings.PreferredLocalIp = LocalIpComboBox.Text?.Trim() ?? string.Empty;
 
         if (int.TryParse(DiscoveryPortTextBox.Text, out var discoveryPort))
         {

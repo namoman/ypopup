@@ -24,6 +24,7 @@ public sealed class SettingsService
 
     public void Save(AppSettings settings)
     {
+        NormalizeSettings(settings);
         Current = settings;
         EnsureDirectories(Current);
         var json = JsonSerializer.Serialize(Current, JsonOptions);
@@ -41,7 +42,11 @@ public sealed class SettingsService
         {
             var json = File.ReadAllText(_settingsPath);
             var settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
-            NormalizeShareFolderSettings(settings);
+            if (NormalizeSettings(settings))
+            {
+                File.WriteAllText(_settingsPath, JsonSerializer.Serialize(settings, JsonOptions));
+            }
+
             return settings;
         }
         catch (JsonException)
@@ -50,28 +55,76 @@ public sealed class SettingsService
         }
     }
 
-    private static void NormalizeShareFolderSettings(AppSettings settings)
+    private static bool NormalizeSettings(AppSettings settings)
     {
-        if (!settings.ShareFolderEnabled)
+        var changed = false;
+        changed |= NormalizeReceiveDirectorySettings(settings);
+        changed |= NormalizeShareFolderSettings(settings);
+        return changed;
+    }
+
+    private static bool NormalizeReceiveDirectorySettings(AppSettings settings)
+    {
+        var defaultPath = SharedFolderPathHelper.GetDefaultReceiveDirectory();
+
+        if (string.IsNullOrWhiteSpace(settings.ReceiveDirectory))
         {
-            return;
+            settings.ReceiveDirectory = defaultPath;
+            return true;
         }
 
-        if (string.IsNullOrWhiteSpace(settings.ShareFolderPath))
+        if (!IsLegacyReceiveDirectory(settings.ReceiveDirectory))
         {
-            settings.ShareFolderPath = SharedFolderPathHelper.GetDefaultShareFolderPath();
-            return;
+            return false;
         }
 
-        var defaultPath = SharedFolderPathHelper.GetDefaultShareFolderPath();
-        var isLegacyDocumentsPath = settings.ShareFolderPath.Contains(
-            Path.Combine(AppConstants.AppFolderName, "공유폴더"),
+        settings.ReceiveDirectory = defaultPath;
+        return true;
+    }
+
+    private static bool IsLegacyReceiveDirectory(string path)
+    {
+        return path.Contains(
+            Path.Combine(AppConstants.AppFolderName, "Received"),
             StringComparison.OrdinalIgnoreCase);
+    }
 
-        if (isLegacyDocumentsPath && !Directory.Exists(settings.ShareFolderPath))
+    private static bool NormalizeShareFolderSettings(AppSettings settings)
+    {
+        var defaultPath = SharedFolderPathHelper.GetDefaultShareFolderPath();
+        var changed = false;
+
+        if (string.IsNullOrWhiteSpace(settings.ShareFolderPath)
+            || IsLegacyShareFolderPath(settings.ShareFolderPath))
         {
             settings.ShareFolderPath = defaultPath;
+            changed = true;
         }
+        else
+        {
+            settings.ShareFolderPath = Path.GetFullPath(settings.ShareFolderPath);
+        }
+
+        if (!Directory.Exists(settings.ShareFolderPath))
+        {
+            settings.ShareFolderPath = defaultPath;
+            changed = true;
+        }
+
+        return changed;
+    }
+
+    private static bool IsLegacyShareFolderPath(string path)
+    {
+        if (path.Contains(
+                Path.Combine(AppConstants.AppFolderName, "공유폴더"),
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return path.Contains($"{Path.DirectorySeparatorChar}publish{Path.DirectorySeparatorChar}share", StringComparison.OrdinalIgnoreCase)
+               || path.Contains("/publish/share", StringComparison.OrdinalIgnoreCase);
     }
 
     private static void EnsureDirectories(AppSettings settings)

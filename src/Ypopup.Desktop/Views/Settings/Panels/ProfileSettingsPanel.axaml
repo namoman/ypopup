@@ -1,29 +1,32 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Ypopup.Desktop.Views.Settings.Panels.ProfileSettingsPanel">
-    <StackPanel Margin="12">
-        <TextBlock Text="LAN에 공개되는 내 정보 (UDP Announce)" Foreground="#64748B" Margin="0,0,0,12"/>
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="80"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="표시 이름" VerticalAlignment="Center"/>
-            <TextBox x:Name="DisplayNameTextBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"/>
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="그룹" VerticalAlignment="Center"/>
-            <TextBox x:Name="GroupTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"/>
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="이메일" VerticalAlignment="Center"/>
-            <TextBox x:Name="EmailTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8"/>
-            <TextBlock Grid.Row="3" Grid.Column="0" Text="메모" VerticalAlignment="Top" Margin="0,4,0,0"/>
-            <TextBox x:Name="MemoTextBox" Grid.Row="3" Grid.RowSpan="2" Grid.Column="1"
-                     MinHeight="100" AcceptsReturn="True" TextWrapping="Wrap"/>
-        </Grid>
-    </StackPanel>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="12">
+            <TextBlock Text="LAN에 공개되는 내 정보 (UDP Announce)" Foreground="#64748B" Margin="0,0,0,12"/>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="80"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="표시 이름" VerticalAlignment="Center"/>
+                <TextBox x:Name="DisplayNameTextBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="그룹" VerticalAlignment="Center"/>
+                <TextBox x:Name="GroupTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="이메일" VerticalAlignment="Center"/>
+                <TextBox x:Name="EmailTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="메모" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                <TextBox x:Name="MemoTextBox" Grid.Row="3" Grid.RowSpan="2" Grid.Column="1"
+                         MinHeight="100" AcceptsReturn="True" TextWrapping="Wrap"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

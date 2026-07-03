@@ -24,7 +24,7 @@ public static class SharedFolderStartupNotifier
             null,
             "Y-popup",
             $"공유폴더 서버를 시작하지 못했습니다.\n\n{status.ErrorMessage}\n\n" +
-            $"설정 > 일반에서 공유폴더 사용을 확인하고, 방화벽에서 TCP {port} 허용을 추가하세요.\n" +
+            $"설정 > 일반에서 공유폴더 사용을 확인하고, 설정 > 네트워크 > 방화벽에서 TCP {port} 허용을 추가하세요.\n" +
             "공유할 파일은 exe 옆 share 폴더에 넣으세요.");
     }
 }

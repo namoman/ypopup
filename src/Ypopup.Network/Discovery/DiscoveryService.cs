@@ -11,6 +11,7 @@ public sealed class DiscoveryService : IAsyncDisposable
 {
     private readonly SettingsService _settingsService;
     private readonly Func<bool> _isAwayProvider;
+    private readonly Func<bool> _isShareFolderHostRunning;
     private readonly Dictionary<string, PeerInfo> _peers = new(StringComparer.OrdinalIgnoreCase);
     private readonly object _peerLock = new();
     private UdpClient? _udpClient;
@@ -21,10 +22,14 @@ public sealed class DiscoveryService : IAsyncDisposable
 
     public event Action<IReadOnlyList<PeerInfo>>? PeersChanged;
 
-    public DiscoveryService(SettingsService settingsService, Func<bool> isAwayProvider)
+    public DiscoveryService(
+        SettingsService settingsService,
+        Func<bool> isAwayProvider,
+        Func<bool>? isShareFolderHostRunning = null)
     {
         _settingsService = settingsService;
         _isAwayProvider = isAwayProvider;
+        _isShareFolderHostRunning = isShareFolderHostRunning ?? (() => false);
     }
 
     public IReadOnlyList<PeerInfo> GetPeers()
@@ -111,6 +116,7 @@ public sealed class DiscoveryService : IAsyncDisposable
         }
 
         var settings = _settingsService.Current;
+        var shareFolderActive = settings.ShareFolderEnabled && _isShareFolderHostRunning();
         var packet = new LanPacket
         {
             Type = PacketType.Announce,
@@ -122,8 +128,8 @@ public sealed class DiscoveryService : IAsyncDisposable
             Memo = settings.Memo,
             AdvertisedIp = LocalNetworkHelper.ResolvePreferredIp(settings.PreferredLocalIp),
             IsAway = _isAwayProvider(),
-            ShareFolderEnabled = settings.ShareFolderEnabled,
-            ShareFolderPort = settings.ShareFolderEnabled ? settings.ShareFolderPort : 0
+            ShareFolderEnabled = shareFolderActive,
+            ShareFolderPort = shareFolderActive ? settings.ShareFolderPort : 0
         };
 
         var payload = PacketCodec.Serialize(packet);

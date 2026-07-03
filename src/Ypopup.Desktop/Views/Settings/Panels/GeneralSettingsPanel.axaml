@@ -16,6 +16,8 @@
                               Margin="0,0,0,8"/>
                     <TextBlock Text="공유할 폴더 (읽기 전용). 기본: exe 위치\share"
                                Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <TextBlock x:Name="ShareFolderStatusTextBlock"
+                               Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,6"/>
                     <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,0">
                         <TextBox x:Name="ShareFolderPathTextBox" Grid.Column="0" Margin="0,0,8,0"/>
                         <Button Grid.Column="1" Content="탐색기" Margin="0,0,6,0" Classes="secondary"
@@ -37,6 +39,8 @@
             <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,0,12">
                 <StackPanel>
                     <TextBlock Text="수신 파일" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock Text="받은 파일 저장 위치. 기본: exe 위치\down"
+                               Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,6"/>
                     <Grid ColumnDefinitions="*,Auto">
                         <TextBox x:Name="ReceiveDirectoryTextBox" Grid.Column="0" Margin="0,0,8,0"/>
                         <Button Grid.Column="1" Content="찾기" Classes="secondary" Click="BrowseFolderButton_Click"/>

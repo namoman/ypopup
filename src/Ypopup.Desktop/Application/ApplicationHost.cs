@@ -48,6 +48,8 @@ public sealed class ApplicationHost : IAsyncDisposable
 
             _awayMonitor = new AwayMonitorService(_coordinator, AwayIdleDetectorFactory.Create());
             _awayMonitor.Start();
+            _coordinator.SettingsSaved += () =>
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => _awayMonitor.RefreshAwayStatus());
 
             await SharedFolderStartupNotifier.NotifyIfFailedAsync(_coordinator);
             _windowNavigator.ShowUserList();

@@ -2,11 +2,14 @@ namespace Ypopup.Core.Sharing;
 
 public static class SharedFolderPathHelper
 {
+    public static string GetExeDirectory()
+        => Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
+
     public static string GetDefaultShareFolderPath()
-    {
-        var exeDirectory = Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory;
-        return Path.Combine(exeDirectory, Models.AppConstants.DefaultShareFolderName);
-    }
+        => Path.Combine(GetExeDirectory(), Models.AppConstants.DefaultShareFolderName);
+
+    public static string GetDefaultReceiveDirectory()
+        => Path.Combine(GetExeDirectory(), "down");
 
     public static string ResolveSafeFullPath(string rootDirectory, string relativePath)
     {

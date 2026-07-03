@@ -20,8 +20,9 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="공개 IP" VerticalAlignment="Center"/>
-                <ComboBox x:Name="LocalIpComboBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"
-                          ToolTip.Tip="다중 랜카드 PC에서 다른 PC가 접속할 IP"/>
+                <AutoCompleteBox x:Name="LocalIpComboBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"
+                                 FilterMode="None"
+                                 ToolTip.Tip="다중 랜카드 PC에서 다른 PC가 접속할 IP"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="UDP 탐색 포트" VerticalAlignment="Center"/>
                 <TextBox x:Name="DiscoveryPortTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"/>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="TCP 메시지 포트" VerticalAlignment="Center"/>

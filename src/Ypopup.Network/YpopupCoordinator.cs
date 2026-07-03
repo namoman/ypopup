@@ -21,11 +21,15 @@ public sealed class YpopupCoordinator : IAsyncDisposable
 
     public event Action<IReadOnlyList<PeerInfo>>? PeersChanged;
     public event Action<ReceivedMessage>? MessageReceived;
+    public event Action? SettingsSaved;
 
     public YpopupCoordinator()
     {
         _settingsService = new SettingsService();
-        _discoveryService = new DiscoveryService(_settingsService, () => IsAway);
+        _discoveryService = new DiscoveryService(
+            _settingsService,
+            () => IsAway,
+            () => _sharedFolderHostService.IsRunning);
         _tcpHostService = new TcpHostService(_settingsService);
         _sharedFolderHostService = new SharedFolderHostService(_settingsService);
 
@@ -41,9 +45,9 @@ public sealed class YpopupCoordinator : IAsyncDisposable
 
     public async Task StartAsync()
     {
+        SharedFolderHostStatus = await _sharedFolderHostService.StartAsync(_appCts.Token).ConfigureAwait(false);
         await _discoveryService.StartAsync(_appCts.Token).ConfigureAwait(false);
         await _tcpHostService.StartAsync(_appCts.Token).ConfigureAwait(false);
-        SharedFolderHostStatus = await _sharedFolderHostService.StartAsync(_appCts.Token).ConfigureAwait(false);
     }
 
     public void SaveSettings(AppSettings settings)
@@ -53,8 +57,9 @@ public sealed class YpopupCoordinator : IAsyncDisposable
                                  || settings.ShareFolderPort != Settings.ShareFolderPort;
 
         _settingsService.Save(settings);
+        SettingsSaved?.Invoke();
 
-        if (restartShareFolder)
+        if (restartShareFolder || (settings.ShareFolderEnabled && !SharedFolderHostStatus.IsRunning))
         {
             _ = RestartSharedFolderAsync();
         }

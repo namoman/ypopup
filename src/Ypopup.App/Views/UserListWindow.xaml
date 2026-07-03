@@ -83,11 +83,10 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Orientation="Horizontal">
-                    <!-- Rounded Telephone Logo Icon -->
                     <Border Width="36" Height="36" Background="#EF4444" CornerRadius="10" Margin="0,0,12,0">
                         <TextBlock Text="☎" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,2"/>
                     </Border>
-                    <TextBlock Text="Y-popup" FontSize="22" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="DisplayNameTextBlock" FontSize="22" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" Click="SettingsButton_Click">
@@ -114,12 +113,13 @@
             </Grid>
 
             <!-- 4. User List Box -->
-            <ListBox x:Name="PeerListBox"
-                     Grid.Row="3"
-                     Margin="16,0,16,8"
-                     Background="Transparent"
-                     BorderThickness="0"
-                     MouseDoubleClick="PeerListBox_MouseDoubleClick">
+            <Border Grid.Row="3" Margin="12,0,12,8"
+                    Background="#F1F5F9" CornerRadius="10"
+                    BorderBrush="#E2E8F0" BorderThickness="1" Padding="4">
+                <ListBox x:Name="PeerListBox"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         MouseDoubleClick="PeerListBox_MouseDoubleClick">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Border x:Name="ItemBorder" CornerRadius="8" Padding="8" Background="Transparent" Width="290">
@@ -171,7 +171,8 @@
                         </DataTemplate.Triggers>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
-            </ListBox>
+                </ListBox>
+            </Border>
 
             <!-- 5. Footer Buttons -->
             <Grid Grid.Row="4" Margin="16,8,16,16">

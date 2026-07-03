@@ -53,6 +53,15 @@ public partial class SharedFolderWindow : Window
 
             entries.AddRange(response.Entries);
             EntryListBox.ItemsSource = entries;
+
+            if (entries.Count == 0 || (entries.Count == 1 && entries[0].Name == ".."))
+            {
+                await DialogHelper.ShowInfoAsync(
+                    this,
+                    "Y-popup",
+                    "이 폴더에 공유된 파일이 없습니다.\n\n" +
+                    "상대 PC는 설정 > 일반의 공유폴더 경로(기본: exe 옆 share)에 넣은 파일만 볼 수 있습니다.");
+            }
         }
         catch (Exception ex)
         {

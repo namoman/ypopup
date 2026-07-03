@@ -67,6 +67,7 @@ public partial class App : System.Windows.Application
             await _coordinator.StartAsync();
             _awayMonitor = new AwayMonitorService(_coordinator);
             _awayMonitor.Start();
+            _coordinator.SettingsSaved += () => _awayMonitor.RefreshAwayStatus();
 
             NotifySharedFolderHostStatus();
 

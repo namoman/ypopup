@@ -4,10 +4,11 @@ using System.Drawing.Imaging;
 
 var projectRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
 var sourcePath = Path.Combine(projectRoot, "ref", "icon.png");
-var assetsDir = Path.Combine(projectRoot, "src", "Ypopup.Desktop", "Assets");
-var pngPath = Path.Combine(assetsDir, "icon.png");
-var trayIcoPath = Path.Combine(assetsDir, "tray.ico");
-var appIcoPath = Path.Combine(assetsDir, "app.ico");
+var assetTargets = new[]
+{
+    Path.Combine(projectRoot, "src", "Ypopup.Desktop", "Assets"),
+    Path.Combine(projectRoot, "src", "Ypopup.App", "Assets"),
+};
 
 if (!File.Exists(sourcePath))
 {
@@ -15,16 +16,24 @@ if (!File.Exists(sourcePath))
     return 1;
 }
 
-Directory.CreateDirectory(assetsDir);
-File.Copy(sourcePath, pngPath, overwrite: true);
-
 using var source = new Bitmap(sourcePath);
-IconWriter.SaveAsIco(trayIcoPath, [16, 24, 32, 48], source);
-IconWriter.SaveAsIco(appIcoPath, [16, 24, 32, 48, 256], source);
 
-Console.WriteLine($"Updated {pngPath}");
-Console.WriteLine($"Created {trayIcoPath} (16,24,32,48)");
-Console.WriteLine($"Created {appIcoPath} (16,24,32,48,256)");
+foreach (var assetsDir in assetTargets)
+{
+    Directory.CreateDirectory(assetsDir);
+    var pngPath = Path.Combine(assetsDir, "icon.png");
+    var trayIcoPath = Path.Combine(assetsDir, "tray.ico");
+    var appIcoPath = Path.Combine(assetsDir, "app.ico");
+
+    File.Copy(sourcePath, pngPath, overwrite: true);
+    IconWriter.SaveAsIco(trayIcoPath, [16, 24, 32, 48], source);
+    IconWriter.SaveAsIco(appIcoPath, [16, 24, 32, 48, 256], source);
+
+    Console.WriteLine($"Updated {pngPath}");
+    Console.WriteLine($"Created {trayIcoPath} (16,24,32,48)");
+    Console.WriteLine($"Created {appIcoPath} (16,24,32,48,256)");
+}
+
 return 0;
 
 internal static class IconWriter

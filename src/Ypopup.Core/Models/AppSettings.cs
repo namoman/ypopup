@@ -42,9 +42,7 @@ public sealed class AppSettings
     public bool PlayFileReceivedSound { get; set; } = true;
     public string MessageFontFamily { get; set; } = "Segoe UI";
     public double MessageFontSize { get; set; } = 13;
-    public string ReceiveDirectory { get; set; } = Path.Combine(
-        Path.GetDirectoryName(Environment.ProcessPath) ?? AppContext.BaseDirectory,
-        "down");
+    public string ReceiveDirectory { get; set; } = SharedFolderPathHelper.GetDefaultReceiveDirectory();
 
     // 부재 (Announce.IsAway + TCP 자동답장)
     public bool AwayEnabledByIdle { get; set; }
