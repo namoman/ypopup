@@ -8,7 +8,8 @@
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         SystemDecorations="None"
-        Background="#F5FFFFFF">
+        ExtendClientAreaToDecorationsHint="True"
+        Background="Transparent">
     <Border Background="#F5FFFFFF" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1.5">
         <Grid>
             <Grid.RowDefinitions>
@@ -108,13 +109,13 @@
                 </ListBox.ItemTemplate>
             </ListBox>
 
-            <Grid Grid.Row="4" Margin="16,8,16,16">
+            <Grid Grid.Row="4" Margin="16,8,16,16" VerticalAlignment="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button Content="쪽지 보내기" Click="SendButton_Click" HorizontalAlignment="Left" Width="130"/>
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="쪽지 보내기" Click="SendButton_Click" HorizontalAlignment="Left" VerticalAlignment="Center" Width="130"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="새로고침" Click="RefreshButton_Click" Margin="0,0,8,0"
                             Classes="secondary" Width="80"/>
                     <Button Content="닫기" Click="CloseButton_Click" Classes="secondary" Width="70"/>

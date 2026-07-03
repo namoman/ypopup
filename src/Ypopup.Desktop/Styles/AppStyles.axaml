@@ -15,8 +15,26 @@
         <Setter Property="MinWidth" Value="80"/>
         <Setter Property="CornerRadius" Value="6"/>
         <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="HorizontalContentAlignment" Value="Center"/>
+        <Setter Property="VerticalContentAlignment" Value="Center"/>
+        <Setter Property="Template">
+            <ControlTemplate TargetType="Button">
+                <Border x:Name="RootBorder"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}"
+                        Padding="{TemplateBinding Padding}">
+                    <ContentPresenter Content="{TemplateBinding Content}"
+                                      ContentTemplate="{TemplateBinding ContentTemplate}"
+                                      HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                      VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                      RecognizesAccessKey="True"/>
+                </Border>
+            </ControlTemplate>
+        </Setter>
     </Style>
-    <Style Selector="Button:pointerover /template/ ContentPresenter">
+    <Style Selector="Button:pointerover /template/ Border#RootBorder">
         <Setter Property="Background" Value="#DC2626"/>
     </Style>
     <Style Selector="Button:disabled">
@@ -27,7 +45,7 @@
         <Setter Property="Background" Value="#E2E8F0"/>
         <Setter Property="Foreground" Value="#475569"/>
     </Style>
-    <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+    <Style Selector="Button.secondary:pointerover /template/ Border#RootBorder">
         <Setter Property="Background" Value="#CBD5E1"/>
     </Style>
     <Style Selector="Button.icon">

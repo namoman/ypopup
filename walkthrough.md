@@ -212,3 +212,17 @@ Ypopup/
 - 사용자 목록 창 배경을 `#F5FFFFFF` 불투명으로, 항목은 `HorizontalAlignment="Stretch"` + `peer-list` 전용 ListBox 스타일
 - `WindowDialogHelper`에서 대화상자 `Topmost` 제거 (부모 Topmost만 잠시 해제)
 - 설정 버튼에 예외 처리 추가
+
+## 2026-07-03 — 설정 NullReference·버튼 내용 정렬 수정
+
+### 설정 창
+
+- `InitializeComponent()` 중 `TabControl.SelectionChanged`가 `_editor` 할당 전에 발생 → `NullReferenceException`
+- `_editor` nullable + SelectionChanged 초기 호출 무시로 수정
+
+### 버튼 정렬
+
+- WPF `App.xaml`은 Button `ControlTemplate`에서 `ContentPresenter`를 Center 정렬
+- Avalonia `AppStyles.axaml`에 동일 템플릿·`Horizontal/VerticalContentAlignment` 적용
+- 쪽지/사용자 목록 하단 버튼 영역 `VerticalAlignment="Center"` 보강
+- 사용자 목록 창 배경은 투명(`Transparent`) 유지

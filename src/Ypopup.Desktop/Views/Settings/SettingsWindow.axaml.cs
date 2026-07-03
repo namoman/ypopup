@@ -6,7 +6,7 @@ namespace Ypopup.Desktop.Views.Settings;
 
 public partial class SettingsWindow : Window
 {
-    private readonly SettingsEditor _editor;
+    private SettingsEditor? _editor;
 
     public SettingsWindow(YpopupCoordinator coordinator)
     {
@@ -17,6 +17,11 @@ public partial class SettingsWindow : Window
 
     private void SettingsTabControl_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        if (_editor is null)
+        {
+            return;
+        }
+
         if (SettingsTabControl.SelectedItem is TabItem { Header: "네트워크" })
         {
             ProfilePanel.ApplyTo(_editor.WorkingSettings);
@@ -28,6 +33,11 @@ public partial class SettingsWindow : Window
 
     private async void SaveButton_Click(object? sender, RoutedEventArgs e)
     {
+        if (_editor is null)
+        {
+            return;
+        }
+
         if (await _editor.TrySaveAsync(this, ProfilePanel, NetworkPanel, GeneralPanel, AwayPanel))
         {
             Close();
