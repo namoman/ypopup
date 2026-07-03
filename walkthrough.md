@@ -149,3 +149,9 @@ Ypopup/
 - `docs/index.html` hero 영역: 정적 `screenshot.png` 대신 **순수 HTML/CSS**로 사용자 목록·쪽지 보내기 창 mockup
 - Win11 바탕화면 프레임(글라스 작업 표시줄)은 유지, 실제 WPF 앱 라이트 테마 색상·레이아웃 반영
 - 사용자 4명(홍길동·김영희·이철수·박민수), 선택 강조, 공유폴더 아이콘, 쪽지 작성 창 겹침 표시
+
+## 2026-07-03 — GitHub Pages 다운로드·브랜딩 정리
+
+- hero 제목을 **Y-popup(파란전화기)** 로 통일, 마퀴 문구도 파란전화기 반영
+- Windows 32-bit 행·관련 각주 제거 (64비트만 배포)
+- Windows .NET 8 Runtime 열: `Y-popup-win-x64-net8.zip` → `Y-popup-net8.exe` (framework-dependent 단일 exe, `publish.ps1`에서 이미 생성)
