@@ -31,11 +31,12 @@ public partial class UserListWindow : Window
     private void ApplyFilter()
     {
         var text = SearchTextBox.Text?.Trim() ?? string.Empty;
-        var allPeers = _coordinator.GetPeers();
+        var peers = _coordinator.GetPeers()
+            .OrderBy(peer => peer.DisplayName, StringComparer.CurrentCultureIgnoreCase);
 
         PeerListBox.ItemsSource = string.IsNullOrWhiteSpace(text)
-            ? allPeers
-            : allPeers.Where(p =>
+            ? peers.ToList()
+            : peers.Where(p =>
                 p.DisplayName.Contains(text, StringComparison.OrdinalIgnoreCase) ||
                 p.Group.Contains(text, StringComparison.OrdinalIgnoreCase) ||
                 p.IpAddress.Contains(text, StringComparison.OrdinalIgnoreCase)
@@ -84,9 +85,16 @@ public partial class UserListWindow : Window
 
     private async void SettingsButton_Click(object? sender, RoutedEventArgs e)
     {
-        var settingsWindow = new SettingsWindow(_coordinator);
-        await WindowDialogHelper.ShowDialogAsync(settingsWindow, this);
-        RefreshPeers();
+        try
+        {
+            var settingsWindow = new SettingsWindow(_coordinator);
+            await WindowDialogHelper.ShowDialogAsync(settingsWindow, this);
+            RefreshPeers();
+        }
+        catch (Exception ex)
+        {
+            await DialogHelper.ShowErrorAsync(this, "Y-popup", $"설정 창을 열 수 없습니다.\n\n{ex.Message}");
+        }
     }
 
     private void SearchTextBox_TextChanged(object? sender, TextChangedEventArgs e)

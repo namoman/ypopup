@@ -8,8 +8,7 @@
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         SystemDecorations="None"
-        ExtendClientAreaToDecorationsHint="True"
-        Background="Transparent">
+        Background="#F5FFFFFF">
     <Border Background="#F5FFFFFF" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1.5">
         <Grid>
             <Grid.RowDefinitions>
@@ -65,12 +64,13 @@
             <ListBox x:Name="PeerListBox"
                      Grid.Row="3"
                      Margin="16,0,16,8"
+                     Classes="peer-list"
                      Background="Transparent"
                      BorderThickness="0"
                      DoubleTapped="PeerListBox_DoubleTapped">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="models:PeerInfo">
-                        <Border CornerRadius="8" Padding="8" Background="Transparent" Width="290">
+                        <Border CornerRadius="8" Padding="8" Background="Transparent" HorizontalAlignment="Stretch">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>

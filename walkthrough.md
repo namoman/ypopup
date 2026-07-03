@@ -194,3 +194,21 @@ Ypopup/
 - `app.manifest` assemblyIdentity **2.0.0.0**
 - `publish.ps1`·`docs/index.html`·`README.md`에는 버전 문자열 없음 (csproj·AppInfo에서 빌드 시 반영)
 - `publish.ps1` 실행 후 `docs/`·`publish*/` 바이너리를 GitHub Pages·저장소에 반영 (설정 창·스타일 수정 포함 2.0 빌드)
+
+## 2026-07-03 — 사용자 목록 정렬·설정 창 종료 수정
+
+### 배경
+
+- 사용자 목록 항목이 창 너비에 맞지 않고 배경이 비쳐 보임
+- 설정(⚙) 클릭 시 프로그램이 종료됨
+
+### 원인
+
+- `UserListWindow`: `Background="Transparent"` + `ExtendClientAreaToDecorationsHint`로 데스크톱이 비침, 항목 `Width="290"` 고정으로 좌측 치우침
+- `WindowDialogHelper`: 모달에 `Topmost=true`를 설정하면 Avalonia에서 `ShowDialog` 시 크래시 가능
+
+### 수정 (Less is more)
+
+- 사용자 목록 창 배경을 `#F5FFFFFF` 불투명으로, 항목은 `HorizontalAlignment="Stretch"` + `peer-list` 전용 ListBox 스타일
+- `WindowDialogHelper`에서 대화상자 `Topmost` 제거 (부모 Topmost만 잠시 해제)
+- 설정 버튼에 예외 처리 추가

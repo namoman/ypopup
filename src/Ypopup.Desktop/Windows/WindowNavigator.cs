@@ -44,18 +44,28 @@ public sealed class WindowNavigator
 
     public async Task ShowSettingsAsync()
     {
-        var settingsWindow = new SettingsWindow(_coordinator);
-        if (_userListWindow is { IsVisible: true } owner)
+        try
         {
-            await WindowDialogHelper.ShowDialogAsync(settingsWindow, owner);
-        }
-        else
-        {
-            settingsWindow.Show();
-            settingsWindow.Activate();
-        }
+            var settingsWindow = new SettingsWindow(_coordinator);
+            if (_userListWindow is { IsVisible: true } owner)
+            {
+                await WindowDialogHelper.ShowDialogAsync(settingsWindow, owner);
+            }
+            else
+            {
+                settingsWindow.Show();
+                settingsWindow.Activate();
+            }
 
-        RefreshUserListIfOpen();
+            RefreshUserListIfOpen();
+        }
+        catch (Exception ex)
+        {
+            if (_userListWindow is { IsVisible: true } owner)
+            {
+                await DialogHelper.ShowErrorAsync(owner, "Y-popup", $"설정 창을 열 수 없습니다.\n\n{ex.Message}");
+            }
+        }
     }
 
     public async Task ShowAboutAsync()

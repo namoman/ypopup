@@ -14,7 +14,6 @@ public static class WindowDialogHelper
         }
 
         dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        dialog.Topmost = true;
 
         try
         {
