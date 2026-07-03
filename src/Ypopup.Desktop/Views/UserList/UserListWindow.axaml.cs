@@ -85,7 +85,7 @@ public partial class UserListWindow : Window
     private async void SettingsButton_Click(object? sender, RoutedEventArgs e)
     {
         var settingsWindow = new SettingsWindow(_coordinator);
-        await settingsWindow.ShowDialog(this);
+        await WindowDialogHelper.ShowDialogAsync(settingsWindow, this);
         RefreshPeers();
     }
 

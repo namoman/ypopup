@@ -1,3 +1,4 @@
+using Avalonia.Threading;
 using Ypopup.Desktop.Helpers;
 using Ypopup.Desktop.Infrastructure;
 using Ypopup.Desktop.Platform.Away;
@@ -69,8 +70,8 @@ public sealed class ApplicationHost : IAsyncDisposable
             TrayMenuBuilder.DefaultToolTipText,
             TrayMenuBuilder.Create(
                 () => _windowNavigator?.ShowUserList(),
-                () => _ = ShowSettingsAndRefreshAwayAsync(),
-                () => _ = _windowNavigator?.ShowAboutAsync(),
+                () => Dispatcher.UIThread.Post(() => _ = ShowSettingsAndRefreshAwayAsync()),
+                () => Dispatcher.UIThread.Post(() => _ = ShowAboutAsync()),
                 App.ShutdownAppAsync),
             () => _windowNavigator?.ShowUserList());
     }
@@ -84,6 +85,16 @@ public sealed class ApplicationHost : IAsyncDisposable
 
         await _windowNavigator.ShowSettingsAsync();
         _awayMonitor?.RefreshAwayStatus();
+    }
+
+    private async Task ShowAboutAsync()
+    {
+        if (_windowNavigator is null)
+        {
+            return;
+        }
+
+        await _windowNavigator.ShowAboutAsync();
     }
 
     public async ValueTask DisposeAsync()

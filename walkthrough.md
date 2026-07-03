@@ -156,6 +156,37 @@ Ypopup/
 - Windows 32-bit 행·관련 각주 제거 (64비트만 배포)
 - Windows .NET 8 Runtime 열: `Y-popup-win-x64-net8.zip` → `Y-popup-net8.exe` (framework-dependent 단일 exe, `publish.ps1`에서 이미 생성)
 
+## 2026-07-03 — 설정 창 미표시·Avalonia 스타일 회귀 수정
+
+### 배경
+
+- Avalonia(`Ypopup.Desktop`) 전환 후 설정 창이 열리지 않는다는 제보
+- UI 스타일이 WPF 라이트 테마 수정 이전 상태로 보인다는 제보
+- `D:\sw\dev\lanpopup` 폴더는 없음 — `LanPopup`은 2026-06-29에 `Ypopup`으로 통일됨 (`walkthrough.md` 참고)
+
+### 설정 창 원인
+
+- 기본값 `KeepWindowTopmost = true`로 사용자 목록 창이 항상 위에 표시됨
+- Avalonia에서 `ShowDialog(topmostOwner)` 호출 시 모달 설정 창이 **Topmost 부모 뒤에 가려짐** → 사용자 입장에선 "안 열림"
+- WPF에서는 동일 Owner로 `ShowDialog()`해도 모달이 앞에 뜨지만, Avalonia는 Z-order 처리가 달라 회귀로 보임
+- 트레이 `NativeMenu` 클릭은 UI 스레드 보장이 약해 `Dispatcher.UIThread.Post`로 설정·정보 열기 호출 정리
+
+### 설정 창 수정 (Less is more)
+
+- `WindowDialogHelper.ShowDialogAsync`: 표시 전 부모 `Topmost` 잠시 해제, 대화상자 `Topmost=true` + `CenterOwner`
+- `WindowNavigator.ShowSettingsAsync` / `ShowAboutAsync`, `UserListWindow` 설정 버튼에 적용
+- 트레이 메뉴 설정·정보 핸들러를 `Dispatcher.UIThread.Post`로 감쌈
+
+### CSS(스타일) 회귀 원인
+
+- WPF `App.xaml`에는 Window·TextBox·ListBox·TabItem·ComboBox·CheckBox 전역 스타일이 있음
+- Avalonia `AppStyles.axaml`에는 **Button만** 이식되어 설정 창 등이 Fluent 기본 테마로 보임
+
+### CSS 수정
+
+- WPF `App.xaml` 라이트 테마 색상을 Avalonia `AppStyles.axaml`에 맞게 복원
+- `Ypopup.Desktop.csproj`에 `Styles\**`를 `AvaloniaResource`로 명시 포함
+
 ## 2026-07-03 — 버전 2.0 릴리스
 
 - `AppInfo.Version` **1.2** → **2.0** (UI 표시: 설정·정보 창)

@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Ypopup.Desktop.Helpers;
 using Ypopup.Desktop.Views.About;
 using Ypopup.Desktop.Views.Settings;
 using Ypopup.Desktop.Views.UserList;
@@ -44,13 +45,14 @@ public sealed class WindowNavigator
     public async Task ShowSettingsAsync()
     {
         var settingsWindow = new SettingsWindow(_coordinator);
-        if (_userListWindow is not null)
+        if (_userListWindow is { IsVisible: true } owner)
         {
-            await settingsWindow.ShowDialog(_userListWindow);
+            await WindowDialogHelper.ShowDialogAsync(settingsWindow, owner);
         }
         else
         {
             settingsWindow.Show();
+            settingsWindow.Activate();
         }
 
         RefreshUserListIfOpen();
@@ -59,13 +61,14 @@ public sealed class WindowNavigator
     public async Task ShowAboutAsync()
     {
         var aboutWindow = new AboutWindow();
-        if (_userListWindow is { IsVisible: true })
+        if (_userListWindow is { IsVisible: true } owner)
         {
-            await aboutWindow.ShowDialog(_userListWindow);
+            await WindowDialogHelper.ShowDialogAsync(aboutWindow, owner);
         }
         else
         {
             aboutWindow.Show();
+            aboutWindow.Activate();
         }
     }
 }

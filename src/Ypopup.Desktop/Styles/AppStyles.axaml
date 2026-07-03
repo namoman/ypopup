@@ -1,5 +1,12 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style Selector="Window">
+        <Setter Property="Background" Value="#F8FAFC"/>
+        <Setter Property="Foreground" Value="#1E293B"/>
+        <Setter Property="FontFamily" Value="Segoe UI,Malgun Gothic"/>
+        <Setter Property="FontSize" Value="13"/>
+    </Style>
+
     <Style Selector="Button">
         <Setter Property="Background" Value="#EF4444"/>
         <Setter Property="Foreground" Value="White"/>
@@ -59,5 +66,65 @@
         <Setter Property="Padding" Value="0"/>
         <Setter Property="MinWidth" Value="0"/>
         <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <Style Selector="TextBox">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#1E293B"/>
+        <Setter Property="BorderBrush" Value="#CBD5E1"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="TextBox:focus">
+        <Setter Property="BorderBrush" Value="#EF4444"/>
+    </Style>
+
+    <Style Selector="ComboBox">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#1E293B"/>
+        <Setter Property="BorderBrush" Value="#CBD5E1"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+
+    <Style Selector="CheckBox">
+        <Setter Property="Foreground" Value="#1E293B"/>
+    </Style>
+
+    <Style Selector="TabControl">
+        <Setter Property="Background" Value="Transparent"/>
+    </Style>
+    <Style Selector="TabItem">
+        <Setter Property="Foreground" Value="#64748B"/>
+        <Setter Property="Padding" Value="12,8"/>
+        <Setter Property="Margin" Value="0,0,4,0"/>
+    </Style>
+    <Style Selector="TabItem:selected">
+        <Setter Property="Foreground" Value="#EF4444"/>
+    </Style>
+
+    <Style Selector="ListBox">
+        <Setter Property="Background" Value="#FFFFFF"/>
+        <Setter Property="Foreground" Value="#1E293B"/>
+        <Setter Property="BorderBrush" Value="#E2E8F0"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="CornerRadius" Value="8"/>
+        <Setter Property="Padding" Value="4"/>
+    </Style>
+    <Style Selector="ListBoxItem">
+        <Setter Property="Padding" Value="8,6"/>
+        <Setter Property="Margin" Value="0,2"/>
+        <Setter Property="CornerRadius" Value="6"/>
+    </Style>
+    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="#F1F5F9"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+        <Setter Property="Background" Value="#EF4444"/>
+    </Style>
+    <Style Selector="ListBoxItem:selected">
+        <Setter Property="Foreground" Value="White"/>
     </Style>
 </Styles>
