@@ -23,6 +23,7 @@ public static class FirewallHelper
     private const string AppRuleName = "Y-popup";
     private const string UdpRuleName = "Y-popup UDP";
     private const string TcpRuleName = "Y-popup TCP";
+    private const string ShareFolderTcpRuleName = "Y-popup ShareFolder TCP";
 
     public static FirewallStatus GetStatus(AppSettings settings)
     {
@@ -49,8 +50,11 @@ public static class FirewallHelper
 
         var udpText = status.UdpPortOpen ? "수신 가능" : "차단 또는 사용 불가";
         var tcpText = status.TcpPortOpen ? "수신 가능" : "차단 또는 사용 불가";
+        var shareText = !settings.ShareFolderEnabled
+            ? "사용 안 함"
+            : IsTcpPortOpen(settings.ShareFolderPort) ? "수신 가능" : "차단 또는 사용 불가";
 
-        return $"{ruleText}\nUDP {settings.DiscoveryPort}: {udpText}\nTCP {settings.TcpPort}: {tcpText}";
+        return $"{ruleText}\nUDP {settings.DiscoveryPort}: {udpText}\nTCP {settings.TcpPort}: {tcpText}\nTCP {settings.ShareFolderPort} (공유폴더): {shareText}";
     }
 
     public static bool TryAddFirewallRules(AppSettings settings, out string message)
@@ -67,10 +71,16 @@ public static class FirewallHelper
             $"advfirewall firewall delete rule name=\"{AppRuleName}\"",
             $"advfirewall firewall delete rule name=\"{UdpRuleName}\"",
             $"advfirewall firewall delete rule name=\"{TcpRuleName}\"",
+            $"advfirewall firewall delete rule name=\"{ShareFolderTcpRuleName}\"",
             BuildAddProgramRuleCommand(AppRuleName, exePath),
             BuildAddPortRuleCommand(UdpRuleName, "UDP", settings.DiscoveryPort),
             BuildAddPortRuleCommand(TcpRuleName, "TCP", settings.TcpPort)
         };
+
+        if (settings.ShareFolderEnabled)
+        {
+            commands = [..commands, BuildAddPortRuleCommand(ShareFolderTcpRuleName, "TCP", settings.ShareFolderPort)];
+        }
 
         foreach (var command in commands)
         {
@@ -118,7 +128,7 @@ public static class FirewallHelper
 
     private static bool HasConfiguredRules()
     {
-        return RuleExists(AppRuleName) || RuleExists(UdpRuleName) || RuleExists(TcpRuleName);
+        return RuleExists(AppRuleName) || RuleExists(UdpRuleName) || RuleExists(TcpRuleName) || RuleExists(ShareFolderTcpRuleName);
     }
 
     private static bool RuleExists(string ruleName)

@@ -21,6 +21,8 @@ public sealed class LanPacket
     public string AdvertisedIp { get; set; } = string.Empty;
     public bool IsAway { get; set; }
     public bool IsAutoReply { get; set; }
+    public bool ShareFolderEnabled { get; set; }
+    public int ShareFolderPort { get; set; }
     public List<FileAttachmentInfo> Attachments { get; set; } = [];
     public FileAttachmentInfo? File { get; set; }
 }
@@ -42,9 +44,13 @@ public sealed class PeerInfo
     public string Email { get; set; } = string.Empty;
     public string Memo { get; set; } = string.Empty;
     public bool IsAway { get; set; }
+    public bool ShareFolderEnabled { get; set; }
+    public int ShareFolderPort { get; set; }
     public DateTime LastSeenUtc { get; set; } = DateTime.UtcNow;
 
     public string EndpointKey => $"{IpAddress}:{TcpPort}";
+
+    public bool HasSharedFolder => ShareFolderEnabled && ShareFolderPort is >= 1024 and <= 65535;
 
     public string ListDisplayName => IsAway ? $"{DisplayName} (부재)" : DisplayName;
 }

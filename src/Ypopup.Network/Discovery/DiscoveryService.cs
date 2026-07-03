@@ -121,7 +121,9 @@ public sealed class DiscoveryService : IAsyncDisposable
             Email = settings.Email,
             Memo = settings.Memo,
             AdvertisedIp = LocalNetworkHelper.ResolvePreferredIp(settings.PreferredLocalIp),
-            IsAway = _isAwayProvider()
+            IsAway = _isAwayProvider(),
+            ShareFolderEnabled = settings.ShareFolderEnabled,
+            ShareFolderPort = settings.ShareFolderEnabled ? settings.ShareFolderPort : 0
         };
 
         var payload = PacketCodec.Serialize(packet);
@@ -187,6 +189,8 @@ public sealed class DiscoveryService : IAsyncDisposable
             Email = packet.Email,
             Memo = packet.Memo,
             IsAway = packet.IsAway,
+            ShareFolderEnabled = packet.ShareFolderEnabled,
+            ShareFolderPort = packet.ShareFolderPort,
             LastSeenUtc = DateTime.UtcNow
         };
 
@@ -227,7 +231,9 @@ public sealed class DiscoveryService : IAsyncDisposable
                || existing.Group != updated.Group
                || existing.Email != updated.Email
                || existing.Memo != updated.Memo
-               || existing.IsAway != updated.IsAway;
+               || existing.IsAway != updated.IsAway
+               || existing.ShareFolderEnabled != updated.ShareFolderEnabled
+               || existing.ShareFolderPort != updated.ShareFolderPort;
     }
 
     private void PruneExpiredPeers()

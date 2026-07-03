@@ -44,23 +44,26 @@ dotnet build
 dotnet run --project src\Ypopup.App\Ypopup.App.csproj
 ```
 
-## 단일 exe 배포 (완전 독립)
-
-.NET 런타임 **별도 설치 없이** `Y-popup.exe` 하나만 복사해 실행할 수 있습니다.
+## 배포 (두 가지 exe)
 
 ```powershell
 .\publish.ps1
 ```
 
-또는:
+| 출력 | 설명 |
+|------|------|
+| `publish\Y-popup.exe` | Self-contained (~70MB). **.NET 설치 불필요** |
+| `publish-framework\Y-popup.exe` | Framework-dependent (~5MB). [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) 필요 |
+
+GitHub Pages용: `docs\Y-popup.exe`, `docs\Y-popup-net8.exe` 자동 복사
+
+수동 빌드 (self-contained만):
 
 ```powershell
 dotnet publish src\Ypopup.App\Ypopup.App.csproj -c Release -r win-x64 -o publish `
   /p:PublishSingleFile=true /p:SelfContained=true `
   /p:IncludeNativeLibrariesForSelfExtract=true /p:EnableCompressionInSingleFile=true
 ```
-
-출력: `publish\Y-popup.exe` (단일 파일, 약 70~90MB, win-x64 전용)
 
 ## 사용 방법
 

@@ -143,3 +143,9 @@ Ypopup/
 
 - 설정 **네트워크** 탭에 방화벽 상태·허용 버튼 추가
 - `FirewallHelper`로 netsh 규칙 등록 (관리자 UAC)
+
+## 2026-07-03 — 홈페이지 앱 UI HTML/CSS mockup
+
+- `docs/index.html` hero 영역: 정적 `screenshot.png` 대신 **순수 HTML/CSS**로 사용자 목록·쪽지 보내기 창 mockup
+- Win11 바탕화면 프레임(글라스 작업 표시줄)은 유지, 실제 WPF 앱 라이트 테마 색상·레이아웃 반영
+- 사용자 4명(홍길동·김영희·이철수·박민수), 선택 강조, 공유폴더 아이콘, 쪽지 작성 창 겹침 표시

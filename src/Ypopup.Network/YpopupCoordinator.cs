@@ -1,7 +1,9 @@
 using Ypopup.Core.Models;
+using Ypopup.Core.Sharing;
 using Ypopup.Core.Settings;
 using Ypopup.Network.Discovery;
 using Ypopup.Network.Messaging;
+using Ypopup.Network.Sharing;
 
 namespace Ypopup.Network;
 
@@ -10,9 +12,12 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     private readonly SettingsService _settingsService;
     private readonly DiscoveryService _discoveryService;
     private readonly TcpHostService _tcpHostService;
+    private readonly SharedFolderHostService _sharedFolderHostService;
     private readonly CancellationTokenSource _appCts = new();
     private readonly Dictionary<string, DateTime> _lastAutoReplyTimes = new(StringComparer.OrdinalIgnoreCase);
     private int _disposed;
+
+    public SharedFolderHostStartResult SharedFolderHostStatus { get; private set; } = new(false);
 
     public event Action<IReadOnlyList<PeerInfo>>? PeersChanged;
     public event Action<ReceivedMessage>? MessageReceived;
@@ -22,6 +27,7 @@ public sealed class YpopupCoordinator : IAsyncDisposable
         _settingsService = new SettingsService();
         _discoveryService = new DiscoveryService(_settingsService, () => IsAway);
         _tcpHostService = new TcpHostService(_settingsService);
+        _sharedFolderHostService = new SharedFolderHostService(_settingsService);
 
         _discoveryService.PeersChanged += peers => PeersChanged?.Invoke(peers);
         _tcpHostService.MessageReceived += HandleMessageReceivedAsync;
@@ -37,17 +43,57 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     {
         await _discoveryService.StartAsync(_appCts.Token).ConfigureAwait(false);
         await _tcpHostService.StartAsync(_appCts.Token).ConfigureAwait(false);
+        SharedFolderHostStatus = await _sharedFolderHostService.StartAsync(_appCts.Token).ConfigureAwait(false);
     }
 
     public void SaveSettings(AppSettings settings)
     {
+        var restartShareFolder = settings.ShareFolderEnabled != Settings.ShareFolderEnabled
+                                 || !string.Equals(settings.ShareFolderPath, Settings.ShareFolderPath, StringComparison.OrdinalIgnoreCase)
+                                 || settings.ShareFolderPort != Settings.ShareFolderPort;
+
         _settingsService.Save(settings);
+
+        if (restartShareFolder)
+        {
+            _ = RestartSharedFolderAsync();
+        }
+    }
+
+    public Task<SharedFolderListResponse> ListSharedFolderAsync(
+        PeerInfo peer,
+        string relativePath,
+        CancellationToken cancellationToken = default)
+    {
+        return SharedFolderClient.ListAsync(peer, relativePath, cancellationToken);
+    }
+
+    public Task DownloadSharedFileAsync(
+        PeerInfo peer,
+        string relativePath,
+        string destinationPath,
+        CancellationToken cancellationToken = default)
+    {
+        return SharedFolderClient.DownloadAsync(peer, relativePath, destinationPath, cancellationToken);
     }
 
     public async Task SendMessageAsync(OutgoingMessage message, CancellationToken cancellationToken = default)
     {
         await TcpHostService.SendMessageAsync(message, _settingsService.Current, cancellationToken)
             .ConfigureAwait(false);
+    }
+
+    private async Task RestartSharedFolderAsync()
+    {
+        try
+        {
+            SharedFolderHostStatus = await _sharedFolderHostService.StartAsync(_appCts.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            SharedFolderHostStatus = new SharedFolderHostStartResult(false, ex.Message);
+            System.Diagnostics.Debug.WriteLine($"Shared folder restart failed: {ex.Message}");
+        }
     }
 
     private async void HandleMessageReceivedAsync(ReceivedMessage message)
@@ -106,6 +152,7 @@ public sealed class YpopupCoordinator : IAsyncDisposable
         await _appCts.CancelAsync().ConfigureAwait(false);
         await _discoveryService.DisposeAsync().ConfigureAwait(false);
         await _tcpHostService.DisposeAsync().ConfigureAwait(false);
+        await _sharedFolderHostService.DisposeAsync().ConfigureAwait(false);
         _appCts.Dispose();
     }
 }

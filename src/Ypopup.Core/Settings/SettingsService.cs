@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Ypopup.Core.Models;
+using Ypopup.Core.Sharing;
 
 namespace Ypopup.Core.Settings;
 
@@ -18,13 +19,13 @@ public sealed class SettingsService
         Directory.CreateDirectory(appData);
         _settingsPath = Path.Combine(appData, "settings.json");
         Current = Load();
-        Directory.CreateDirectory(Current.ReceiveDirectory);
+        EnsureDirectories(Current);
     }
 
     public void Save(AppSettings settings)
     {
         Current = settings;
-        Directory.CreateDirectory(Current.ReceiveDirectory);
+        EnsureDirectories(Current);
         var json = JsonSerializer.Serialize(Current, JsonOptions);
         File.WriteAllText(_settingsPath, json);
     }
@@ -39,11 +40,43 @@ public sealed class SettingsService
         try
         {
             var json = File.ReadAllText(_settingsPath);
-            return JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+            var settings = JsonSerializer.Deserialize<AppSettings>(json) ?? new AppSettings();
+            NormalizeShareFolderSettings(settings);
+            return settings;
         }
         catch (JsonException)
         {
             return new AppSettings();
         }
+    }
+
+    private static void NormalizeShareFolderSettings(AppSettings settings)
+    {
+        if (!settings.ShareFolderEnabled)
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(settings.ShareFolderPath))
+        {
+            settings.ShareFolderPath = SharedFolderPathHelper.GetDefaultShareFolderPath();
+            return;
+        }
+
+        var defaultPath = SharedFolderPathHelper.GetDefaultShareFolderPath();
+        var isLegacyDocumentsPath = settings.ShareFolderPath.Contains(
+            Path.Combine(AppConstants.AppFolderName, "공유폴더"),
+            StringComparison.OrdinalIgnoreCase);
+
+        if (isLegacyDocumentsPath && !Directory.Exists(settings.ShareFolderPath))
+        {
+            settings.ShareFolderPath = defaultPath;
+        }
+    }
+
+    private static void EnsureDirectories(AppSettings settings)
+    {
+        Directory.CreateDirectory(settings.ReceiveDirectory);
+        Directory.CreateDirectory(settings.ShareFolderPath);
     }
 }

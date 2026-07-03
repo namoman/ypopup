@@ -67,12 +67,14 @@ public partial class App : System.Windows.Application
             _awayMonitor = new AwayMonitorService(_coordinator);
             _awayMonitor.Start();
 
+            NotifySharedFolderHostStatus();
+
             ShowUserList();
         }
         catch (Exception ex)
         {
             MessageBox.Show(
-                $"Y-popup 시작 중 오류가 발생했습니다.\n\n{ex.Message}\n\n방화벽에서 UDP/TCP 포트(50505, 50506) 허용이 필요할 수 있습니다.",
+                $"Y-popup 시작 중 오류가 발생했습니다.\n\n{ex.Message}\n\n방화벽에서 UDP/TCP 포트(50505, 50506, 공유폴더 50507) 허용이 필요할 수 있습니다.",
                 "Y-popup",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
@@ -102,6 +104,29 @@ public partial class App : System.Windows.Application
         menu.Items.Add(exitItem);
 
         return menu;
+    }
+
+    private void NotifySharedFolderHostStatus()
+    {
+        if (_coordinator is null || !_coordinator.Settings.ShareFolderEnabled)
+        {
+            return;
+        }
+
+        var status = _coordinator.SharedFolderHostStatus;
+        if (status.IsRunning)
+        {
+            return;
+        }
+
+        var port = _coordinator.Settings.ShareFolderPort;
+        MessageBox.Show(
+            $"공유폴더 서버를 시작하지 못했습니다.\n\n{status.ErrorMessage}\n\n" +
+            $"설정 > 일반에서 공유폴더 사용을 확인하고, 설정 > 네트워크 > 방화벽에서 TCP {port} 허용을 추가하세요.\n" +
+            $"공유할 파일은 exe 옆 share 폴더에 넣으세요.",
+            "Y-popup",
+            MessageBoxButton.OK,
+            MessageBoxImage.Warning);
     }
 
     private void ShowUserList()
@@ -175,16 +200,6 @@ public partial class App : System.Windows.Application
         else
         {
             NotificationService.PlayMessageReceived(_coordinator.Settings);
-        }
-
-        var activeChat = Current.Windows
-            .OfType<ComposeWindow>()
-            .FirstOrDefault(w => string.Equals(w.RecipientMachineId, message.SenderId, StringComparison.OrdinalIgnoreCase));
-
-        if (activeChat != null)
-        {
-            activeChat.Activate();
-            return;
         }
 
         var receiveWindow = new ReceiveWindow(_coordinator, message);

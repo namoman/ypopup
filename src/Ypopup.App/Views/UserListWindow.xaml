@@ -39,7 +39,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#1EFFFFFF"/>
+                                <Setter TargetName="border" Property="Background" Value="#14000000"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -48,7 +48,7 @@
         </Style>
     </Window.Resources>
 
-    <Border Background="#E60F172A" CornerRadius="16" BorderBrush="#1CFFFFFF" BorderThickness="1.5">
+    <Border Background="#F5FFFFFF" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1.5">
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/> <!-- Title Bar -->
@@ -70,7 +70,7 @@
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Content="—" Foreground="#94A3B8" Click="MinimizeButton_Click" Style="{StaticResource TitleBarButtonStyle}"/>
+                    <Button Content="—" Foreground="#64748B" Click="MinimizeButton_Click" Style="{StaticResource TitleBarButtonStyle}"/>
                     <Button Content="✕" Foreground="#EF4444" Click="CloseButton_Click" Style="{StaticResource TitleBarButtonStyle}"/>
                 </StackPanel>
             </Grid>
@@ -87,17 +87,17 @@
                     <Border Width="36" Height="36" Background="#EF4444" CornerRadius="10" Margin="0,0,12,0">
                         <TextBlock Text="☎" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,2"/>
                     </Border>
-                    <TextBlock Text="Y-popup" FontSize="22" FontWeight="Bold" Foreground="#F8FAFC" VerticalAlignment="Center"/>
+                    <TextBlock Text="Y-popup" FontSize="22" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
                 </StackPanel>
 
                 <Button Grid.Column="1" Style="{StaticResource IconButtonStyle}" Click="SettingsButton_Click">
-                    <TextBlock Text="⚙" FontSize="18" Foreground="#94A3B8"/>
+                    <TextBlock Text="⚙" FontSize="18" Foreground="#64748B"/>
                 </Button>
             </Grid>
 
             <!-- 3. Search Bar -->
             <Grid Grid.Row="2" Margin="16,0,16,12">
-                <TextBox x:Name="SearchTextBox" Padding="28,8,10,8" Background="#1E293B" Foreground="#F8FAFC" BorderThickness="0" TextChanged="SearchTextBox_TextChanged"/>
+                <TextBox x:Name="SearchTextBox" Padding="28,8,10,8" Background="#F1F5F9" Foreground="#1E293B" BorderBrush="#E2E8F0" BorderThickness="1" TextChanged="SearchTextBox_TextChanged"/>
                 <TextBlock IsHitTestVisible="False" Text="사용자 검색..." VerticalAlignment="Center" HorizontalAlignment="Left" Margin="30,0,0,0" Foreground="#64748B">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -127,24 +127,35 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
                                 <!-- Circular Avatar -->
                                 <Grid Grid.Column="0" Width="40" Height="40" Margin="0,0,12,0" VerticalAlignment="Center">
-                                    <Ellipse Fill="#334155" Width="40" Height="40"/>
-                                    <TextBlock Text="👤" Foreground="#94A3B8" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"/>
+                                    <Ellipse Fill="#E2E8F0" Width="40" Height="40"/>
+                                    <TextBlock Text="👤" Foreground="#64748B" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="18"/>
                                     <Ellipse x:Name="StatusDot" Width="10" Height="10" 
                                              Fill="#22C55E" 
-                                             Stroke="#0F172A" StrokeThickness="1.5"
+                                             Stroke="#FFFFFF" StrokeThickness="1.5"
                                              HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
                                 </Grid>
 
                                 <!-- Text Info -->
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13.5" Foreground="#F8FAFC"/>
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13.5" Foreground="#1E293B"/>
                                     <TextBlock Text="{Binding Group}" FontSize="11" Foreground="#64748B" Margin="0,1,0,0"/>
-                                    <TextBlock x:Name="MemoText" Text="{Binding Memo}" FontSize="11" Foreground="#38BDF8" FontStyle="Italic" Margin="0,2,0,0"/>
+                                    <TextBlock x:Name="MemoText" Text="{Binding Memo}" FontSize="11" Foreground="#0284C7" FontStyle="Italic" Margin="0,2,0,0"/>
                                 </StackPanel>
+
+                                <Button Grid.Column="2"
+                                        x:Name="ShareFolderButton"
+                                        Content="📁"
+                                        ToolTip="공유폴더 열기"
+                                        Style="{StaticResource IconButtonStyle}"
+                                        Click="ShareFolderButton_Click"
+                                        Tag="{Binding}"
+                                        Visibility="Collapsed"
+                                        VerticalAlignment="Center"/>
                             </Grid>
                         </Border>
                         <DataTemplate.Triggers>
@@ -153,6 +164,9 @@
                             </DataTrigger>
                             <DataTrigger Binding="{Binding Memo}" Value="">
                                 <Setter TargetName="MemoText" Property="Visibility" Value="Collapsed"/>
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding HasSharedFolder}" Value="True">
+                                <Setter TargetName="ShareFolderButton" Property="Visibility" Value="Visible"/>
                             </DataTrigger>
                         </DataTemplate.Triggers>
                     </DataTemplate>
@@ -175,13 +189,13 @@
                     <Button Content="새로고침"
                             Click="RefreshButton_Click"
                             Margin="0,0,8,0"
-                            Background="#1E293B"
-                            Foreground="#F8FAFC"
+                            Background="#E2E8F0"
+                            Foreground="#475569"
                             Width="80"/>
                     <Button Content="닫기"
                             Click="CloseButton_Click"
-                            Background="#1E293B"
-                            Foreground="#F8FAFC"
+                            Background="#E2E8F0"
+                            Foreground="#475569"
                             Width="70"/>
                 </StackPanel>
             </Grid>

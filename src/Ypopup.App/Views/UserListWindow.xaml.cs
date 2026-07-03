@@ -109,4 +109,17 @@ public partial class UserListWindow : Window
     {
         ApplyFilter();
     }
+
+    private void ShareFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not System.Windows.Controls.Button { Tag: PeerInfo peer })
+        {
+            return;
+        }
+
+        var window = new SharedFolderWindow(_coordinator, peer);
+        window.Owner = this;
+        window.Show();
+        window.Activate();
+    }
 }

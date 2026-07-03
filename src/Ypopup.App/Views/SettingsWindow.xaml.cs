@@ -1,9 +1,11 @@
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Forms;
 using Ypopup.App.Helpers;
 using Ypopup.App.Services;
 using Ypopup.Core.Models;
 using Ypopup.Core.Network;
+using Ypopup.Core.Sharing;
 using Ypopup.Network;
 
 namespace Ypopup.App.Views;
@@ -49,6 +51,10 @@ public partial class SettingsWindow : Window
         AwayIdleMinutesTextBox.Text = _workingSettings.AwayIdleMinutes.ToString();
         AwayMessageTextBox.Text = _workingSettings.AwayMessage;
 
+        ShareFolderEnabledCheckBox.IsChecked = _workingSettings.ShareFolderEnabled;
+        ShareFolderPathTextBox.Text = _workingSettings.ShareFolderPath;
+        ShareFolderPortTextBox.Text = _workingSettings.ShareFolderPort.ToString();
+
         RefreshFirewallStatus();
     }
 
@@ -71,6 +77,14 @@ public partial class SettingsWindow : Window
             preview.TcpPort = tcpPort;
         }
 
+        preview.ShareFolderEnabled = ShareFolderEnabledCheckBox.IsChecked == true;
+        preview.ShareFolderPath = ShareFolderPathTextBox.Text.Trim();
+
+        if (int.TryParse(ShareFolderPortTextBox.Text, out var shareFolderPort))
+        {
+            preview.ShareFolderPort = shareFolderPort;
+        }
+
         return preview;
     }
 
@@ -78,10 +92,28 @@ public partial class SettingsWindow : Window
     {
         var preview = BuildFirewallSettingsPreview();
         var status = FirewallHelper.GetStatus(preview);
-        FirewallStatusTextBlock.Text = FirewallHelper.GetStatusSummary(status, preview);
+        var summary = FirewallHelper.GetStatusSummary(status, preview);
+        summary += "\n" + BuildShareFolderHostStatusText(preview);
+        FirewallStatusTextBlock.Text = summary;
         FirewallExePathTextBlock.Text = string.IsNullOrWhiteSpace(status.ExecutablePath)
             ? string.Empty
             : $"실행 파일: {status.ExecutablePath}";
+    }
+
+    private string BuildShareFolderHostStatusText(AppSettings preview)
+    {
+        if (!preview.ShareFolderEnabled)
+        {
+            return "공유폴더 서버: 사용 안 함";
+        }
+
+        var hostStatus = _coordinator.SharedFolderHostStatus;
+        if (hostStatus.IsRunning)
+        {
+            return $"공유폴더 서버: 실행 중 (TCP *:{preview.ShareFolderPort})";
+        }
+
+        return $"공유폴더 서버: 중지됨 ({hostStatus.ErrorMessage ?? "알 수 없음"})";
     }
 
     private void AddFirewallRuleButton_Click(object sender, RoutedEventArgs e)
@@ -163,6 +195,40 @@ public partial class SettingsWindow : Window
         }
     }
 
+    private void OpenShareFolderInExplorerButton_Click(object sender, RoutedEventArgs e)
+    {
+        var path = ShareFolderPathTextBox.Text.Trim();
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            path = SharedFolderPathHelper.GetDefaultShareFolderPath();
+            ShareFolderPathTextBox.Text = path;
+        }
+
+        try
+        {
+            Directory.CreateDirectory(path);
+            Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"탐색기를 열 수 없습니다.\n\n{ex.Message}", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private void BrowseShareFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        using var dialog = new FolderBrowserDialog
+        {
+            Description = "공유할 폴더 선택",
+            SelectedPath = ShareFolderPathTextBox.Text
+        };
+
+        if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            ShareFolderPathTextBox.Text = dialog.SelectedPath;
+        }
+    }
+
     private void SaveButton_Click(object sender, RoutedEventArgs e)
     {
         if (!int.TryParse(TcpPortTextBox.Text, out var tcpPort) || tcpPort is < 1024 or > 65535)
@@ -181,6 +247,29 @@ public partial class SettingsWindow : Window
         {
             MessageBox.Show(this, "TCP 포트와 UDP 포트는 다른 번호여야 합니다.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
+        }
+
+        var shareFolderEnabled = ShareFolderEnabledCheckBox.IsChecked == true;
+        var shareFolderPort = AppConstants.DefaultShareFolderPort;
+        if (shareFolderEnabled)
+        {
+            if (!int.TryParse(ShareFolderPortTextBox.Text, out shareFolderPort) || shareFolderPort is < 1024 or > 65535)
+            {
+                MessageBox.Show(this, "공유폴더 HTTP 포트는 1024~65535 사이여야 합니다.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (shareFolderPort == tcpPort || shareFolderPort == discoveryPort)
+            {
+                MessageBox.Show(this, "공유폴더 포트는 TCP/UDP 포트와 다른 번호여야 합니다.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(ShareFolderPathTextBox.Text))
+            {
+                MessageBox.Show(this, "공유폴더 경로를 입력하세요.", "Y-popup", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
         }
 
         int awayIdleMinutes = 10;
@@ -217,6 +306,9 @@ public partial class SettingsWindow : Window
         _workingSettings.AwayEnabledByIdle = AwayIdleCheckBox.IsChecked == true;
         _workingSettings.AwayIdleMinutes = awayIdleMinutes;
         _workingSettings.AwayMessage = AwayMessageTextBox.Text.Trim();
+        _workingSettings.ShareFolderEnabled = shareFolderEnabled;
+        _workingSettings.ShareFolderPath = ShareFolderPathTextBox.Text.Trim();
+        _workingSettings.ShareFolderPort = shareFolderPort;
 
         try
         {
@@ -229,9 +321,24 @@ public partial class SettingsWindow : Window
         }
 
         var requiresRestart = tcpPort != _coordinator.Settings.TcpPort
-                            || discoveryPort != _coordinator.Settings.DiscoveryPort;
+                            || discoveryPort != _coordinator.Settings.DiscoveryPort
+                            || shareFolderPort != _coordinator.Settings.ShareFolderPort;
 
         _coordinator.SaveSettings(_workingSettings);
+
+        if (_workingSettings.ShareFolderEnabled)
+        {
+            RefreshFirewallStatus();
+            if (!_coordinator.SharedFolderHostStatus.IsRunning)
+            {
+                MessageBox.Show(
+                    this,
+                    $"공유폴더 서버를 시작하지 못했습니다.\n\n{_coordinator.SharedFolderHostStatus.ErrorMessage}",
+                    "Y-popup",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
 
         var message = requiresRestart
             ? "설정이 저장되었습니다.\n포트 변경은 프로그램 재시작 후 적용됩니다."
@@ -270,7 +377,10 @@ public partial class SettingsWindow : Window
             DiscoveryPort = source.DiscoveryPort,
             AwayEnabledByIdle = source.AwayEnabledByIdle,
             AwayIdleMinutes = source.AwayIdleMinutes,
-            AwayMessage = source.AwayMessage
+            AwayMessage = source.AwayMessage,
+            ShareFolderEnabled = source.ShareFolderEnabled,
+            ShareFolderPath = source.ShareFolderPath,
+            ShareFolderPort = source.ShareFolderPort
         };
     }
 

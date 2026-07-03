@@ -5,6 +5,7 @@ using System.Windows.Input;
 using Ypopup.App.Helpers;
 using Ypopup.Core.Models;
 using Ypopup.Network;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace Ypopup.App.Views;
 
@@ -35,6 +36,20 @@ public partial class ReceiveWindow : Window
         MessageFontHelper.Apply(_coordinator.Settings, MessageTextBox);
         AttachmentListBox.ItemsSource = message.SavedFilePaths;
         AttachmentListBox.Visibility = message.SavedFilePaths.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.F2)
+        {
+            e.Handled = true;
+            ReplyButton_Click(sender, e);
+        }
+        else if (e.Key == Key.Escape)
+        {
+            e.Handled = true;
+            CloseButton_Click(sender, e);
+        }
     }
 
     private void ReplyButton_Click(object sender, RoutedEventArgs e)
@@ -74,5 +89,13 @@ public partial class ReceiveWindow : Window
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
         Close();
+    }
+
+    private void TitleBar_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ChangedButton == MouseButton.Left)
+        {
+            DragMove();
+        }
     }
 }

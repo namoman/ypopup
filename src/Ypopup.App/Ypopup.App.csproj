@@ -14,6 +14,9 @@
     <Company>namoman</Company>
     <Product>Y-popup</Product>
     <Description>X-Popup 오마주 LAN 메신저</Description>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
     <Copyright>Copyright © namoman</Copyright>
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>

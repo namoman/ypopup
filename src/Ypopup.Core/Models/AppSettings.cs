@@ -1,5 +1,7 @@
 namespace Ypopup.Core.Models;
 
+using Ypopup.Core.Sharing;
+
 public static class AppConstants
 {
     public const string ProductName = "Y-popup";
@@ -7,6 +9,9 @@ public static class AppConstants
     public const string StartupRegistryValueName = "Y-popup";
     public const int DefaultTcpPort = 50506;
     public const int DefaultDiscoveryPort = 50505;
+    public const int DefaultShareFolderPort = 50507;
+    public const string DefaultShareFolderName = "share";
+    public const string DefaultDisplayName = "홍길동";
 }
 
 /// <summary>
@@ -17,7 +22,7 @@ public sealed class AppSettings
     public string MachineId { get; set; } = Guid.NewGuid().ToString();
 
     // UDP Announce 프로필
-    public string DisplayName { get; set; } = Environment.UserName;
+    public string DisplayName { get; set; } = AppConstants.DefaultDisplayName;
     public string Group { get; set; } = string.Empty;
     public string Memo { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -45,6 +50,11 @@ public sealed class AppSettings
     public bool AwayEnabledByIdle { get; set; }
     public int AwayIdleMinutes { get; set; } = 10;
     public string AwayMessage { get; set; } = "지금은 부재중입니다. 나중에 다시 연락해 주세요.";
+
+    // 공유폴더 (HTTP 읽기 전용)
+    public bool ShareFolderEnabled { get; set; } = true;
+    public string ShareFolderPath { get; set; } = SharedFolderPathHelper.GetDefaultShareFolderPath();
+    public int ShareFolderPort { get; set; } = AppConstants.DefaultShareFolderPort;
 
     // 하위 호환 (구 settings.json)
     public bool PlayNotificationSound

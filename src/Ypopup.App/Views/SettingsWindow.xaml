@@ -6,21 +6,20 @@
         Height="480"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
-        Background="#0f172a"
-        Foreground="#f8fafc">
+        Background="#F8FAFC"
+        Foreground="#1E293B">
     <Grid Margin="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <TabControl Grid.Row="0">
             <!-- 프로필: UDP Announce -->
             <TabItem Header="프로필">
-                <StackPanel Margin="12" TextElement.Foreground="#f8fafc">
+                <StackPanel Margin="12" TextElement.Foreground="#1E293B">
                     <TextBlock Text="LAN에 공개되는 내 정보 (UDP Announce)"
-                               Foreground="#94A3B8"
+                               Foreground="#64748B"
                                Margin="0,0,0,12"/>
 
                     <Grid>
@@ -60,15 +59,20 @@
 
             <!-- 네트워크 -->
             <TabItem Header="네트워크" GotFocus="NetworkTab_GotFocus">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" TextElement.Foreground="#f8fafc">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" TextElement.Foreground="#1E293B">
                     <StackPanel Margin="12">
                         <TextBlock Text="포트 변경은 프로그램 재시작 후 적용됩니다."
-                                   Foreground="#94A3B8"
+                                   Foreground="#64748B"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,8"/>
+                        <TextBlock Text="탐색 포트(UDP)는 같은 LAN의 모든 PC가 동일해야 합니다. 포트가 다르면 서로를 찾지 못해 통신이 되지 않을 수 있습니다."
+                                   Foreground="#F59E0B"
                                    TextWrapping="Wrap"
                                    Margin="0,0,0,12"/>
 
                         <Grid Margin="0,0,0,16">
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -89,16 +93,20 @@
                             <TextBlock Grid.Row="2" Grid.Column="0" Text="TCP 메시지 포트" VerticalAlignment="Center"/>
                             <TextBox x:Name="TcpPortTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8"/>
 
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="TCP 공유폴더 포트" VerticalAlignment="Center"
+                                       ToolTip="공유폴더 HTTP 서비스 포트"/>
+                            <TextBox x:Name="ShareFolderPortTextBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8"/>
+
                             <CheckBox x:Name="OnlySameGroupCheckBox"
-                                      Grid.Row="3"
+                                      Grid.Row="4"
                                       Grid.Column="1"
                                       Content="같은 그룹 사용자만 목록에 표시"/>
                         </Grid>
 
                         <GroupBox Header="Windows 방화벽">
                             <StackPanel Margin="8">
-                                <TextBlock Text="LAN 탐색(UDP)과 메시지 수신(TCP)을 위해 방화벽 허용이 필요합니다.&#x0a;처음 실행 시 허용 창에서 차단했다면 아래 버튼을 사용하세요."
-                                           Foreground="#94A3B8"
+                                <TextBlock Text="LAN 탐색(UDP), 메시지(TCP), 공유폴더(TCP) 수신을 위해 방화벽 허용이 필요합니다.&#x0a;처음 실행 시 허용 창에서 차단했다면 아래 버튼을 사용하세요."
+                                           Foreground="#64748B"
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,8"/>
 
@@ -106,7 +114,7 @@
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,4"/>
                                 <TextBlock x:Name="FirewallExePathTextBlock"
-                                           Foreground="#94A3B8"
+                                           Foreground="#64748B"
                                            FontSize="11"
                                            TextWrapping="Wrap"
                                            Margin="0,0,0,8"/>
@@ -130,12 +138,31 @@
 
             <!-- 일반 -->
             <TabItem Header="일반">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" TextElement.Foreground="#f8fafc">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" TextElement.Foreground="#1E293B">
                     <StackPanel Margin="12">
                         <CheckBox x:Name="KeepWindowTopmostCheckBox" Content="창을 항상 위에 표시 (Topmost)" Margin="0,0,0,8"/>
                         <CheckBox x:Name="RunAtStartupCheckBox" Content="Windows 시작 시 자동 실행" Margin="0,0,0,8"/>
                         <CheckBox x:Name="CloseComposeAfterSendCheckBox" Content="전송 후 작성 창 닫기" Margin="0,0,0,8"/>
                         <CheckBox x:Name="CloseReceiveOnReplyCheckBox" Content="답장 시 수신 창 닫기" Margin="0,0,0,16"/>
+
+                        <GroupBox Header="공유폴더" Margin="0,0,0,12">
+                            <StackPanel Margin="8">
+                                <CheckBox x:Name="ShareFolderEnabledCheckBox"
+                                          Content="공유폴더 사용 (LAN 사용자가 내 파일을 받아갈 수 있음)"
+                                          Margin="0,0,0,8"/>
+                                <TextBlock Text="공유할 폴더 (읽기 전용). 기본: exe 위치\share"
+                                           Foreground="#64748B"
+                                           TextWrapping="Wrap"
+                                           Margin="0,0,0,6"/>
+                                <DockPanel Margin="0,0,0,8">
+                                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                                        <Button Content="탐색기" Click="OpenShareFolderInExplorerButton_Click" Margin="0,0,6,0"/>
+                                        <Button Content="찾기" Click="BrowseShareFolderButton_Click"/>
+                                    </StackPanel>
+                                    <TextBox x:Name="ShareFolderPathTextBox" Margin="0,0,8,0"/>
+                                </DockPanel>
+                            </StackPanel>
+                        </GroupBox>
 
                         <GroupBox Header="수신 알림" Margin="0,0,0,12">
                             <StackPanel Margin="8">
@@ -164,9 +191,9 @@
 
             <!-- 부재 -->
             <TabItem Header="부재">
-                <StackPanel Margin="12" TextElement.Foreground="#f8fafc">
+                <StackPanel Margin="12" TextElement.Foreground="#1E293B">
                     <TextBlock Text="부재 중에는 UDP Announce에 IsAway=true가 전송되고,&#x0a;수신 메시지에 자동 답장(TCP)이 발송됩니다."
-                               Foreground="#94A3B8"
+                               Foreground="#64748B"
                                TextWrapping="Wrap"
                                Margin="0,0,0,12"/>
 
@@ -184,17 +211,53 @@
                              VerticalScrollBarVisibility="Auto"/>
                 </StackPanel>
             </TabItem>
+
+            <!-- About -->
+            <TabItem Header="About">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" TextElement.Foreground="#1E293B">
+                    <StackPanel Margin="16" xmlns:app="clr-namespace:Ypopup.App">
+                        <TextBlock Text="Y-popup"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock Text="{x:Static app:AppInfo.VersionDisplay}"
+                                   FontSize="12"
+                                   Foreground="#64748B"
+                                   Margin="0,4,0,16"/>
+
+                        <TextBlock TextWrapping="Wrap"
+                                   LineHeight="24"
+                                   Margin="0,0,0,10"
+                                   Text="2000년대 X-Popup(빨간전화기) 오마주 한 Y-popup(파란전화기)입니다."/>
+
+                        <TextBlock TextWrapping="Wrap"
+                                   LineHeight="24"
+                                   Margin="0,0,0,10"
+                                   Text="Win11에 대응하여 최신 통신기술을 적용하여 호환성을 높였습니다."/>
+
+                        <TextBlock TextWrapping="Wrap"
+                                   LineHeight="24"
+                                   Margin="0,0,0,10"
+                                   Text="같은 네트워크(같은 IP 대역)에 있는 PC끼리 쪽지와 파일을 주고받을 수 있습니다."/>
+
+                        <TextBlock TextWrapping="Wrap"
+                                   LineHeight="22"
+                                   Foreground="#64748B"
+                                   FontSize="12"
+                                   Margin="0,0,0,16"
+                                   Text="버전 번호는 릴리스 표시입니다. 포트 설정이 같으면 쪽지·파일·공유폴더는 버전이 달라도 함께 사용할 수 있습니다."/>
+
+                        <TextBlock Foreground="#64748B" TextWrapping="Wrap">
+                            <Run Text="문의 및 제안 : "/>
+                            <Hyperlink NavigateUri="mailto:namolove@gmail.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#0284C7">namolove@gmail.com</Hyperlink>
+                            <Run Text=" / "/>
+                            <Hyperlink NavigateUri="https://namoman.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#0284C7">namoman.com</Hyperlink>
+                        </TextBlock>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
         </TabControl>
 
-        <TextBlock Grid.Row="1"
-                   Margin="0,8,0,8"
-                   Foreground="#94A3B8">
-            <Hyperlink NavigateUri="https://namoman.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#38BDF8">namoman.com</Hyperlink>
-            <Run Text=" · "/>
-            <Hyperlink NavigateUri="mailto:namolove@gmail.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#38BDF8">namolove@gmail.com</Hyperlink>
-        </TextBlock>
-
-        <StackPanel Grid.Row="2"
+        <StackPanel Grid.Row="1"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right">
             <Button Content="취소" Width="80" Click="CancelButton_Click" Margin="0,0,8,0"/>
