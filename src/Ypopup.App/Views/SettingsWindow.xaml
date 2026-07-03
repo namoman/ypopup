@@ -215,11 +215,11 @@
             <!-- About -->
             <TabItem Header="About">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" TextElement.Foreground="#1E293B">
-                    <StackPanel Margin="16" xmlns:app="clr-namespace:Ypopup.App">
+                    <StackPanel Margin="16" xmlns:core="clr-namespace:Ypopup.Core;assembly=Ypopup.Core">
                         <TextBlock Text="Y-popup"
                                    FontSize="18"
                                    FontWeight="SemiBold"/>
-                        <TextBlock Text="{x:Static app:AppInfo.VersionDisplay}"
+                        <TextBlock Text="{x:Static core:AppInfo.VersionDisplay}"
                                    FontSize="12"
                                    Foreground="#64748B"
                                    Margin="0,4,0,16"/>
@@ -250,7 +250,7 @@
                             <Run Text="문의 및 제안 : "/>
                             <Hyperlink NavigateUri="mailto:namolove@gmail.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#0284C7">namolove@gmail.com</Hyperlink>
                             <Run Text=" / "/>
-                            <Hyperlink NavigateUri="https://namoman.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#0284C7">namoman.com</Hyperlink>
+                            <Hyperlink NavigateUri="https://namoman.github.io/ypopup/" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#0284C7">namoman.github.io/ypopup</Hyperlink>
                         </TextBlock>
                     </StackPanel>
                 </ScrollViewer>

@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Ypopup.Desktop.Views.Settings.Panels.GeneralSettingsPanel">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="12">
+            <CheckBox x:Name="KeepWindowTopmostCheckBox" Content="창을 항상 위에 표시 (Topmost)" Margin="0,0,0,8"/>
+            <CheckBox x:Name="RunAtStartupCheckBox" Content="Windows 시작 시 자동 실행" Margin="0,0,0,8"/>
+            <CheckBox x:Name="CloseComposeAfterSendCheckBox" Content="전송 후 작성 창 닫기" Margin="0,0,0,8"/>
+            <CheckBox x:Name="CloseReceiveOnReplyCheckBox" Content="답장 시 수신 창 닫기" Margin="0,0,0,16"/>
+
+            <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="공유폴더" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <CheckBox x:Name="ShareFolderEnabledCheckBox"
+                              Content="공유폴더 사용 (LAN 사용자가 내 파일을 받아갈 수 있음)"
+                              Margin="0,0,0,8"/>
+                    <TextBlock Text="공유할 폴더 (읽기 전용). 기본: exe 위치\share"
+                               Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,6"/>
+                    <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,0">
+                        <TextBox x:Name="ShareFolderPathTextBox" Grid.Column="0" Margin="0,0,8,0"/>
+                        <Button Grid.Column="1" Content="탐색기" Margin="0,0,6,0" Classes="secondary"
+                                Click="OpenShareFolderInExplorerButton_Click"/>
+                        <Button Grid.Column="2" Content="찾기" Classes="secondary" Click="BrowseShareFolderButton_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="수신 알림" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <CheckBox x:Name="SoundEnabledCheckBox" Content="알림음 사용" Margin="0,0,0,4"/>
+                    <CheckBox x:Name="PlayMessageSoundCheckBox" Content="메시지 수신" Margin="16,0,0,4"/>
+                    <CheckBox x:Name="PlayFileSoundCheckBox" Content="파일 수신" Margin="16,0,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,0,12">
+                <StackPanel>
+                    <TextBlock Text="수신 파일" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBox x:Name="ReceiveDirectoryTextBox" Grid.Column="0" Margin="0,0,8,0"/>
+                        <Button Grid.Column="1" Content="찾기" Classes="secondary" Click="BrowseFolderButton_Click"/>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8">
+                <StackPanel>
+                    <TextBlock Text="쪽지 글꼴" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                    <TextBlock x:Name="FontPreviewTextBlock" Margin="0,0,0,8"/>
+                    <Button Content="글꼴 변경" HorizontalAlignment="Left" Classes="secondary"
+                            Click="ChangeFontButton_Click"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

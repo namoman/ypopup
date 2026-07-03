@@ -1,0 +1,93 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ypopup.Desktop.Views.Compose.ComposeWindow"
+        Title="Y-popup - 쪽지 보내기"
+        Width="400"
+        Height="420"
+        WindowStartupLocation="CenterScreen"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        Background="Transparent"
+        KeyDown="Window_KeyDown">
+    <Border Background="#FFFFFF" CornerRadius="12" BorderBrush="#E2E8F0" BorderThickness="1" Margin="8"
+            BoxShadow="0 2 16 0 #2E000000">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="44"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="#EF4444" CornerRadius="12,12,0,0"
+                    PointerPressed="TitleBar_PointerPressed">
+                <Grid Margin="12,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="☎" Foreground="White" FontSize="16" Margin="0,0,8,0"/>
+                        <TextBlock Text="쪽지 보내기" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                    </StackPanel>
+                    <Button Content="✕" HorizontalAlignment="Right" Foreground="White"
+                            Classes="popup-header" Click="CloseButton_Click"/>
+                </Grid>
+            </Border>
+
+            <Border Grid.Row="1" Background="#FFF7ED" Padding="14,10" BorderBrush="#FED7AA" BorderThickness="0,0,0,1">
+                <TextBlock x:Name="RecipientTextBlock" Foreground="#9A3412" FontWeight="SemiBold" FontSize="12.5"/>
+            </Border>
+
+            <Border Grid.Row="2" Background="#FFFBEB" Margin="14,12,14,0" CornerRadius="8"
+                    BorderBrush="#FDE68A" BorderThickness="1"
+                    DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop">
+                <TextBox x:Name="MessageTextBox"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Padding="10,8"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         KeyDown="MessageTextBox_KeyDown"
+                         DragDrop.AllowDrop="True"
+                         DragDrop.DragOver="OnDragOver"
+                         DragDrop.Drop="OnDrop"/>
+            </Border>
+
+            <Grid Grid.Row="3" x:Name="AttachmentArea" Margin="14,10,14,0" IsVisible="False">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="AttachmentSummaryTextBlock" FontSize="11" Foreground="#64748B" Margin="0,0,0,4"/>
+                <ListBox x:Name="AttachmentListBox" Grid.Row="1" MaxHeight="72" KeyDown="AttachmentListBox_KeyDown">
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="제거" Click="RemoveAttachment_Click"/>
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
+                </ListBox>
+            </Grid>
+
+            <Grid Grid.Row="4" Margin="14,12,14,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Content="📎 파일 첨부" Click="AttachButton_Click" Classes="secondary"
+                        HorizontalAlignment="Left" Padding="12,8"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="SendButton" Click="SendButton_Click" Padding="16,8" Margin="0,0,8,0">
+                        <TextBlock>
+                            <Run Text="보내기"/>
+                            <Run Text=" (F2 · Ctrl+Enter)" FontSize="10.5" Foreground="#E0FFFFFF"/>
+                        </TextBlock>
+                    </Button>
+                    <Button Click="CloseButton_Click" Classes="secondary" Padding="16,8">
+                        <TextBlock>
+                            <Run Text="닫기"/>
+                            <Run Text=" (Esc)" FontSize="10.5" Foreground="#94A3B8"/>
+                        </TextBlock>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

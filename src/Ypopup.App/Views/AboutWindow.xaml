@@ -1,7 +1,7 @@
 <Window x:Class="Ypopup.App.Views.AboutWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:app="clr-namespace:Ypopup.App"
+        xmlns:core="clr-namespace:Ypopup.Core;assembly=Ypopup.Core"
         Title="Y-popup - About"
         Width="420"
         Height="360"
@@ -22,7 +22,7 @@
                        FontSize="18"
                        FontWeight="SemiBold"
                        HorizontalAlignment="Center"/>
-            <TextBlock Text="{x:Static app:AppInfo.VersionDisplay}"
+            <TextBlock Text="{x:Static core:AppInfo.VersionDisplay}"
                        FontSize="12"
                        Foreground="#64748B"
                        HorizontalAlignment="Center"
@@ -60,7 +60,7 @@
                 <Run Text="문의 및 제안 : "/>
                 <Hyperlink NavigateUri="mailto:namolove@gmail.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#0284C7">namolove@gmail.com</Hyperlink>
                 <Run Text=" / "/>
-                <Hyperlink NavigateUri="https://namoman.com" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#0284C7">namoman.com</Hyperlink>
+                <Hyperlink NavigateUri="https://namoman.github.io/ypopup/" RequestNavigate="Hyperlink_RequestNavigate" Foreground="#0284C7">namoman.github.io/ypopup</Hyperlink>
             </TextBlock>
         </StackPanel>
 

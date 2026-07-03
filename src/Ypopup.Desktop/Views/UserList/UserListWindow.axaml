@@ -1,0 +1,125 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="using:Ypopup.Core.Models"
+        x:Class="Ypopup.Desktop.Views.UserList.UserListWindow"
+        Title="Y-popup - 사용자 목록"
+        Width="340"
+        Height="520"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        SystemDecorations="None"
+        ExtendClientAreaToDecorationsHint="True"
+        Background="Transparent">
+    <Border Background="#F5FFFFFF" CornerRadius="16" BorderBrush="#E2E8F0" BorderThickness="1.5">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Height="30" PointerPressed="TitleBar_PointerPressed">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                    <TextBlock Text="Y-popup LAN messenger" FontSize="11" Foreground="#64748B" FontWeight="Medium"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="—" Classes="titlebar" Click="MinimizeButton_Click"/>
+                    <Button Content="✕" Classes="titlebar close" Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="1" Margin="16,8,16,12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal">
+                    <Border Width="36" Height="36" Background="#EF4444" CornerRadius="10" Margin="0,0,12,0">
+                        <TextBlock Text="☎" Foreground="White" FontSize="20" FontWeight="Bold"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,2"/>
+                    </Border>
+                    <TextBlock Text="Y-popup" FontSize="22" FontWeight="Bold" Foreground="#1E293B" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button Grid.Column="1" Classes="icon" Click="SettingsButton_Click">
+                    <TextBlock Text="⚙" FontSize="18" Foreground="#64748B"/>
+                </Button>
+            </Grid>
+
+            <Grid Grid.Row="2" Margin="16,0,16,12">
+                <TextBox x:Name="SearchTextBox" Padding="28,8,10,8" Background="#F1F5F9"
+                         Foreground="#1E293B" BorderBrush="#E2E8F0" BorderThickness="1"
+                         TextChanged="SearchTextBox_TextChanged"/>
+                <TextBlock x:Name="SearchPlaceholderTextBlock" IsHitTestVisible="False"
+                           Text="사용자 검색..." VerticalAlignment="Center" HorizontalAlignment="Left"
+                           Margin="30,0,0,0" Foreground="#64748B"/>
+                <TextBlock Text="🔍" IsHitTestVisible="False" Foreground="#64748B" FontSize="12"
+                           VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,0"/>
+            </Grid>
+
+            <ListBox x:Name="PeerListBox"
+                     Grid.Row="3"
+                     Margin="16,0,16,8"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     DoubleTapped="PeerListBox_DoubleTapped">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="models:PeerInfo">
+                        <Border CornerRadius="8" Padding="8" Background="Transparent" Width="290">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Column="0" Width="40" Height="40" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <Ellipse Fill="#E2E8F0" Width="40" Height="40"/>
+                                    <TextBlock Text="👤" Foreground="#64748B" HorizontalAlignment="Center"
+                                               VerticalAlignment="Center" FontSize="18"/>
+                                    <Ellipse Width="10" Height="10" Fill="#22C55E" Stroke="#FFFFFF" StrokeThickness="1.5"
+                                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                             IsVisible="{Binding !IsAway}"/>
+                                    <Ellipse Width="10" Height="10" Fill="#F59E0B" Stroke="#FFFFFF" StrokeThickness="1.5"
+                                             HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                             IsVisible="{Binding IsAway}"/>
+                                </Grid>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13.5" Foreground="#1E293B"/>
+                                    <TextBlock Text="{Binding Group}" FontSize="11" Foreground="#64748B" Margin="0,1,0,0"/>
+                                    <TextBlock Text="{Binding Memo}" FontSize="11" Foreground="#0284C7" FontStyle="Italic"
+                                               Margin="0,2,0,0" IsVisible="{Binding Memo, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+                                </StackPanel>
+                                <Button Grid.Column="2"
+                                        Content="📁"
+                                        ToolTip.Tip="공유폴더 열기"
+                                        Classes="icon"
+                                        Click="ShareFolderButton_Click"
+                                        Tag="{Binding}"
+                                        IsVisible="{Binding HasSharedFolder}"
+                                        VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <Grid Grid.Row="4" Margin="16,8,16,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Content="쪽지 보내기" Click="SendButton_Click" HorizontalAlignment="Left" Width="130"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="새로고침" Click="RefreshButton_Click" Margin="0,0,8,0"
+                            Classes="secondary" Width="80"/>
+                    <Button Content="닫기" Click="CloseButton_Click" Classes="secondary" Width="70"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>

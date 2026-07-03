@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Ypopup.Desktop.Views.Settings.Panels.AboutSettingsPanel">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="16">
+            <TextBlock Text="Y-popup" FontSize="18" FontWeight="SemiBold"/>
+            <TextBlock x:Name="VersionTextBlock" FontSize="12" Foreground="#64748B" Margin="0,4,0,16"/>
+            <TextBlock TextWrapping="Wrap" LineHeight="24" Margin="0,0,0,10"
+                       Text="2000년대 X-Popup(빨간전화기) 오마주 한 Y-popup(파란전화기)입니다."/>
+            <TextBlock TextWrapping="Wrap" LineHeight="24" Margin="0,0,0,10"
+                       Text="Win11에 대응하여 최신 통신기술을 적용하여 호환성을 높였습니다."/>
+            <TextBlock TextWrapping="Wrap" LineHeight="24" Margin="0,0,0,10"
+                       Text="같은 네트워크(같은 IP 대역)에 있는 PC끼리 쪽지와 파일을 주고받을 수 있습니다."/>
+            <TextBlock TextWrapping="Wrap" LineHeight="22" Foreground="#64748B" FontSize="12"
+                       Margin="0,0,0,16"
+                       Text="버전 번호는 릴리스 표시입니다. 포트 설정이 같으면 쪽지·파일·공유폴더는 버전이 달라도 함께 사용할 수 있습니다."/>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Foreground="#64748B" Text="문의 및 제안 : "/>
+                <Button Content="namolove@gmail.com" Classes="link" Click="EmailLink_Click"/>
+                <TextBlock Foreground="#64748B" Text=" / "/>
+                <Button Content="namoman.github.io/ypopup" Classes="link" Click="WebsiteLink_Click"/>
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

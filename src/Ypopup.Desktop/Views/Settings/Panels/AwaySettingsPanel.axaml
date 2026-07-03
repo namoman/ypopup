@@ -1,0 +1,16 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Ypopup.Desktop.Views.Settings.Panels.AwaySettingsPanel">
+    <StackPanel Margin="12">
+        <TextBlock Text="부재 중에는 UDP Announce에 IsAway=true가 전송되고,&#x0a;수신 메시지에 자동 답장(TCP)이 발송됩니다."
+                   Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,12"/>
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+            <CheckBox x:Name="AwayIdleCheckBox" VerticalAlignment="Center"/>
+            <TextBox x:Name="AwayIdleMinutesTextBox" Width="40" Margin="8,0,8,0"
+                     VerticalAlignment="Center" IsEnabled="{Binding #AwayIdleCheckBox.IsChecked}"/>
+            <TextBlock Text="분간 입력 없으면 부재 처리" VerticalAlignment="Center"/>
+        </StackPanel>
+        <TextBlock Text="자동 답장 메시지" Margin="0,0,0,4"/>
+        <TextBox x:Name="AwayMessageTextBox" MinHeight="120" AcceptsReturn="True" TextWrapping="Wrap"/>
+    </StackPanel>
+</UserControl>

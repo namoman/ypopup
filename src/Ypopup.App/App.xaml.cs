@@ -5,6 +5,7 @@ using Hardcodet.Wpf.TaskbarNotification;
 using Ypopup.App.Helpers;
 using Ypopup.App.Services;
 using Ypopup.App.Views;
+using Ypopup.Core;
 using Ypopup.Core.Models;
 using Ypopup.Network;
 
