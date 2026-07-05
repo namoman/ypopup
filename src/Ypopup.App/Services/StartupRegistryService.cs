@@ -1,4 +1,6 @@
 using Microsoft.Win32;
+using Ypopup.Core.Models;
+using Ypopup.Core.Startup;
 
 namespace Ypopup.App.Services;
 
@@ -9,7 +11,24 @@ public static class StartupRegistryService
     public static bool IsEnabled()
     {
         using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: false);
-        return key?.GetValue(Core.Models.AppConstants.StartupRegistryValueName) is string;
+        return key?.GetValue(AppConstants.StartupRegistryValueName) is string;
+    }
+
+    public static void EnsureTrayLaunchRegistered()
+    {
+        if (!IsEnabled())
+        {
+            return;
+        }
+
+        using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: false);
+        if (key?.GetValue(AppConstants.StartupRegistryValueName) is not string current
+            || current.Contains(StartupLaunchOptions.TrayOnlyFlag, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        SetEnabled(true);
     }
 
     public static void SetEnabled(bool enabled)
@@ -29,6 +48,6 @@ public static class StartupRegistryService
             throw new InvalidOperationException("실행 파일 경로를 확인할 수 없습니다.");
         }
 
-        key.SetValue(Core.Models.AppConstants.StartupRegistryValueName, $"\"{exePath}\"");
+        key.SetValue(AppConstants.StartupRegistryValueName, $"\"{exePath}\" {StartupLaunchOptions.TrayOnlyFlag}");
     }
 }

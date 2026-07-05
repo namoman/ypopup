@@ -7,6 +7,7 @@ using Ypopup.App.Services;
 using Ypopup.App.Views;
 using Ypopup.Core;
 using Ypopup.Core.Models;
+using Ypopup.Core.Startup;
 using Ypopup.Network;
 
 namespace Ypopup.App;
@@ -50,6 +51,8 @@ public partial class App : System.Windows.Application
 
         try
         {
+            StartupRegistryService.EnsureTrayLaunchRegistered();
+
             _coordinator = new YpopupCoordinator();
             _coordinator.PeersChanged += _ => Dispatcher.Invoke(RefreshUserListIfOpen);
             _coordinator.MessageReceived += message => Dispatcher.Invoke(() => OnMessageReceived(message));
@@ -71,7 +74,10 @@ public partial class App : System.Windows.Application
 
             NotifySharedFolderHostStatus();
 
-            ShowUserList();
+            if (!StartupLaunchOptions.IsTrayOnlyLaunch(e.Args))
+            {
+                ShowUserList();
+            }
         }
         catch (Exception ex)
         {

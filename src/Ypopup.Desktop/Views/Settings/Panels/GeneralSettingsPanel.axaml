@@ -4,7 +4,9 @@
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="12">
             <CheckBox x:Name="KeepWindowTopmostCheckBox" Content="창을 항상 위에 표시 (Topmost)" Margin="0,0,0,8"/>
-            <CheckBox x:Name="RunAtStartupCheckBox" Content="Windows 시작 시 자동 실행" Margin="0,0,0,8"/>
+            <CheckBox x:Name="RunAtStartupCheckBox"
+                      Content="Windows 시작 시 자동 실행 (트레이에만 표시)"
+                      Margin="0,0,0,8"/>
             <CheckBox x:Name="CloseComposeAfterSendCheckBox" Content="전송 후 작성 창 닫기" Margin="0,0,0,8"/>
             <CheckBox x:Name="CloseReceiveOnReplyCheckBox" Content="답장 시 수신 창 닫기" Margin="0,0,0,16"/>
 

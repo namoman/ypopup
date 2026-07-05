@@ -1,9 +1,60 @@
-# Y-popup publish: Avalonia Windows x64 + macOS
-Get-Process -Name "Y-popup" -ErrorAction SilentlyContinue | Stop-Process -Force
-
-powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\tools\generate-app-icon.ps1"
+# Y-popup publish: clean → build → docs/
+$ErrorActionPreference = 'Stop'
+Set-Location $PSScriptRoot
 
 $project = 'src/Ypopup.Desktop/Ypopup.Desktop.csproj'
+
+$docsDeploymentFiles = @(
+    'docs\Y-popup.exe',
+    'docs\Y-popup-net8.exe',
+    'docs\Y-popup-win-x64-net8.zip',
+    'docs\Y-popup-osx-arm64.zip',
+    'docs\Y-popup-osx-arm64-net8.zip',
+    'docs\Y-popup-osx-x64.zip',
+    'docs\Y-popup-osx-x64-net8.zip'
+)
+
+function Remove-PathIfExists {
+    param([string]$Path)
+
+    if (Test-Path $Path) {
+        Remove-Item -Recurse -Force $Path
+        Write-Host "  removed $Path"
+    }
+}
+
+function Clean-RunningApp {
+    Write-Host "=== Stop Y-popup ===" -ForegroundColor Cyan
+    Get-Process -Name 'Y-popup' -ErrorAction SilentlyContinue | Stop-Process -Force
+}
+
+function Clean-BuildCache {
+    Write-Host "=== Clean bin/obj ===" -ForegroundColor Cyan
+    foreach ($root in @('src', 'tools')) {
+        if (-not (Test-Path $root)) { continue }
+
+        Get-ChildItem -Path $root -Recurse -Directory -Filter bin -ErrorAction SilentlyContinue |
+            ForEach-Object { Remove-PathIfExists $_.FullName }
+        Get-ChildItem -Path $root -Recurse -Directory -Filter obj -ErrorAction SilentlyContinue |
+            ForEach-Object { Remove-PathIfExists $_.FullName }
+    }
+}
+
+function Clean-PublishFolders {
+    Write-Host "=== Clean publish* folders ===" -ForegroundColor Cyan
+    Get-ChildItem -Path . -Directory -Filter 'publish*' -ErrorAction SilentlyContinue |
+        ForEach-Object { Remove-PathIfExists $_.FullName }
+}
+
+function Clean-DocsDeployment {
+    Write-Host "=== Clean docs deployment files ===" -ForegroundColor Cyan
+    foreach ($file in $docsDeploymentFiles) {
+        if (Test-Path $file) {
+            Remove-Item -Force $file
+            Write-Host "  removed $file"
+        }
+    }
+}
 
 function Publish-Target {
     param(
@@ -13,9 +64,7 @@ function Publish-Target {
         [bool]$Compress
     )
 
-    if (Test-Path $Output) {
-        Remove-Item -Recurse -Force $Output
-    }
+    Remove-PathIfExists $Output
 
     $args = @(
         'publish', $project,
@@ -58,6 +107,15 @@ function Format-Mb {
     }
     return "{0:N1} MB" -f ($bytes / 1MB)
 }
+
+Clean-RunningApp
+Clean-BuildCache
+Clean-PublishFolders
+Clean-DocsDeployment
+
+Write-Host "=== Regenerate icons ===" -ForegroundColor Cyan
+powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\tools\generate-app-icon.ps1"
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 Write-Host "=== Windows x64 ===" -ForegroundColor Cyan
 Publish-Target -Rid 'win-x64' -Output 'publish' -SelfContained $true -Compress $true

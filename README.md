@@ -58,6 +58,16 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 .\publish.ps1
 ```
 
+실행 순서: **Y-popup 종료 → `bin/obj` 삭제 → `publish*` 삭제 → `docs` 배포 exe/zip 삭제 → 아이콘 재생성 → publish → `docs/` 복사**
+
+GitHub까지 한 번에:
+
+```powershell
+.\push-github.ps1 -Message "release: v2.0 update"
+```
+
+`push-github.ps1`은 `publish.ps1` 실행 → `docs/`·소스 커밋 → `git push`까지 수행합니다. 빌드만 갱신했을 때는 `-SkipPublish`로 push만 할 수 있습니다.
+
 | `docs/` (GitHub Pages) | 설명 |
 |------------------------|------|
 | `Y-popup.exe` | Windows Self-contained (~44MB). **.NET 설치 불필요** |

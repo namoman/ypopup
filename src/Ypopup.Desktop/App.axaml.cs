@@ -26,7 +26,8 @@ public partial class App : Avalonia.Application
         desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         _host = new ApplicationHost();
-        if (!await _host.TryStartAsync())
+        var startInTray = Ypopup.Core.Startup.StartupLaunchOptions.IsTrayOnlyLaunch(desktop.Args);
+        if (!await _host.TryStartAsync(showUserListOnStart: !startInTray))
         {
             desktop.Shutdown();
             return;

@@ -321,3 +321,23 @@ Ypopup/
 - 설정 > 일반: 공유 폴더 경로·파일/하위폴더 개수 표시
 - 상대가 빈 공유폴더를 열면 안내 메시지 표시
 - 존재하지 않는 공유 경로는 로드 시 `exe\share`로 정규화
+
+## 2026-07-05 — Windows 시작 시 트레이 전용 실행
+
+- 시작 프로그램 등록 시 `"Y-popup.exe" --tray` 인자 추가
+- `--tray`로 실행되면 사용자 목록 창을 띄우지 않고 트레이에만 상주
+- 수동 실행(더블클릭)은 기존처럼 사용자 목록 창 표시
+- 예전 등록(인자 없음)은 앱 시작 시 자동으로 `--tray` 포함 명령으로 갱신
+
+## 2026-07-05 — publish.ps1 전체 clean 단계 추가
+
+- `bin/`·`obj/` (`src`, `tools` 하위) 삭제 후 publish
+- `publish*` 폴더 publish 전 일괄 삭제
+- `docs/` 배포 exe·zip 7종 publish 전 삭제 후 재복사 (`index.html` 등 웹 페이지는 유지)
+
+## 2026-07-05 — push-github.ps1 추가
+
+- `publish.ps1` → git add (docs 배포 파일·src·README 등) → commit → push
+- `-SkipPublish`: 빌드 생략하고 변경분만 push
+- `-DryRun`: 실행할 git 명령만 출력
+- `docs/share/` 로컬 테스트 폴더는 커밋 제외

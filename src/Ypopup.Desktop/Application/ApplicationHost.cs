@@ -3,6 +3,7 @@ using Ypopup.Desktop.Helpers;
 using Ypopup.Desktop.Infrastructure;
 using Ypopup.Desktop.Platform.Away;
 using Ypopup.Desktop.Platform.Notifications;
+using Ypopup.Desktop.Platform.Startup;
 using Ypopup.Desktop.Tray;
 using Ypopup.Desktop.Windows;
 using Ypopup.Network;
@@ -24,7 +25,7 @@ public sealed class ApplicationHost : IAsyncDisposable
 
     public YpopupCoordinator? Coordinator => _coordinator;
 
-    public async Task<bool> TryStartAsync()
+    public async Task<bool> TryStartAsync(bool showUserListOnStart = true)
     {
         if (!_singleInstance.IsPrimaryInstance)
         {
@@ -33,6 +34,8 @@ public sealed class ApplicationHost : IAsyncDisposable
 
         try
         {
+            StartupServiceFactory.Create().EnsureTrayLaunchRegistered();
+
             _coordinator = new YpopupCoordinator();
             _windowNavigator = new WindowNavigator(_coordinator);
             _messagePresenter = new IncomingMessagePresenter(_coordinator, _notificationSound);
@@ -52,7 +55,10 @@ public sealed class ApplicationHost : IAsyncDisposable
                 Avalonia.Threading.Dispatcher.UIThread.Post(() => _awayMonitor.RefreshAwayStatus());
 
             await SharedFolderStartupNotifier.NotifyIfFailedAsync(_coordinator);
-            _windowNavigator.ShowUserList();
+            if (showUserListOnStart)
+            {
+                _windowNavigator.ShowUserList();
+            }
             return true;
         }
         catch (Exception ex)
