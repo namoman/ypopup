@@ -59,20 +59,14 @@ if (-not $DryRun) {
     git reset -- docs/share 2>$null | Out-Null
 }
 
-$pending = if ($DryRun) {
-    git status --porcelain
-}
-else {
-    git status --porcelain
-}
-
-if ([string]::IsNullOrWhiteSpace($pending)) {
+$staged = git diff --cached --name-only
+if ([string]::IsNullOrWhiteSpace($staged)) {
     Write-Host "커밋할 변경 사항이 없습니다." -ForegroundColor Yellow
     exit 0
 }
 
 if ([string]::IsNullOrWhiteSpace($Message)) {
-    $Message = "release: update Y-popup docs binaries"
+    $Message = "update"
 }
 
 $branch = (git rev-parse --abbrev-ref HEAD).Trim()
