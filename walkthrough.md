@@ -341,3 +341,15 @@ Ypopup/
 - `-SkipPublish`: 빌드 생략하고 변경분만 push
 - `-DryRun`: 실행할 git 명령만 출력
 - `docs/share/` 로컬 테스트 폴더는 커밋 제외
+
+## 2026-07-05 — push-github.ps1 Invoke-Git·커밋 판별 수정
+
+### 배경
+
+- `Invoke-Git` 매개변수명 `$Args`가 PowerShell 자동 변수와 충돌해 `git`만 실행되고 subcommand가 빠짐 → `git status` 단계에서 실패
+- 재실행 시 `docs/share/`만 untracked인데 `git status --porcelain`에 잡혀 빈 커밋 시도
+
+### 수정
+
+- `$Args` → `$GitArgs`, `& git @GitArgs`로 호출
+- 커밋 여부는 `git diff --cached --name-only`(스테이징된 변경)만 확인
