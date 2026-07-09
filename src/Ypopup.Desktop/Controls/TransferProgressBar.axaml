@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Ypopup.Desktop.Controls.TransferProgressBar"
+             x:Name="Root">
+    <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10,8">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+                <TextBlock Text="{Binding FileName, ElementName=Root, FallbackValue=''}"
+                           Foreground="#334155" FontWeight="SemiBold" FontSize="11"
+                           TextTrimming="CharacterEllipsis"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="{Binding Progress, ElementName=Root, StringFormat=' {0:0}%'}"
+                           Foreground="#64748B" FontSize="11" Margin="8,0,0,0"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <ProgressBar Grid.Column="0"
+                             Minimum="0" Maximum="100"
+                             Value="{Binding Progress, ElementName=Root}"
+                             Height="10"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Center"/>
+
+                <Button Grid.Column="1"
+                        Content="취소"
+                        Classes="secondary"
+                        Padding="10,4"
+                        Margin="8,0,0,0"
+                        Click="CancelButton_Click"
+                        IsVisible="{Binding IsCancellable, ElementName=Root}"/>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

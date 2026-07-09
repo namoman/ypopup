@@ -1,5 +1,7 @@
 using System.Net;
 using System.Net.Sockets;
+using Ypopup.Core.IO;
+using Ypopup.Core.Logging;
 using Ypopup.Core.Models;
 using Ypopup.Core.Network;
 using Ypopup.Core.Protocol;
@@ -9,7 +11,10 @@ namespace Ypopup.Network.Messaging;
 
 public sealed class TcpHostService : IAsyncDisposable
 {
+    private const int MaxConcurrentConnections = 20;
+
     private readonly SettingsService _settingsService;
+    private readonly ConnectionLimiter _connectionLimiter = new(MaxConcurrentConnections);
     private TcpListener? _listener;
     private CancellationTokenSource? _cts;
     private Task? _acceptTask;
@@ -24,11 +29,53 @@ public sealed class TcpHostService : IAsyncDisposable
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        await StopAsync().ConfigureAwait(false);
+
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _listener = new TcpListener(IPAddress.Any, _settingsService.Current.TcpPort);
         _listener.Start();
         _acceptTask = AcceptLoopAsync(_cts.Token);
         await Task.CompletedTask;
+    }
+
+    public Task StopAsync()
+    {
+        if (_listener is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (_cts is not null)
+        {
+            _cts.Cancel();
+        }
+
+        _listener.Stop();
+
+        if (_acceptTask is not null)
+        {
+            try
+            {
+                _acceptTask.Wait();
+            }
+            catch (OperationCanceledException)
+            {
+            }
+            catch (AggregateException ex) when (ex.InnerExceptions.All(e => e is OperationCanceledException))
+            {
+            }
+        }
+
+        _listener = null;
+        _cts?.Dispose();
+        _cts = null;
+        _acceptTask = null;
+        return Task.CompletedTask;
+    }
+
+    public async Task RestartAsync(CancellationToken cancellationToken)
+    {
+        await StartAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async Task AcceptLoopAsync(CancellationToken cancellationToken)
@@ -38,7 +85,11 @@ public sealed class TcpHostService : IAsyncDisposable
             try
             {
                 var client = await _listener.AcceptTcpClientAsync(cancellationToken).ConfigureAwait(false);
-                _ = Task.Run(() => HandleClientAsync(client, cancellationToken), cancellationToken);
+                _ = Ypopup.Core.Helpers.BackgroundTaskTracker.RunAsync("TCP 클라이언트 처리", async () =>
+                {
+                    using var connection = await _connectionLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    await HandleClientAsync(client, cancellationToken).ConfigureAwait(false);
+                });
             }
             catch (OperationCanceledException)
             {
@@ -46,7 +97,7 @@ public sealed class TcpHostService : IAsyncDisposable
             }
             catch (SocketException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"TCP accept error: {ex.Message}");
+                LogService.Warning("TcpHost", $"Accept error: {ex.Message}");
                 await Task.Delay(500, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -67,8 +118,8 @@ public sealed class TcpHostService : IAsyncDisposable
 
             foreach (var attachment in packet.Attachments)
             {
-                var safeName = SanitizeFileName(attachment.FileName);
-                var finalPath = GetUniquePath(Path.Combine(_settingsService.Current.ReceiveDirectory, safeName));
+                var safeName = FileNameSanitizer.Sanitize(attachment.FileName);
+                var finalPath = FileNameSanitizer.GetUniquePath(Path.Combine(_settingsService.Current.ReceiveDirectory, safeName));
                 var tempPath = finalPath + ".partial";
 
                 await PacketCodec.SaveFileAsync(stream, tempPath, attachment.Size, cancellationToken)
@@ -98,7 +149,7 @@ public sealed class TcpHostService : IAsyncDisposable
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"TCP client handling error: {ex.Message}");
+            LogService.Error("TcpHost", $"Client handling: {ex.Message}");
             CleanupPartialFiles(pendingFiles);
         }
         finally
@@ -107,7 +158,14 @@ public sealed class TcpHostService : IAsyncDisposable
         }
     }
 
-    public static async Task SendMessageAsync(OutgoingMessage message, AppSettings settings, CancellationToken cancellationToken)
+    public static Task SendMessageAsync(OutgoingMessage message, AppSettings settings, CancellationToken cancellationToken)
+        => SendMessageAsync(message, settings, cancellationToken, progress: null);
+
+    public static async Task SendMessageAsync(
+        OutgoingMessage message,
+        AppSettings settings,
+        CancellationToken cancellationToken,
+        IProgress<TransferProgress>? progress)
     {
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(TimeSpan.FromSeconds(NetworkDefaults.ConnectTimeoutSeconds));
@@ -138,6 +196,8 @@ public sealed class TcpHostService : IAsyncDisposable
                 FileName = fileInfo.Name,
                 Size = fileInfo.Length
             });
+
+            progress?.Report(new TransferProgress(0, fileInfo.Length, true, fileInfo.Name));
         }
 
         var packet = new LanPacket
@@ -154,7 +214,7 @@ public sealed class TcpHostService : IAsyncDisposable
 
         foreach (var path in message.AttachmentPaths)
         {
-            await PacketCodec.WriteFileAsync(stream, path, cancellationToken).ConfigureAwait(false);
+            await PacketCodec.WriteFileAsync(stream, path, cancellationToken, progress).ConfigureAwait(false);
         }
     }
 
@@ -181,41 +241,9 @@ public sealed class TcpHostService : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Partial file cleanup error: {ex.Message}");
+                LogService.Warning("TcpHost", $"Partial file cleanup: {ex.Message}");
             }
         }
-    }
-
-    private static string SanitizeFileName(string fileName)
-    {
-        foreach (var invalid in Path.GetInvalidFileNameChars())
-        {
-            fileName = fileName.Replace(invalid, '_');
-        }
-
-        return string.IsNullOrWhiteSpace(fileName) ? "received.bin" : fileName;
-    }
-
-    private static string GetUniquePath(string path)
-    {
-        if (!File.Exists(path))
-        {
-            return path;
-        }
-
-        var directory = Path.GetDirectoryName(path)!;
-        var name = Path.GetFileNameWithoutExtension(path);
-        var extension = Path.GetExtension(path);
-        var index = 1;
-
-        string candidate;
-        do
-        {
-            candidate = Path.Combine(directory, $"{name} ({index}){extension}");
-            index++;
-        } while (File.Exists(candidate));
-
-        return candidate;
     }
 
     public async ValueTask DisposeAsync()
@@ -225,24 +253,7 @@ public sealed class TcpHostService : IAsyncDisposable
             return;
         }
 
-        if (_cts is not null)
-        {
-            await _cts.CancelAsync().ConfigureAwait(false);
-        }
-
-        _listener?.Stop();
-
-        if (_acceptTask is not null)
-        {
-            try
-            {
-                await _acceptTask.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-        }
-
-        _cts?.Dispose();
+        StopAsync();
+        await _connectionLimiter.DisposeAsync().ConfigureAwait(false);
     }
 }

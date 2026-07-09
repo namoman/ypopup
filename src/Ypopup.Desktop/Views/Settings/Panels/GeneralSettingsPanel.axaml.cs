@@ -219,7 +219,7 @@ public partial class GeneralSettingsPanel : UserControl
         try
         {
             Directory.CreateDirectory(path);
-            Process.Start(new ProcessStartInfo("explorer.exe", path) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo("file://") { FileName = path, UseShellExecute = true });
         }
         catch (Exception ex)
         {

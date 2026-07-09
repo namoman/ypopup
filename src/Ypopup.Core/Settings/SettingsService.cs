@@ -12,12 +12,16 @@ public sealed class SettingsService
     public AppSettings Current { get; private set; }
 
     public SettingsService()
-    {
-        var appData = Path.Combine(
+        : this(Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            AppConstants.AppFolderName);
-        Directory.CreateDirectory(appData);
-        _settingsPath = Path.Combine(appData, "settings.json");
+            AppConstants.AppFolderName))
+    {
+    }
+
+    internal SettingsService(string settingsDirectory)
+    {
+        Directory.CreateDirectory(settingsDirectory);
+        _settingsPath = Path.Combine(settingsDirectory, "settings.json");
         Current = Load();
         EnsureDirectories(Current);
     }

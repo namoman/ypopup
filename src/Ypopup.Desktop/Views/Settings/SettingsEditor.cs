@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Ypopup.Core.Models;
+using Ypopup.Core.Settings;
 using Ypopup.Desktop.Helpers;
 using Ypopup.Desktop.Platform.Firewall;
 using Ypopup.Desktop.Platform.Startup;
@@ -74,21 +75,27 @@ public sealed class SettingsEditor
     {
         SyncWorkingSettingsFromPanels(profilePanel, networkPanel, generalPanel, awayPanel);
 
-        if (!int.TryParse(networkPanel.TcpPortText, out var tcpPort) || tcpPort is < 1024 or > 65535)
+        var tcpResult = SettingsValidator.ValidatePort(networkPanel.TcpPortText, "TCP");
+        if (!tcpResult.IsValid)
         {
-            await DialogHelper.ShowWarningAsync(owner, "Y-popup", "TCP 포트는 1024~65535 사이여야 합니다.");
+            await DialogHelper.ShowWarningAsync(owner, "Y-popup", tcpResult.ErrorMessage);
             return false;
         }
 
-        if (!int.TryParse(networkPanel.DiscoveryPortText, out var discoveryPort) || discoveryPort is < 1024 or > 65535)
+        var discoveryResult = SettingsValidator.ValidatePort(networkPanel.DiscoveryPortText, "UDP");
+        if (!discoveryResult.IsValid)
         {
-            await DialogHelper.ShowWarningAsync(owner, "Y-popup", "UDP 포트는 1024~65535 사이여야 합니다.");
+            await DialogHelper.ShowWarningAsync(owner, "Y-popup", discoveryResult.ErrorMessage);
             return false;
         }
 
-        if (tcpPort == discoveryPort)
+        var tcpPort = int.Parse(networkPanel.TcpPortText);
+        var discoveryPort = int.Parse(networkPanel.DiscoveryPortText);
+
+        var portsDifferResult = SettingsValidator.ValidatePortsDiffer(tcpPort, discoveryPort, "TCP", "UDP");
+        if (!portsDifferResult.IsValid)
         {
-            await DialogHelper.ShowWarningAsync(owner, "Y-popup", "TCP 포트와 UDP 포트는 다른 번호여야 합니다.");
+            await DialogHelper.ShowWarningAsync(owner, "Y-popup", portsDifferResult.ErrorMessage);
             return false;
         }
 
@@ -96,21 +103,27 @@ public sealed class SettingsEditor
         var shareFolderPort = AppConstants.DefaultShareFolderPort;
         if (shareFolderEnabled)
         {
-            if (!int.TryParse(networkPanel.ShareFolderPortText, out shareFolderPort) || shareFolderPort is < 1024 or > 65535)
+            var sfpResult = SettingsValidator.ValidatePort(networkPanel.ShareFolderPortText, "공유폴더 HTTP");
+            if (!sfpResult.IsValid)
             {
-                await DialogHelper.ShowWarningAsync(owner, "Y-popup", "공유폴더 HTTP 포트는 1024~65535 사이여야 합니다.");
+                await DialogHelper.ShowWarningAsync(owner, "Y-popup", sfpResult.ErrorMessage);
                 return false;
             }
 
-            if (shareFolderPort == tcpPort || shareFolderPort == discoveryPort)
+            shareFolderPort = int.Parse(networkPanel.ShareFolderPortText);
+
+            var sfpDifferTcp = SettingsValidator.ValidatePortsDiffer(shareFolderPort, tcpPort, "공유폴더", "TCP");
+            var sfpDifferUdp = SettingsValidator.ValidatePortsDiffer(shareFolderPort, discoveryPort, "공유폴더", "UDP");
+            if (!sfpDifferTcp.IsValid || !sfpDifferUdp.IsValid)
             {
                 await DialogHelper.ShowWarningAsync(owner, "Y-popup", "공유폴더 포트는 TCP/UDP 포트와 다른 번호여야 합니다.");
                 return false;
             }
 
-            if (string.IsNullOrWhiteSpace(generalPanel.ShareFolderPath))
+            var pathResult = SettingsValidator.ValidateShareFolderPath(generalPanel.ShareFolderPath);
+            if (!pathResult.IsValid)
             {
-                await DialogHelper.ShowWarningAsync(owner, "Y-popup", "공유폴더 경로를 입력하세요.");
+                await DialogHelper.ShowWarningAsync(owner, "Y-popup", pathResult.ErrorMessage);
                 return false;
             }
         }
@@ -118,16 +131,20 @@ public sealed class SettingsEditor
         var awayIdleMinutes = 10;
         if (awayPanel.AwayIdleEnabled)
         {
-            if (!int.TryParse(awayPanel.AwayIdleMinutesText, out awayIdleMinutes) || awayIdleMinutes < 1)
+            var awayResult = SettingsValidator.ValidateAwayIdleMinutes(awayPanel.AwayIdleMinutesText);
+            if (!awayResult.IsValid)
             {
-                await DialogHelper.ShowWarningAsync(owner, "Y-popup", "부재 유휴 시간은 1분 이상이어야 합니다.");
+                await DialogHelper.ShowWarningAsync(owner, "Y-popup", awayResult.ErrorMessage);
                 return false;
             }
+
+            awayIdleMinutes = int.Parse(awayPanel.AwayIdleMinutesText);
         }
 
-        if (string.IsNullOrWhiteSpace(_workingSettings.DisplayName))
+        var nameResult = SettingsValidator.ValidateDisplayName(_workingSettings.DisplayName);
+        if (!nameResult.IsValid)
         {
-            await DialogHelper.ShowWarningAsync(owner, "Y-popup", "표시 이름을 입력하세요.");
+            await DialogHelper.ShowWarningAsync(owner, "Y-popup", nameResult.ErrorMessage);
             return false;
         }
 
@@ -165,7 +182,7 @@ public sealed class SettingsEditor
         }
 
         var message = requiresRestart
-            ? "설정이 저장되었습니다.\n포트 변경은 프로그램 재시작 후 적용됩니다."
+            ? "설정이 저장되었습니다.\n포트/네트워크 변경 사항은 자동으로 적용되었습니다."
             : "설정이 저장되었습니다.";
 
         await DialogHelper.ShowInfoAsync(owner, "Y-popup", message);

@@ -2,7 +2,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
+using Ypopup.Core.Logging;
 using Ypopup.Core.Models;
+using Ypopup.Core.Network;
 using Ypopup.Core.Settings;
 using Ypopup.Core.Sharing;
 
@@ -10,12 +12,15 @@ namespace Ypopup.Network.Sharing;
 
 public sealed class SharedFolderHostService : IAsyncDisposable
 {
+    private const int MaxConcurrentConnections = 20;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
     private readonly SettingsService _settingsService;
+    private readonly ConnectionLimiter _connectionLimiter = new(MaxConcurrentConnections);
     private TcpListener? _listener;
     private CancellationTokenSource? _cts;
     private Task? _acceptTask;
@@ -99,7 +104,11 @@ public sealed class SharedFolderHostService : IAsyncDisposable
             try
             {
                 var client = await _listener.AcceptTcpClientAsync(cancellationToken).ConfigureAwait(false);
-                _ = Task.Run(() => HandleClientAsync(client, cancellationToken), cancellationToken);
+                _ = Ypopup.Core.Helpers.BackgroundTaskTracker.RunAsync("공유폴더 클라이언트 처리", async () =>
+                {
+                    using var connection = await _connectionLimiter.WaitAsync(cancellationToken).ConfigureAwait(false);
+                    await HandleClientAsync(client, cancellationToken).ConfigureAwait(false);
+                });
             }
             catch (OperationCanceledException)
             {
@@ -107,7 +116,7 @@ public sealed class SharedFolderHostService : IAsyncDisposable
             }
             catch (SocketException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Share folder accept error: {ex.Message}");
+                LogService.Warning("SharedFolder", $"Accept error: {ex.Message}");
                 await Task.Delay(500, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -163,7 +172,7 @@ public sealed class SharedFolderHostService : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Share folder client error: {ex.Message}");
+                LogService.Error("SharedFolder", $"Client error: {ex.Message}");
             }
         }
     }
@@ -340,5 +349,6 @@ public sealed class SharedFolderHostService : IAsyncDisposable
         }
 
         await StopAsync().ConfigureAwait(false);
+        await _connectionLimiter.DisposeAsync().ConfigureAwait(false);
     }
 }

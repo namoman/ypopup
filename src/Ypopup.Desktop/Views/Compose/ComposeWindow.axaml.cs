@@ -4,6 +4,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Ypopup.Core.Models;
+using Ypopup.Desktop.Controls;
 using Ypopup.Desktop.Helpers;
 using Ypopup.Network;
 
@@ -14,6 +15,7 @@ public partial class ComposeWindow : Window
     private readonly YpopupCoordinator _coordinator;
     private readonly PeerInfo _recipient;
     private readonly ObservableCollection<string> _attachments = [];
+    private CancellationTokenSource? _sendCts;
 
     public ComposeWindow(YpopupCoordinator coordinator, PeerInfo recipient)
     {
@@ -26,6 +28,8 @@ public partial class ComposeWindow : Window
         AttachmentListBox.ItemsSource = _attachments;
         MessageFontHelper.Apply(_coordinator.Settings, MessageTextBox);
         UpdateAttachmentSummary();
+
+        ProgressBarControl.CancelRequested += OnCancelRequested;
 
         DragDrop.SetAllowDrop(this, true);
         this.AddHandler(DragDrop.DragOverEvent, OnDragOver);
@@ -144,15 +148,32 @@ public partial class ComposeWindow : Window
             return;
         }
 
+        var hasAttachments = _attachments.Count > 0;
+        if (hasAttachments)
+        {
+            BeginTransfer();
+        }
+
         SendButton.IsEnabled = false;
+        _sendCts = new CancellationTokenSource();
+
         try
         {
-            await _coordinator.SendMessageAsync(new OutgoingMessage
-            {
-                Recipient = _recipient,
-                Body = body,
-                AttachmentPaths = _attachments.ToList()
-            });
+            IProgress<TransferProgress>? progress = hasAttachments
+                ? new Progress<TransferProgress>(OnTransferProgress)
+                : null;
+
+            await _coordinator.SendMessageAsync(
+                new OutgoingMessage
+                {
+                    Recipient = _recipient,
+                    Body = body,
+                    AttachmentPaths = _attachments.ToList()
+                },
+                _sendCts.Token,
+                progress);
+
+            EndTransfer();
 
             if (_coordinator.Settings.CloseComposeWindowAfterSend)
             {
@@ -165,8 +186,14 @@ public partial class ComposeWindow : Window
             UpdateAttachmentSummary();
             MessageTextBox.Focus();
         }
+        catch (OperationCanceledException)
+        {
+            EndTransfer();
+            await DialogHelper.ShowInfoAsync(this, "Y-popup", "전송이 취소되었습니다.");
+        }
         catch (Exception ex)
         {
+            EndTransfer();
             await DialogHelper.ShowErrorAsync(
                 this,
                 "Y-popup",
@@ -175,7 +202,39 @@ public partial class ComposeWindow : Window
         finally
         {
             SendButton.IsEnabled = true;
+            _sendCts?.Dispose();
+            _sendCts = null;
         }
+    }
+
+    private void BeginTransfer()
+    {
+        ProgressBarControl.Progress = 0;
+        ProgressBarControl.FileName = null;
+        ProgressArea.IsVisible = true;
+    }
+
+    private void EndTransfer()
+    {
+        ProgressArea.IsVisible = false;
+        ProgressBarControl.Progress = 0;
+        ProgressBarControl.FileName = null;
+    }
+
+    private void OnTransferProgress(TransferProgress p)
+    {
+        ProgressBarControl.Progress = p.Percent;
+        ProgressBarControl.FileName = p.FileName;
+    }
+
+    private void OnCancelRequested(object? sender, EventArgs e)
+    {
+        _sendCts?.Cancel();
+    }
+
+    private void OnWindowClosed(object? sender, EventArgs e)
+    {
+        _sendCts?.Cancel();
     }
 
     private void CloseButton_Click(object? sender, RoutedEventArgs e) => Close();

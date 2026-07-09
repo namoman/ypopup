@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Ypopup.Core.Models;
 using Ypopup.Core.Network;
+using Ypopup.Core.Settings;
 using Ypopup.Desktop.Helpers;
 using Ypopup.Desktop.Platform.Firewall;
 using Ypopup.Network;
@@ -108,21 +109,26 @@ public partial class NetworkSettingsPanel : UserControl
     private async void AddFirewallRuleButton_Click(object? sender, RoutedEventArgs e)
     {
         var owner = GetOwnerWindow();
-        if (!int.TryParse(TcpPortTextBox.Text, out var tcpPort) || tcpPort is < 1024 or > 65535)
+        var tcpResult = SettingsValidator.ValidatePort(TcpPortTextBox.Text, "TCP");
+        if (!tcpResult.IsValid)
         {
-            await DialogHelper.ShowWarningAsync(owner, "Y-popup", "TCP 포트는 1024~65535 사이여야 합니다.");
+            await DialogHelper.ShowWarningAsync(owner, "Y-popup", tcpResult.ErrorMessage);
             return;
         }
 
-        if (!int.TryParse(DiscoveryPortTextBox.Text, out var discoveryPort) || discoveryPort is < 1024 or > 65535)
+        var discoveryResult = SettingsValidator.ValidatePort(DiscoveryPortTextBox.Text, "UDP");
+        if (!discoveryResult.IsValid)
         {
-            await DialogHelper.ShowWarningAsync(owner, "Y-popup", "UDP 포트는 1024~65535 사이여야 합니다.");
+            await DialogHelper.ShowWarningAsync(owner, "Y-popup", discoveryResult.ErrorMessage);
             return;
         }
 
-        if (tcpPort == discoveryPort)
+        var tcpPort = int.Parse(TcpPortTextBox.Text!);
+        var discoveryPort = int.Parse(DiscoveryPortTextBox.Text!);
+        var portsDifferResult = SettingsValidator.ValidatePortsDiffer(tcpPort, discoveryPort, "TCP", "UDP");
+        if (!portsDifferResult.IsValid)
         {
-            await DialogHelper.ShowWarningAsync(owner, "Y-popup", "TCP 포트와 UDP 포트는 다른 번호여야 합니다.");
+            await DialogHelper.ShowWarningAsync(owner, "Y-popup", portsDifferResult.ErrorMessage);
             return;
         }
 

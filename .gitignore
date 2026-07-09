@@ -12,3 +12,6 @@ publish-osx-x64-framework/
 
 debug-*.log
 tools/_patch_settings.py
+release/
+docs/Y-popup*.exe
+docs/Y-popup*.zip

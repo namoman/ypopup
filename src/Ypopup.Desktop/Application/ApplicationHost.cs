@@ -1,4 +1,5 @@
 using Avalonia.Threading;
+using Ypopup.Core.Logging;
 using Ypopup.Desktop.Helpers;
 using Ypopup.Desktop.Infrastructure;
 using Ypopup.Desktop.Platform.Away;
@@ -35,6 +36,12 @@ public sealed class ApplicationHost : IAsyncDisposable
         try
         {
             StartupServiceFactory.Create().EnsureTrayLaunchRegistered();
+
+            var logDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "Y-popup", "logs");
+            LogService.Initialize(logDir);
+            LogService.Info("AppHost", $"Y-popup starting, log directory: {logDir}");
 
             _coordinator = new YpopupCoordinator();
             _windowNavigator = new WindowNavigator(_coordinator);
@@ -79,6 +86,7 @@ public sealed class ApplicationHost : IAsyncDisposable
             TrayMenuBuilder.Create(
                 () => _windowNavigator?.ShowUserList(),
                 () => Dispatcher.UIThread.Post(() => _ = ShowSettingsAndRefreshAwayAsync()),
+                () => Dispatcher.UIThread.Post(() => _ = ShowLanDiagnosticAsync()),
                 () => Dispatcher.UIThread.Post(() => _ = ShowAboutAsync()),
                 App.ShutdownAppAsync),
             () => _windowNavigator?.ShowUserList());
@@ -103,6 +111,16 @@ public sealed class ApplicationHost : IAsyncDisposable
         }
 
         await _windowNavigator.ShowAboutAsync();
+    }
+
+    private async Task ShowLanDiagnosticAsync()
+    {
+        if (_windowNavigator is null)
+        {
+            return;
+        }
+
+        await _windowNavigator.ShowLanDiagnosticAsync();
     }
 
     public async ValueTask DisposeAsync()

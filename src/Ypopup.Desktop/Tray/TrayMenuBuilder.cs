@@ -8,6 +8,7 @@ public static class TrayMenuBuilder
     public static NativeMenu Create(
         Action showUserList,
         Action showSettings,
+        Action showDiagnostics,
         Action showAbout,
         Func<Task> shutdownAsync)
     {
@@ -20,6 +21,10 @@ public static class TrayMenuBuilder
         var settingsItem = new NativeMenuItem("설정");
         settingsItem.Click += (_, _) => showSettings();
         menu.Items.Add(settingsItem);
+
+        var diagItem = new NativeMenuItem("LAN 진단");
+        diagItem.Click += (_, _) => showDiagnostics();
+        menu.Items.Add(diagItem);
 
         var aboutItem = new NativeMenuItem("정보");
         aboutItem.Click += (_, _) => showAbout();

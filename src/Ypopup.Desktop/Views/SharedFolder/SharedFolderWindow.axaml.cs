@@ -14,6 +14,7 @@ public partial class SharedFolderWindow : Window
     private readonly PeerInfo _peer;
     private string _currentPath = string.Empty;
     private bool _isLoading;
+    private CancellationTokenSource? _downloadCts;
 
     public SharedFolderWindow(YpopupCoordinator coordinator, PeerInfo peer)
     {
@@ -22,6 +23,7 @@ public partial class SharedFolderWindow : Window
         _peer = peer;
         Topmost = _coordinator.Settings.KeepWindowTopmost;
         TitleTextBlock.Text = $"{peer.DisplayName}의 공유폴더";
+        ProgressBarControl.CancelRequested += OnCancelRequested;
         Loaded += async (_, _) => await LoadEntriesAsync();
     }
 
@@ -112,6 +114,12 @@ public partial class SharedFolderWindow : Window
             return;
         }
 
+        if (_downloadCts is not null)
+        {
+            await DialogHelper.ShowInfoAsync(this, "Y-popup", "다운로드가 진행 중입니다. 취소 후 다시 시도하세요.");
+            return;
+        }
+
         var receiveDirectory = _coordinator.Settings.ReceiveDirectory;
         Directory.CreateDirectory(receiveDirectory);
 
@@ -129,15 +137,64 @@ public partial class SharedFolderWindow : Window
             return;
         }
 
+        _downloadCts = new CancellationTokenSource();
+        var progress = new Progress<TransferProgress>(OnDownloadProgress);
+
+        BeginDownload(entry.Name);
+        DownloadButton.IsEnabled = false;
+
         try
         {
-            await _coordinator.DownloadSharedFileAsync(_peer, entry.RelativePath, savePath);
+            await _coordinator.DownloadSharedFileAsync(
+                _peer,
+                entry.RelativePath,
+                savePath,
+                _downloadCts.Token,
+                progress);
+            EndDownload();
             await DialogHelper.ShowInfoAsync(this, "Y-popup", "다운로드가 완료되었습니다.");
+        }
+        catch (OperationCanceledException)
+        {
+            EndDownload();
+            await DialogHelper.ShowInfoAsync(this, "Y-popup", "다운로드가 취소되었습니다.");
         }
         catch (Exception ex)
         {
+            EndDownload();
             await DialogHelper.ShowErrorAsync(this, "Y-popup", $"다운로드에 실패했습니다.\n\n{ex.Message}");
         }
+        finally
+        {
+            DownloadButton.IsEnabled = true;
+            _downloadCts?.Dispose();
+            _downloadCts = null;
+        }
+    }
+
+    private void BeginDownload(string? fileName)
+    {
+        ProgressBarControl.Progress = 0;
+        ProgressBarControl.FileName = fileName;
+        ProgressArea.IsVisible = true;
+    }
+
+    private void EndDownload()
+    {
+        ProgressArea.IsVisible = false;
+        ProgressBarControl.Progress = 0;
+        ProgressBarControl.FileName = null;
+    }
+
+    private void OnDownloadProgress(TransferProgress p)
+    {
+        ProgressBarControl.Progress = p.Percent;
+        ProgressBarControl.FileName = p.FileName;
+    }
+
+    private void OnCancelRequested(object? sender, EventArgs e)
+    {
+        _downloadCts?.Cancel();
     }
 
     private void CloseButton_Click(object? sender, RoutedEventArgs e) => Close();

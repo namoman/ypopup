@@ -8,4 +8,9 @@
     <AssemblyName>Ypopup.Core</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Ypopup.Core.Tests" />
+    <InternalsVisibleTo Include="Ypopup.Network.Tests" />
+  </ItemGroup>
+
 </Project>

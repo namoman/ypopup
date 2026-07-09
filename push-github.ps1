@@ -34,25 +34,9 @@ else {
 Write-Host "=== Git status ===" -ForegroundColor Cyan
 Invoke-Git @('status', '--short')
 
-$docsDeployment = @(
-    'docs\Y-popup.exe',
-    'docs\Y-popup-net8.exe',
-    'docs\Y-popup-win-x64-net8.zip',
-    'docs\Y-popup-osx-arm64.zip',
-    'docs\Y-popup-osx-arm64-net8.zip',
-    'docs\Y-popup-osx-x64.zip',
-    'docs\Y-popup-osx-x64-net8.zip'
-)
-
 Write-Host "=== Git add ===" -ForegroundColor Cyan
 Invoke-Git @('add', 'README.md', 'walkthrough.md', 'publish.ps1', 'push-github.ps1', '.gitignore')
-Invoke-Git @('add', 'src', 'tools', 'docs\index.html')
-
-foreach ($file in $docsDeployment) {
-    if (Test-Path $file) {
-        Invoke-Git @('add', ($file -replace '\\', '/'))
-    }
-}
+Invoke-Git @('add', 'src', 'tools', 'docs\index.html', 'docs\screenshot.png', 'docs\cross-platform-support.md')
 
 # 로컬 테스트용 docs/share 는 제외
 if (-not $DryRun) {

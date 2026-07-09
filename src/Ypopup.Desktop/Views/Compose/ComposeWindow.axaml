@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Ypopup.Desktop.Controls"
         x:Class="Ypopup.Desktop.Views.Compose.ComposeWindow"
         Title="Y-popup - 쪽지 보내기"
         Width="400"
@@ -16,6 +17,7 @@
                 <RowDefinition Height="44"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
@@ -66,7 +68,11 @@
                 </ListBox>
             </Grid>
 
-            <Grid Grid.Row="4" Margin="14,12,14,14" VerticalAlignment="Bottom">
+            <Grid Grid.Row="4" x:Name="ProgressArea" Margin="14,8,14,0" IsVisible="False">
+                <controls:TransferProgressBar x:Name="ProgressBarControl" Progress="0"/>
+            </Grid>
+
+            <Grid Grid.Row="5" Margin="14,12,14,14" VerticalAlignment="Bottom">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>

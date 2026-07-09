@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Sockets;
+using Ypopup.Core.Logging;
 using Ypopup.Core.Models;
 using Ypopup.Core.Network;
 using Ypopup.Core.Protocol;
@@ -19,6 +20,11 @@ public sealed class DiscoveryService : IAsyncDisposable
     private Task? _listenTask;
     private Task? _announceTask;
     private int _disposed;
+    private long _lastAnnounceSentTicks;
+    private long _lastPacketReceivedTicks;
+
+    public DateTime LastAnnounceSentUtc => new(Interlocked.Read(ref _lastAnnounceSentTicks));
+    public DateTime LastPacketReceivedUtc => new(Interlocked.Read(ref _lastPacketReceivedTicks));
 
     public event Action<IReadOnlyList<PeerInfo>>? PeersChanged;
 
@@ -58,6 +64,8 @@ public sealed class DiscoveryService : IAsyncDisposable
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        await StopAsync().ConfigureAwait(false);
+
         _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         _udpClient = new UdpClient(_settingsService.Current.DiscoveryPort)
         {
@@ -67,6 +75,54 @@ public sealed class DiscoveryService : IAsyncDisposable
         _listenTask = ListenLoopAsync(_cts.Token);
         _announceTask = AnnounceLoopAsync(_cts.Token);
         await Task.CompletedTask;
+    }
+
+    public async Task StopAsync()
+    {
+        if (_udpClient is null)
+        {
+            return;
+        }
+
+        if (_cts is not null)
+        {
+            await _cts.CancelAsync().ConfigureAwait(false);
+        }
+
+        _udpClient.Dispose();
+        _udpClient = null;
+
+        if (_listenTask is not null)
+        {
+            try
+            {
+                await _listenTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        if (_announceTask is not null)
+        {
+            try
+            {
+                await _announceTask.ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }
+
+        _listenTask = null;
+        _announceTask = null;
+        _cts?.Dispose();
+        _cts = null;
+    }
+
+    public async Task RestartAsync(CancellationToken cancellationToken)
+    {
+        await StartAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private async Task ListenLoopAsync(CancellationToken cancellationToken)
@@ -84,7 +140,7 @@ public sealed class DiscoveryService : IAsyncDisposable
             }
             catch (SocketException ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Discovery listen error: {ex.Message}");
+                LogService.Warning("Discovery", $"Listen error: {ex.Message}");
                 await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -101,7 +157,7 @@ public sealed class DiscoveryService : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Discovery announce error: {ex.Message}");
+                LogService.Warning("Discovery", $"Announce error: {ex.Message}");
             }
 
             await Task.Delay(TimeSpan.FromSeconds(3), cancellationToken).ConfigureAwait(false);
@@ -132,6 +188,8 @@ public sealed class DiscoveryService : IAsyncDisposable
             ShareFolderPort = shareFolderActive ? settings.ShareFolderPort : 0
         };
 
+        Interlocked.Exchange(ref _lastAnnounceSentTicks, DateTime.UtcNow.Ticks);
+
         var payload = PacketCodec.Serialize(packet);
         var broadcastIps = LocalNetworkHelper.GetLocalSubnetBroadcastAddresses();
 
@@ -153,7 +211,7 @@ public sealed class DiscoveryService : IAsyncDisposable
                     }
                     catch (Exception ex)
                     {
-                        System.Diagnostics.Debug.WriteLine($"Failed to send announce on {ipStr}: {ex.Message}");
+                        LogService.Warning("Discovery", $"Send announce to {ipStr}: {ex.Message}");
                     }
                 }
             }
@@ -176,6 +234,8 @@ public sealed class DiscoveryService : IAsyncDisposable
         {
             return;
         }
+
+        Interlocked.Exchange(ref _lastPacketReceivedTicks, DateTime.UtcNow.Ticks);
 
         var settings = _settingsService.Current;
         if (string.Equals(packet.SenderId, settings.MachineId, StringComparison.OrdinalIgnoreCase))
@@ -283,34 +343,6 @@ public sealed class DiscoveryService : IAsyncDisposable
             return;
         }
 
-        if (_cts is not null)
-        {
-            await _cts.CancelAsync().ConfigureAwait(false);
-        }
-
-        if (_listenTask is not null)
-        {
-            try
-            {
-                await _listenTask.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-        }
-
-        if (_announceTask is not null)
-        {
-            try
-            {
-                await _announceTask.ConfigureAwait(false);
-            }
-            catch (OperationCanceledException)
-            {
-            }
-        }
-
-        _udpClient?.Dispose();
-        _cts?.Dispose();
+        await StopAsync().ConfigureAwait(false);
     }
 }

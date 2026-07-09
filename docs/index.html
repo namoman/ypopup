@@ -926,33 +926,33 @@
                         <tr>
                             <td class="platform">Windows 64-bit</td>
                             <td>
-                                <a href="./Y-popup.exe" class="xp-btn xp-btn-primary" download>Y-popup.exe</a>
+                                <a href="https://github.com/namoman/ypopup/releases/latest/download/Y-popup.exe" class="xp-btn xp-btn-primary">Y-popup.exe</a>
                                 <span class="size">(44 MB)</span>
                             </td>
                             <td>
-                                <a href="./Y-popup-net8.exe" class="xp-btn" download>Y-popup-net8.exe</a>
+                                <a href="https://github.com/namoman/ypopup/releases/latest/download/Y-popup-net8.exe" class="xp-btn">Y-popup-net8.exe</a>
                                 <span class="size">(10 MB)</span>
                             </td>
                         </tr>
                         <tr>
                             <td class="platform">macOS (Apple Silicon)</td>
                             <td>
-                                <a href="./Y-popup-osx-arm64.zip" class="xp-btn" download>zip</a>
+                                <a href="https://github.com/namoman/ypopup/releases/latest/download/Y-popup-osx-arm64.zip" class="xp-btn">zip</a>
                                 <span class="size">(39 MB)</span>
                             </td>
                             <td>
-                                <a href="./Y-popup-osx-arm64-net8.zip" class="xp-btn" download>zip</a>
+                                <a href="https://github.com/namoman/ypopup/releases/latest/download/Y-popup-osx-arm64-net8.zip" class="xp-btn">zip</a>
                                 <span class="size">(12 MB)</span>
                             </td>
                         </tr>
                         <tr>
                             <td class="platform">macOS (Intel)</td>
                             <td>
-                                <a href="./Y-popup-osx-x64.zip" class="xp-btn" download>zip</a>
+                                <a href="https://github.com/namoman/ypopup/releases/latest/download/Y-popup-osx-x64.zip" class="xp-btn">zip</a>
                                 <span class="size">(40 MB)</span>
                             </td>
                             <td>
-                                <a href="./Y-popup-osx-x64-net8.zip" class="xp-btn" download>zip</a>
+                                <a href="https://github.com/namoman/ypopup/releases/latest/download/Y-popup-osx-x64-net8.zip" class="xp-btn">zip</a>
                                 <span class="size">(12 MB)</span>
                             </td>
                         </tr>
@@ -960,7 +960,8 @@
                 </table>
                 <p class="download-footnote">
                     <b>독립 실행</b> — .NET 설치 없이 바로 실행 (Windows는 단일 exe, macOS는 zip 압축 해제 후 <code>Y-popup</code> 실행).<br>
-                    <b>.NET 8 Runtime</b> — <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Runtime</a> 설치 후 사용. Windows는 <code>Y-popup-net8.exe</code> 단일 exe, macOS는 zip 압축 해제 후 실행.
+                    <b>.NET 8 Runtime</b> — <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Runtime</a> 설치 후 사용. Windows는 <code>Y-popup-net8.exe</code> 단일 exe, macOS는 zip 압축 해제 후 실행.<br>
+                    <!-- 다운로드는 GitHub Releases에서 제공됩니다 -->
                 </p>
                 <div class="download-actions">
                     <a href="#guide" class="xp-btn">사용 방법</a>
@@ -982,9 +983,10 @@
                 <ul class="feature-list">
                     <li><b>🔍 자동 감지 (UDP Broadcast)</b> — 계정 가입·서버 설정 없이, 실행만 하면 같은 LAN 사용자 자동 발견</li>
                     <li><b>✉️ 1:1 즉각 팝업 쪽지</b> — 수신 즉시 화면 중앙에 쪽지 팝업! (메신저가 아닌 쪽지 감성)</li>
-                    <li><b>📁 파일 드래그 앤 드롭</b> — 쪽지 창에 파일을 끌어다 놓으면 다중 파일 전송</li>
+                    <li><b>📁 파일 드래그 앤 드롭</b> — 쪽지 창에 파일을 끌어다 놓으면 다중 파일 전송 (<b>진행률 표시 + 취소 가능</b>)</li>
+                    <li><b>📊 LAN 진단</b> — 트레이 메뉴 «LAN 진단»에서 선택된 IP, 브로드캐스트 대상, 패킷 시간, 피어 목록 확인</li>
                     <li><b>🌙 부재중 · 자동 답장</b> — 자리 비움 시 부재 표시 + 자동 응답 메시지</li>
-                    <li><b>🗂️ LAN 공유 폴더</b> — exe 옆 <code>share</code> 폴더를 읽기 전용 공개 (TCP 50507), 📁 버튼으로 탐색·다운로드</li>
+                    <li><b>🗂️ LAN 공유 폴더</b> — exe 옆 <code>share</code> 폴더를 읽기 전용 공개 (TCP 50507), 📁 버튼으로 탐색·다운로드 (<b>진행률 표시</b>)</li>
                 </ul>
             </fieldset>
         </div>
@@ -1021,7 +1023,7 @@
                     <td>
                         <b>트레이에서 관리</b><br>
                         실행 후 화면 우측 하단 트레이의 <b>파란 전화기</b> 아이콘을 클릭하면<br>
-                        사용자 목록과 설정을 열 수 있습니다.
+                        사용자 목록·설정·LAN 진단·정보를 열 수 있습니다.
                     </td>
                 </tr>
             </table>

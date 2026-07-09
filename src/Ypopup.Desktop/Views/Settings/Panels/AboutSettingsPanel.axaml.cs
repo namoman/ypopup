@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Ypopup.Core;
+using Ypopup.Core.Logging;
 
 namespace Ypopup.Desktop.Views.Settings.Panels;
 
@@ -27,7 +28,7 @@ public partial class AboutSettingsPanel : UserControl
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to open link: {ex.Message}");
+            LogService.Warning("AboutSettings", $"Open link: {ex.Message}");
         }
     }
 }

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Ypopup.Core;
+using Ypopup.Core.Logging;
 
 namespace Ypopup.Desktop.Views.About;
 
@@ -29,7 +30,7 @@ public partial class AboutWindow : Window
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Failed to open link: {ex.Message}");
+            LogService.Warning("AboutWindow", $"Open link: {ex.Message}");
         }
     }
 }

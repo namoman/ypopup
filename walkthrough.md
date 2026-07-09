@@ -65,7 +65,7 @@ Ypopup/
 - 솔루션 3개 프로젝트로 기능 분리
   - `Ypopup.Core` — Models, Protocol, Settings
   - `Ypopup.Network` — Discovery, Messaging, Coordinator
-  - `Ypopup.App` — WPF UI
+  - `Ypopup.Desktop` — Avalonia UI
 - `PublishSingleFile=true`로 **단일 exe 배포** 지원 (`publish.ps1`)
 
 ## 2026-06-29 — 완전 독립 exe (SelfContained)
@@ -87,7 +87,7 @@ Ypopup/
 
 - `ref/icon.png` → `Assets/icon.png` (트레이) + `Assets/app.ico` (exe)
 - `tools/generate-app-icon.ps1`로 PNG에서 `.ico` 생성
-- `Ypopup.App.csproj`에 `<ApplicationIcon>Assets\app.ico</ApplicationIcon>` 설정
+- `Ypopup.Desktop.csproj`에 `<ApplicationIcon>Assets\app.ico</ApplicationIcon>` 설정
 - `publish.ps1` 실행 시 아이콘 자동 재생성 후 publish
 - 트레이 아이콘은 32×32로 리사이즈 후 `System.Drawing.Icon` 변환
 
@@ -142,7 +142,7 @@ Ypopup/
 ## 2026-06-29 — 네트워크 탭 방화벽 UI
 
 - 설정 **네트워크** 탭에 방화벽 상태·허용 버튼 추가
-- `FirewallHelper`로 netsh 규칙 등록 (관리자 UAC)
+- Avalonia `WindowsFirewallService`로 netsh 규칙 등록 (관리자 UAC)
 
 ## 2026-07-03 — 홈페이지 앱 UI HTML/CSS mockup
 
@@ -190,7 +190,7 @@ Ypopup/
 ## 2026-07-03 — 버전 2.0 릴리스
 
 - `AppInfo.Version` **1.2** → **2.0** (UI 표시: 설정·정보 창)
-- `Ypopup.Desktop.csproj` / `Ypopup.App.csproj`: `Version` **2.0.0**, `AssemblyVersion`·`FileVersion` **2.0.0.0**
+- `Ypopup.Desktop.csproj`: `Version` **2.0.0**, `AssemblyVersion`·`FileVersion` **2.0.0.0**
 - `app.manifest` assemblyIdentity **2.0.0.0**
 - `publish.ps1`·`docs/index.html`·`README.md`에는 버전 문자열 없음 (csproj·AppInfo에서 빌드 시 반영)
 - `publish.ps1` 실행 후 `docs/` 바이너리만 GitHub Pages·저장소에 반영 (`publish*` 중간 폴더는 제외)
@@ -278,7 +278,7 @@ Ypopup/
 
 ### 왜 PC에서 아이콘이 안 바뀌어 보였나
 
-1. **아이콘 생성기가 Desktop만 갱신** — `Ypopup.App/Assets`는 예전 `.ico`가 남아 있었음
+1. **아이콘 생성기 대상 불일치** — 앱에서 쓰는 `Ypopup.Desktop/Assets`와 실제 실행 파일 아이콘을 함께 갱신해야 했음
 2. **창 헤더 로고가 이모지(☎)** — `ref/icon.png`를 쓰지 않고 빨간 박스+전화 이모지가 하드코딩되어 있었음
 3. **이전 exe 실행** — `dotnet run` 캐시·바탕화면 바로가기·Windows 아이콘 캐시로 예전 아이콘이 보일 수 있음
 
@@ -353,3 +353,241 @@ Ypopup/
 
 - `$Args` → `$GitArgs`, `& git @GitArgs`로 호출
 - 커밋 여부는 `git diff --cached --name-only`(스테이징된 변경)만 확인
+
+## 2026-07-08 — P0 자동 테스트 프로젝트 + P2 파일 전송 진행률·취소
+
+### 배경
+
+- P0는 "릴리스 전 반드시 확인"이었으나 실사용 중인 코드에 회귀 방지 목적
+- P2는 느린 네트워크에서 앱이 멈춘 것처럼 보이는 UX 개선
+- TODO.md 정리 후 `plans/2026-07-08-p0-tests-and-transfer-progress.md` 계획 수립
+
+### P0 — 단위 테스트
+
+**파일 구조**
+
+```
+tests/Ypopup.Core.Tests/
+├── Ypopup.Core.Tests.csproj          # xUnit + InternalsVisibleTo
+├── Protocol/PacketCodecTests.cs      # 8 tests
+├── Sharing/SharedFolderPathHelperTests.cs  # 5 tests
+├── IO/FileNameSanitizerTests.cs      # 6 tests
+├── Settings/SettingsMigrationTests.cs  # 6 tests
+└── Transfers/
+    ├── FileSendProgressTests.cs      # 3 tests
+    └── FileReceiveProgressTests.cs   # 3 tests
+
+tests/Ypopup.Network.Tests/
+└── Sharing/SharedFolderIntegrationTests.cs  # 8 tests (실제 서버 구동)
+```
+
+**리팩토링**
+
+- `FileNameSanitizer` — `TcpHostService`에서 `Ypopup.Core/IO`로 추출 (public static)
+- `SettingsService` — `internal SettingsService(string settingsDirectory)` 생성자 추가
+- `PacketCodec.WriteFileAsync`/`SaveFileAsync` — `IProgress<TransferProgress>?` 오버로드 추가 (기존 유지)
+
+**설치**
+- `Ypopup.Core.csproj`에 `<InternalsVisibleTo Include="Ypopup.Core.Tests" />` (+ Network.Tests)
+- 솔루션에 `tests` 솔루션 폴더 + 2개 테스트 프로젝트 등록
+
+**결과**: 39개 녹색 (Core 31 + Network 8), 로컬 `dotnet test`로 실행 가능
+
+### P2 — 파일 전송 진행률·취소
+
+**신규 클래스 (모듈화)**
+
+| 파일 | 역할 |
+|------|------|
+| `src/Ypopup.Core/Models/TransferProgress.cs` | 진행률 레코드 (Percent, Fraction, IsComplete) |
+| `src/Ypopup.Core/Protocol/ProgressReporter.cs` | 1MB/5% 간격 threshold-based 리포트 |
+| `src/Ypopup.Desktop/Controls/TransferProgressBar.axaml` | 공용 UserControl (ProgressBar + 파일명 + 퍼센트 + 취소 버튼) |
+| `src/Ypopup.Desktop/Controls/TransferProgressBar.axaml.cs` | StyledProperty (Progress, FileName, IsCancellable, CancelCommand) |
+
+**변경 파일**
+
+- `PacketCodec.cs` — `WriteFileAsync`/`SaveFileAsync` 오버로드 + 취소를 위한 `ThrowIfCancellationRequested()` 보강
+- `TcpHostService.cs` — `SendMessageAsync` 오버로드 (기존 시그니처 유지), `FileNameSanitizer` 사용
+- `SharedFolderClient.cs` — 다운로드 `.partial` 패턴 적용, `Content-Length` 파싱, 진행률 리포트, 예외 시 `.partial` 삭제
+- `YpopupCoordinator.cs` — 송신/다운로드 오버로드 (기존 1-arg 위임)
+- `ComposeWindow.axaml(.cs)` — 첨부 영역 아래 `TransferProgressBar`, `CancellationTokenSource`로 취소
+- `SharedFolderWindow.axaml(.cs)` — 다운로드 버튼 위 `TransferProgressBar`, 진행 중 이중 다운로드 방지
+
+**하위 호환**: 기존 시그니처 보존, 자동답장(`IsAutoReply`) 영향 없음
+
+### 남은 TODO (진행 기준)
+
+- **P1**: ~~TCP 동시 접속 제한~~ ✅, ~~포트 변경 일관성~~ ✅, ~~백그라운드 실패 추적~~ ✅
+- **P2**: LAN 진단 화면, 롤링 로그, 배포 산출물 정리
+- **P3**: 스모크 테스트 스크립트, 설정 검증 중복 제거, 진단 내보내기, ~~XAML 경고~~ ✅(검증 only, A 방침 유지)
+- **P2-C**: 크로스플랫폼 매트릭스 문서 ✅, `explorer.exe` 수정 ✅, `AppInfo` Linux 안내 수정 ✅, README 갱신 ✅
+- **UI 검증**: 2대 LAN 환경에서 진행률 바 + 취소 동작 확인 필요
+
+### 다음 작업 순서 제안
+
+1. **P3 설정 검증 중복 제거** — 포트/경로 검증 로직 `Ypopup.Core`로 이동. 30분 작업.
+2. **P2 LAN 진단 화면** — 진단 정보 창 추가. 1시간 작업.
+
+## 2026-07-08 — P1 전체 + P3 XAML 경고 검증 + P2-C 크로스플랫폼 재검토
+
+### P1-1: TCP 동시 접속 제한
+
+**신규 모듈**
+- `src/Ypopup.Core/Network/ConnectionLimiter.cs` — `SemaphoreSlim(max=20)` 래퍼, `WaitAsync`/`Release`, `IAsyncDisposable` + `IDisposable`
+- `tests/Ypopup.Core.Tests/Network/ConnectionLimiterTests.cs` — 6개 테스트
+
+**적용**
+- `TcpHostService.AcceptLoopAsync` — `Task.Run` 내부 `_connectionLimiter.WaitAsync` 후 `HandleClientAsync` 실행
+- `SharedFolderHostService.AcceptLoopAsync` — 동일
+- 초과 접속은 **대기**(거절 아님) → 사용자 불편 없음
+- `DisposeAsync`에서 `_connectionLimiter.DisposeAsync()` 호출
+
+### P1-2: 포트 변경 일관성
+
+**변경**
+- `TcpHostService` — `public Task StopAsync()` + `public Task RestartAsync(CancellationToken)` 추가. `StartAsync`가 `StopAsync` 후 시작, `DisposeAsync`가 `StopAsync` 재사용.
+- `DiscoveryService` — 동일 (`StopAsync` + `RestartAsync`)
+- `YpopupCoordinator.SaveSettings` — TCP/UDP/Discovery 포트 또는 PreferredIp 변경 시 일관되게 3개 서비스 자동 재시작 (`BackgroundTaskTracker`로 fire-and-forget)
+- `SettingsEditor.cs` — 메시지 "포트 변경은 재시작 후 적용" → "포트/네트워크 변경 사항은 자동으로 적용되었습니다"
+
+**효과**: 사용자가 포트 바꾸면 앱 재시작 없이 즉시 적용. 공유폴더만 재시작되던 불일치 제거.
+
+### P1-3: 백그라운드 작업 실패 추적
+
+**신규 모듈**
+- `src/Ypopup.Core/Helpers/BackgroundTaskTracker.cs` — `RunAsync(string operationName, Func<Task>, Action<string, Exception>? onError)`. 내부 `Task.Run` + try/catch. `OperationCanceledException`은 무시, 그 외 예외는 `Debug.WriteLine` + onError 콜백.
+- `tests/Ypopup.Core.Tests/Network/BackgroundTaskTrackerTests.cs` — 4개 테스트 (정상/예외/취소/동기 factory)
+
+**전환 위치** (모두 fire-and-forget → tracker)
+- `YpopupCoordinator.SaveSettings` — 공유폴더/TCP/Discovery 재시작 3곳
+- `YpopupCoordinator.HandleMessageReceivedAsync` — 자동답장 (기존 try/catch 제거 → tracker)
+- `TcpHostService.AcceptLoopAsync` — 클라이언트 처리 Task.Run
+- `SharedFolderHostService.AcceptLoopAsync` — 동일
+
+### P3-X: Avalonia XAML 로더 경고 재발 여부 확인
+
+- `dotnet build` (clean) → 5개 창에서 AVLN3001 경고 재발 확인
+  - ComposeWindow, ReceiveWindow, SettingsWindow, SharedFolderWindow, UserListWindow
+  - 원인: 매개변수 생성자만 있고 기본 parameterless 생성자 없음
+- 결정: **A(경고 무시) 방침 유지**
+  - 런타임 동작에 영향 없음 (`WindowNavigator`에서 매개변수 생성자로 명시적 `new` 호출)
+  - 기본 생성자 추가 → "반쯤 초기화된" 객체 가능 → Less is more 원칙 위반
+  - `TODO.md`에 "실제 디자이너/런타임 문제 생길 때만 기본 생성자 추가 검토" 명시됨 → 현재 문제 없음
+- 향후 런타임/디자이너 문제 발생 시 → D 방식 (`InitializeComponent`를 public 매개변수 메소드로 분리) 적용 검토
+
+### P2-C: 크로스플랫폼 지원 범위 재검토
+
+**신규 문서**
+- `docs/cross-platform-support.md` — 모든 기능별 Windows/macOS/Linux 지원 매트릭스 작성
+
+**잠재적 문제 수정**
+- `GeneralSettingsPanel.axaml.cs:222` — `explorer.exe` 직접 호출 → `Process.Start(new ProcessStartInfo { FileName = path, UseShellExecute = true })`로 통일
+  - .NET이 OS별로 Windows는 ShellExecute, macOS는 `open`, Linux는 `xdg-open`로 자동 매핑
+- `AppInfo.cs:16` — "Win11·macOS·Linux" → "Win11·macOS" (Linux 빌드 미배포 → 과대 안내 제거)
+- `README.md` 요구사항 — macOS 비고에 일부 Windows 전용 기능 안내 + `docs/cross-platform-support.md` 링크 추가 + Linux 미지원 명시
+
+**문서화만 (스코프 밖)**: macOS 알림음 폴백(`Console.Beep`), 트레이 아이콘 `.ico` 포맷, macOS/Linux 시작프로그램 등록 미구현
+
+### 최종 검증 결과
+
+- `dotnet build Ypopup.sln` — 오류 0, 증분 빌드 경고 0 (clean 빌드 시 5개 AVLN3001 — A 방침으로 유지)
+- `dotnet test Ypopup.sln` — **49개 녹색** (Core 41 + Network 8)
+  - Core: PacketCodec(8) + SharedFolderPathHelper(5) + FileNameSanitizer(6) + SettingsMigration(6) + FileSendProgress(3) + FileReceiveProgress(3) + ConnectionLimiter(6) + BackgroundTaskTracker(4)
+  - Network: SharedFolderIntegration(8)
+
+## 2026-07-09 — 세션 재개 및 상태 검토
+
+### 작업
+- TODO.md·walkthrough.md를 읽어 마지막 완료 지점(P1-1/2/3 + P2-C + P3-X) 확인
+- TODO.md 체크박스 상태를 실제 완료에 맞게 갱신 (P1 3개, P2-C, P3-X를 [x]로)
+- TODO.md에 세션 재개 로그 추가
+- walkthrough.md에 본 항목 추가
+
+### 현재 상태
+- **완료된 Phase**: P0, P1-1/2/3, P2-X(진행률+취소), P2-C(크로스플랫폼), P3-X(XAML 경고)
+- **미완료 P2**: 롤링 로그, 배포 산출물 정리
+- **미완료 P3**: 스모크 테스트, 설정 검증 중복 제거, 진단 내보내기
+- **검증 필요**: 2-PC LAN에서 진행률+취소 UI 동작 확인 (수동)
+- `dotnet build` 오류 0, `dotnet test` 49개 녹색 (변동 없음)
+
+## 2026-07-09 — P2 LAN 진단 화면 구현
+
+### 변경 파일
+
+| 파일 | 변경 |
+|------|------|
+| `src/Ypopup.Network/Discovery/DiscoveryService.cs` | `_lastAnnounceSentUtc`, `_lastPacketReceivedUtc` 필드 + public getter 추가. BroadcastAnnounce/HandleAnnounce에서 타임스탬프 갱신 |
+| `src/Ypopup.Network/YpopupCoordinator.cs` | `LastAnnounceSentUtc`, `LastPacketReceivedUtc` 프로퍼티 노출 |
+| `src/Ypopup.Desktop/Views/Diagnostics/LanDiagnosticWindow.axaml` | **신규** — 진단 창 XAML (내 네트워크, 트래픽, 피어 목록 3개 섹션) |
+| `src/Ypopup.Desktop/Views/Diagnostics/LanDiagnosticWindow.axaml.cs` | **신규** — Coordinator에서 진단 데이터 읽어 UI 갱신 |
+| `src/Ypopup.Desktop/Windows/WindowNavigator.cs` | `ShowLanDiagnosticAsync()` 추가 |
+| `src/Ypopup.Desktop/Tray/TrayMenuBuilder.cs` | `Create` 파라미터에 `showDiagnostics` 추가, "LAN 진단" 메뉴 항목 |
+| `src/Ypopup.Desktop/Application/ApplicationHost.cs` | 트레이 메뉴에 진단 콜백 연결 |
+
+### 화면 구성
+1. **내 네트워크** — 선택된 IP, 브로드캐스트 대상, UDP/TCP 포트
+2. **트래픽** — 마지막 Announce 전송/피어 패킷 수신 시간 (방금 전/X초 전/X분 전)
+3. **발견된 피어 목록** — 각 피어의 이름, IP, 마지막 수신 시간
+
+### 검증
+- `dotnet build` — 오류 0
+- `dotnet test` — 49개 녹색 (Core 41 + Network 8)
+
+## 2026-07-09 — P2 롤링 로그 구현
+
+### 변경 파일
+
+| 파일 | 변경 |
+|------|------|
+| `src/Ypopup.Core/Logging/LogService.cs` | **신규** — 일별 롤링 파일 로거 (`yyyy-MM-dd.log`), 7일 지난 로그 자동 삭제, `Debug.WriteLine` 동시 출력 |
+| `src/Ypopup.Network/Discovery/DiscoveryService.cs` | `Debug.WriteLine` 3곳 → `LogService.Warning` |
+| `src/Ypopup.Network/Messaging/TcpHostService.cs` | `Debug.WriteLine` 3곳 → `LogService.Warning`/`Error` |
+| `src/Ypopup.Network/Sharing/SharedFolderHostService.cs` | `Debug.WriteLine` 2곳 → `LogService.Warning`/`Error` |
+| `src/Ypopup.Network/YpopupCoordinator.cs` | `Debug.WriteLine` 2곳 → `LogService.Error` |
+| `src/Ypopup.Core/Helpers/BackgroundTaskTracker.cs` | `Debug.WriteLine` → `LogService.Error` |
+| `src/Ypopup.Desktop/Views/About/AboutWindow.axaml.cs` | `Debug.WriteLine` → `LogService.Warning` |
+| `src/Ypopup.Desktop/Views/Settings/Panels/AboutSettingsPanel.axaml.cs` | `Debug.WriteLine` → `LogService.Warning` |
+| `src/Ypopup.Desktop/Application/ApplicationHost.cs` | `LogService.Initialize` 호출 (시작 시) |
+
+### 검증
+- `dotnet build` — 오류 0
+- `dotnet test` — 49개 녹색 (Core 41 + Network 8)
+
+## 2026-07-09 — P2 배포 산출물 정리
+
+### 결정
+바이너리를 `docs/`에서 **GitHub Releases**로 이동. 저장소가 무거워지는 것을 방지.
+
+### 변경 파일
+
+| 파일 | 변경 |
+|------|------|
+| `.gitignore` | `release/` + `docs/Y-popup*.exe`, `docs/Y-popup*.zip` 추가 (로컬 바이너리 제외) |
+| `publish.ps1` | `$docsDeploymentFiles` → `$releaseFiles`, 출력 경로 `docs/` → `release/` |
+| `docs/index.html` | 6개 다운로드 링크 `./` → `https://github.com/namoman/ypopup/releases/latest/download/` |
+| `push-github.ps1` | 바이너리 git add 루프 제거, docs 웹페이지만 add |
+| `tools/create-release.ps1` | **신규** — `gh release create` 자동화 스크립트 |
+
+### 새 워크플로
+1. `publish.ps1` — 바이너리가 `release/`에 생성됨 (git에서 무시)
+2. `tools/create-release.ps1` — `gh release create v2.x.x release/*` 실행
+3. `push-github.ps1` — 소스 코드 + 웹페이지만 git push
+
+### 검증
+- `dotnet build` — 오류 0, 경고 0
+- `dotnet test` — 49개 녹색 (Core 41 + Network 8)
+
+## 2026-07-09 — P3 설정 검증 중복 제거
+
+### 변경 파일
+
+| 파일 | 변경 |
+|------|------|
+| `src/Ypopup.Core/Settings/SettingsValidator.cs` | **신규** — `ValidationResult` struct + `SettingsValidator` static class (ValidateDisplayName, ValidatePort, ValidatePortsDiffer, ValidateShareFolderPath, ValidateAwayIdleMinutes) |
+| `src/Ypopup.Desktop/Views/Settings/SettingsEditor.cs` | `TrySaveAsync` 검증 15줄 → `SettingsValidator` 8회 호출 |
+| `src/Ypopup.Desktop/Views/Settings/Panels/NetworkSettingsPanel.axaml.cs` | `AddFirewallRuleButton_Click` 검증 8줄 → `SettingsValidator` 3회 호출 |
+| `tests/Ypopup.Core.Tests/Settings/SettingsValidatorTests.cs` | **신규** — 19개 테스트 (이름/포트/포트중복/경로/유휴시간) |
+
+### 검증
+- `dotnet build` — 오류 0
+- `dotnet test` — 75개 녹색 (Core 67 + Network 8)

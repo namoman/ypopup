@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Ypopup.Desktop.Helpers;
 using Ypopup.Desktop.Views.About;
+using Ypopup.Desktop.Views.Diagnostics;
 using Ypopup.Desktop.Views.Settings;
 using Ypopup.Desktop.Views.UserList;
 using Ypopup.Network;
@@ -79,6 +80,20 @@ public sealed class WindowNavigator
         {
             aboutWindow.Show();
             aboutWindow.Activate();
+        }
+    }
+
+    public async Task ShowLanDiagnosticAsync()
+    {
+        var diagWindow = new LanDiagnosticWindow(_coordinator);
+        if (_userListWindow is { IsVisible: true } owner)
+        {
+            await WindowDialogHelper.ShowDialogAsync(diagWindow, owner);
+        }
+        else
+        {
+            diagWindow.Show();
+            diagWindow.Activate();
         }
     }
 }

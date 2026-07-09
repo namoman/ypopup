@@ -1,0 +1,95 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="using:Ypopup.Core.Models"
+        x:Class="Ypopup.Desktop.Views.Diagnostics.LanDiagnosticWindow"
+        Title="Y-popup - LAN 진단"
+        Width="520"
+        Height="480"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        ShowInTaskbar="False"
+        Background="#F8FAFC"
+        Foreground="#1E293B">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="LAN 진단" FontSize="16" FontWeight="SemiBold"
+                   HorizontalAlignment="Center" Margin="0,0,0,12"/>
+
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="8">
+                <Border Background="White" CornerRadius="8" BorderBrush="#E2E8F0" BorderThickness="1" Padding="12">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="내 네트워크" FontWeight="SemiBold" FontSize="13"/>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="선택된 IP:" Foreground="#64748B" MinWidth="120"/>
+                            <TextBlock x:Name="LocalIpTextBlock" Grid.Column="1" FontFamily="Consolas"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="브로드캐스트 대상:" Foreground="#64748B" MinWidth="120"/>
+                            <TextBlock x:Name="BroadcastTextBlock" Grid.Column="1" FontFamily="Consolas"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="발견(UDP) 포트:" Foreground="#64748B" MinWidth="120"/>
+                            <TextBlock x:Name="DiscoveryPortTextBlock" Grid.Column="1"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="메시지(TCP) 포트:" Foreground="#64748B" MinWidth="120"/>
+                            <TextBlock x:Name="TcpPortTextBlock" Grid.Column="1"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="8" BorderBrush="#E2E8F0" BorderThickness="1" Padding="12">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="트래픽" FontWeight="SemiBold" FontSize="13"/>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="마지막 Announce 전송:" Foreground="#64748B" MinWidth="160"/>
+                            <TextBlock x:Name="LastAnnounceTextBlock" Grid.Column="1" FontFamily="Consolas"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="마지막 피어 패킷 수신:" Foreground="#64748B" MinWidth="160"/>
+                            <TextBlock x:Name="LastPacketTextBlock" Grid.Column="1" FontFamily="Consolas"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="발견된 피어:" Foreground="#64748B" MinWidth="160"/>
+                            <TextBlock x:Name="PeerCountTextBlock" Grid.Column="1"/>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="8" BorderBrush="#E2E8F0" BorderThickness="1" Padding="12">
+                    <StackPanel Spacing="6">
+                        <TextBlock Text="발견된 피어 목록" FontWeight="SemiBold" FontSize="13"/>
+                        <ItemsControl x:Name="PeerListControl">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="models:PeerInfo">
+                                    <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="4">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <StackPanel>
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Medium"/>
+                                                <TextBlock Text="{Binding IpAddress}" FontFamily="Consolas" FontSize="11" Foreground="#64748B"/>
+                                            </StackPanel>
+                                            <TextBlock Grid.Column="1" Text="{Binding LastSeenUtc, StringFormat='{}{0:HH:mm:ss}'}"
+                                                       FontFamily="Consolas" FontSize="11" Foreground="#64748B"
+                                                       VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Button Grid.Row="2" x:Name="RefreshButton" Content="새로고침" HorizontalAlignment="Left"
+                Margin="0,12,0,0" Width="100" Click="RefreshButton_Click"/>
+        <Button Grid.Row="2" Content="닫기" HorizontalAlignment="Right"
+                Margin="0,12,0,0" Width="80" Classes="secondary" Click="CloseButton_Click"/>
+    </Grid>
+</Window>

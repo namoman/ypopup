@@ -4,14 +4,14 @@ Set-Location $PSScriptRoot
 
 $project = 'src/Ypopup.Desktop/Ypopup.Desktop.csproj'
 
-$docsDeploymentFiles = @(
-    'docs\Y-popup.exe',
-    'docs\Y-popup-net8.exe',
-    'docs\Y-popup-win-x64-net8.zip',
-    'docs\Y-popup-osx-arm64.zip',
-    'docs\Y-popup-osx-arm64-net8.zip',
-    'docs\Y-popup-osx-x64.zip',
-    'docs\Y-popup-osx-x64-net8.zip'
+$releaseFiles = @(
+    'release\Y-popup.exe',
+    'release\Y-popup-net8.exe',
+    'release\Y-popup-win-x64-net8.zip',
+    'release\Y-popup-osx-arm64.zip',
+    'release\Y-popup-osx-arm64-net8.zip',
+    'release\Y-popup-osx-x64.zip',
+    'release\Y-popup-osx-x64-net8.zip'
 )
 
 function Remove-PathIfExists {
@@ -46,9 +46,9 @@ function Clean-PublishFolders {
         ForEach-Object { Remove-PathIfExists $_.FullName }
 }
 
-function Clean-DocsDeployment {
-    Write-Host "=== Clean docs deployment files ===" -ForegroundColor Cyan
-    foreach ($file in $docsDeploymentFiles) {
+function Clean-ReleaseFiles {
+    Write-Host "=== Clean release files ===" -ForegroundColor Cyan
+    foreach ($file in $releaseFiles) {
         if (Test-Path $file) {
             Remove-Item -Force $file
             Write-Host "  removed $file"
@@ -111,7 +111,7 @@ function Format-Mb {
 Clean-RunningApp
 Clean-BuildCache
 Clean-PublishFolders
-Clean-DocsDeployment
+Clean-ReleaseFiles
 
 Write-Host "=== Regenerate icons ===" -ForegroundColor Cyan
 powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\tools\generate-app-icon.ps1"
@@ -129,26 +129,26 @@ Write-Host "=== macOS Intel (x64) ===" -ForegroundColor Cyan
 Publish-Target -Rid 'osx-x64' -Output 'publish-osx-x64' -SelfContained $true -Compress $false
 Publish-Target -Rid 'osx-x64' -Output 'publish-osx-x64-framework' -SelfContained $false -Compress $false
 
-Write-Host "=== docs/ copy ===" -ForegroundColor Cyan
-New-Item -ItemType Directory -Force -Path 'docs' | Out-Null
+Write-Host "=== release/ copy ===" -ForegroundColor Cyan
+New-Item -ItemType Directory -Force -Path 'release' | Out-Null
 
-Copy-Item 'publish\Y-popup.exe' 'docs\Y-popup.exe' -Force
-New-DocsZip -SourceFolder 'publish-framework' -ZipPath 'docs\Y-popup-win-x64-net8.zip'
-New-DocsZip -SourceFolder 'publish-osx-arm64' -ZipPath 'docs\Y-popup-osx-arm64.zip'
-New-DocsZip -SourceFolder 'publish-osx-arm64-framework' -ZipPath 'docs\Y-popup-osx-arm64-net8.zip'
-New-DocsZip -SourceFolder 'publish-osx-x64' -ZipPath 'docs\Y-popup-osx-x64.zip'
-New-DocsZip -SourceFolder 'publish-osx-x64-framework' -ZipPath 'docs\Y-popup-osx-x64-net8.zip'
-Copy-Item 'publish-framework\Y-popup.exe' 'docs\Y-popup-net8.exe' -Force
+Copy-Item 'publish\Y-popup.exe' 'release\Y-popup.exe' -Force
+New-DocsZip -SourceFolder 'publish-framework' -ZipPath 'release\Y-popup-win-x64-net8.zip'
+New-DocsZip -SourceFolder 'publish-osx-arm64' -ZipPath 'release\Y-popup-osx-arm64.zip'
+New-DocsZip -SourceFolder 'publish-osx-arm64-framework' -ZipPath 'release\Y-popup-osx-arm64-net8.zip'
+New-DocsZip -SourceFolder 'publish-osx-x64' -ZipPath 'release\Y-popup-osx-x64.zip'
+New-DocsZip -SourceFolder 'publish-osx-x64-framework' -ZipPath 'release\Y-popup-osx-x64-net8.zip'
+Copy-Item 'publish-framework\Y-popup.exe' 'release\Y-popup-net8.exe' -Force
 
 Write-Host ""
 Write-Host "=== Package sizes ===" -ForegroundColor Green
 @(
-    @{ Label = 'Windows 64-bit standalone'; Path = 'docs\Y-popup.exe' },
-    @{ Label = 'Windows 64-bit net8 zip'; Path = 'docs\Y-popup-win-x64-net8.zip' },
-    @{ Label = 'macOS arm64 standalone zip'; Path = 'docs\Y-popup-osx-arm64.zip' },
-    @{ Label = 'macOS arm64 net8 zip'; Path = 'docs\Y-popup-osx-arm64-net8.zip' },
-    @{ Label = 'macOS Intel standalone zip'; Path = 'docs\Y-popup-osx-x64.zip' },
-    @{ Label = 'macOS Intel net8 zip'; Path = 'docs\Y-popup-osx-x64-net8.zip' }
+    @{ Label = 'Windows 64-bit standalone'; Path = 'release\Y-popup.exe' },
+    @{ Label = 'Windows 64-bit net8 zip'; Path = 'release\Y-popup-win-x64-net8.zip' },
+    @{ Label = 'macOS arm64 standalone zip'; Path = 'release\Y-popup-osx-arm64.zip' },
+    @{ Label = 'macOS arm64 net8 zip'; Path = 'release\Y-popup-osx-arm64-net8.zip' },
+    @{ Label = 'macOS Intel standalone zip'; Path = 'release\Y-popup-osx-x64.zip' },
+    @{ Label = 'macOS Intel net8 zip'; Path = 'release\Y-popup-osx-x64-net8.zip' }
 ) | ForEach-Object {
     [PSCustomObject]@{
         Package = $_.Label
@@ -156,3 +156,7 @@ Write-Host "=== Package sizes ===" -ForegroundColor Green
         Path    = (Resolve-Path $_.Path -ErrorAction SilentlyContinue)
     }
 } | Format-Table -AutoSize
+
+Write-Host ""
+Write-Host "=== 릴리스 파일이 release/ 폴더에 생성되었습니다 ===" -ForegroundColor Green
+Write-Host "GitHub Releases 업로드: gh release create v2.x.x release/* --title \"v2.x.x\"" -ForegroundColor Yellow

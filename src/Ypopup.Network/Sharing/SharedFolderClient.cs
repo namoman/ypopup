@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Ypopup.Core.Models;
 using Ypopup.Core.Network;
+using Ypopup.Core.Protocol;
 
 namespace Ypopup.Network.Sharing;
 
@@ -49,92 +50,170 @@ public static class SharedFolderClient
         }
     }
 
-    public static async Task DownloadAsync(
+    public static Task DownloadAsync(
         PeerInfo peer,
         string relativePath,
         string destinationPath,
         CancellationToken cancellationToken = default)
+        => DownloadAsync(peer, relativePath, destinationPath, cancellationToken, progress: null);
+
+    public static async Task DownloadAsync(
+        PeerInfo peer,
+        string relativePath,
+        string destinationPath,
+        CancellationToken cancellationToken,
+        IProgress<TransferProgress>? progress)
     {
         var encodedPath = Uri.EscapeDataString(relativePath.Replace('\\', '/'));
         var pathAndQuery = $"/api/download?path={encodedPath}";
-        await DownloadBinaryAsync(peer, pathAndQuery, destinationPath, cancellationToken).ConfigureAwait(false);
+        await DownloadBinaryAsync(peer, pathAndQuery, destinationPath, cancellationToken, progress).ConfigureAwait(false);
     }
 
     private static async Task DownloadBinaryAsync(
         PeerInfo peer,
         string pathAndQuery,
         string destinationPath,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        IProgress<TransferProgress>? progress)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        var tempPath = destinationPath + ".partial";
+        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+
         using var client = new System.Net.Sockets.TcpClient();
         using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeoutCts.CancelAfter(RequestTimeout);
 
-        await client.ConnectAsync(peer.IpAddress, peer.ShareFolderPort, timeoutCts.Token).ConfigureAwait(false);
-        await using var stream = client.GetStream();
-
-        var request =
-            $"GET {pathAndQuery} HTTP/1.1\r\nHost: {peer.IpAddress}\r\nConnection: close\r\n\r\n";
-        await stream.WriteAsync(System.Text.Encoding.UTF8.GetBytes(request), timeoutCts.Token).ConfigureAwait(false);
-
-        var headerBytes = new MemoryStream();
-        var buffer = new byte[8192];
-        var headerEndFound = false;
-        var headerEndIndex = -1;
-
-        while (!headerEndFound)
+        try
         {
-            var read = await stream.ReadAsync(buffer, timeoutCts.Token).ConfigureAwait(false);
-            if (read <= 0)
-            {
-                throw new EndOfStreamException("공유폴더 다운로드 응답이 비어 있습니다.");
-            }
+            await client.ConnectAsync(peer.IpAddress, peer.ShareFolderPort, timeoutCts.Token).ConfigureAwait(false);
+            await using var stream = client.GetStream();
 
-            headerBytes.Write(buffer, 0, read);
-            var data = headerBytes.ToArray();
-            for (var index = 0; index + 3 < data.Length; index++)
+            var request = $"GET {pathAndQuery} HTTP/1.1\r\nHost: {peer.IpAddress}\r\nConnection: close\r\n\r\n";
+            await stream.WriteAsync(System.Text.Encoding.UTF8.GetBytes(request), timeoutCts.Token).ConfigureAwait(false);
+
+            var headerBytes = new MemoryStream();
+            var buffer = new byte[8192];
+            var headerEndFound = false;
+            var headerEndIndex = -1;
+
+            while (!headerEndFound)
             {
-                if (data[index] == '\r' && data[index + 1] == '\n' && data[index + 2] == '\r' && data[index + 3] == '\n')
+                cancellationToken.ThrowIfCancellationRequested();
+                var read = await stream.ReadAsync(buffer, timeoutCts.Token).ConfigureAwait(false);
+                if (read <= 0)
                 {
-                    headerEndFound = true;
-                    headerEndIndex = index + 4;
-                    break;
+                    throw new EndOfStreamException("공유폴더 다운로드 응답이 비어 있습니다.");
+                }
+
+                headerBytes.Write(buffer, 0, read);
+                var data = headerBytes.ToArray();
+                for (var index = 0; index + 3 < data.Length; index++)
+                {
+                    if (data[index] == '\r' && data[index + 1] == '\n' && data[index + 2] == '\r' && data[index + 3] == '\n')
+                    {
+                        headerEndFound = true;
+                        headerEndIndex = index + 4;
+                        break;
+                    }
                 }
             }
-        }
 
-        var headerText = System.Text.Encoding.UTF8.GetString(headerBytes.ToArray(), 0, headerEndIndex);
-        if (!headerText.StartsWith("HTTP/1.1 200", StringComparison.Ordinal))
-        {
-            throw new HttpRequestException($"공유폴더 다운로드 실패: {headerText.Split('\r', '\n')[0]}");
-        }
-
-        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-        await using var destination = new FileStream(
-            destinationPath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 81920,
-            useAsync: true);
-
-        var allBytes = headerBytes.ToArray();
-        var remaining = allBytes.Length - headerEndIndex;
-        if (remaining > 0)
-        {
-            await destination.WriteAsync(allBytes.AsMemory(headerEndIndex, remaining), cancellationToken)
-                .ConfigureAwait(false);
-        }
-
-        while (true)
-        {
-            var read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
-            if (read <= 0)
+            var headerText = System.Text.Encoding.UTF8.GetString(headerBytes.ToArray(), 0, headerEndIndex);
+            if (!headerText.StartsWith("HTTP/1.1 200", StringComparison.Ordinal))
             {
-                break;
+                throw new HttpRequestException($"공유폴더 다운로드 실패: {headerText.Split('\r', '\n')[0]}");
             }
 
-            await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+            var totalBytes = ParseContentLength(headerText);
+            if (totalBytes <= 0)
+            {
+                throw new InvalidDataException("공유폴더 응답에 Content-Length가 없습니다.");
+            }
+
+            var fileName = Path.GetFileName(destinationPath);
+            var reporter = new ProgressThresholdReporter(totalBytes);
+            reporter.ReportIfReady(progress, 0, isSending: false, fileName);
+
+            await using var destination = new FileStream(
+                tempPath,
+                FileMode.Create,
+                FileAccess.Write,
+                FileShare.None,
+                bufferSize: 81920,
+                useAsync: true);
+
+            var allBytes = headerBytes.ToArray();
+            var headerRemainder = allBytes.Length - headerEndIndex;
+            long transferred = 0;
+
+            if (headerRemainder > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await destination.WriteAsync(allBytes.AsMemory(headerEndIndex, headerRemainder), cancellationToken)
+                    .ConfigureAwait(false);
+                transferred += headerRemainder;
+                reporter.ReportIfReady(progress, transferred, isSending: false, fileName);
+            }
+
+            while (transferred < totalBytes)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false);
+                if (read <= 0)
+                {
+                    break;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                await destination.WriteAsync(buffer.AsMemory(0, read), cancellationToken).ConfigureAwait(false);
+                transferred += read;
+                reporter.ReportIfReady(progress, transferred, isSending: false, fileName);
+            }
+
+            if (transferred < totalBytes)
+            {
+                throw new EndOfStreamException("공유폴더 다운로드가 중간에 끊겼습니다.");
+            }
+
+            reporter.ReportIfReady(progress, transferred, isSending: false, fileName);
+        }
+        catch
+        {
+            TryDeletePartial(tempPath);
+            throw;
+        }
+
+        File.Move(tempPath, destinationPath, overwrite: true);
+    }
+
+    private static long ParseContentLength(string headerText)
+    {
+        foreach (var line in headerText.Split("\r\n", StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!line.StartsWith("Content-Length:", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            var value = line["Content-Length:".Length..].Trim();
+            return long.TryParse(value, out var length) && length >= 0 ? length : -1;
+        }
+
+        return -1;
+    }
+
+    private static void TryDeletePartial(string tempPath)
+    {
+        try
+        {
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
+        }
+        catch
+        {
         }
     }
 }

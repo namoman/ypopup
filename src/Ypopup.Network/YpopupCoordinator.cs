@@ -1,3 +1,5 @@
+using Ypopup.Core.Helpers;
+using Ypopup.Core.Logging;
 using Ypopup.Core.Models;
 using Ypopup.Core.Sharing;
 using Ypopup.Core.Settings;
@@ -43,6 +45,9 @@ public sealed class YpopupCoordinator : IAsyncDisposable
 
     public IReadOnlyList<PeerInfo> GetPeers() => _discoveryService.GetPeers();
 
+    public DateTime LastAnnounceSentUtc => _discoveryService.LastAnnounceSentUtc;
+    public DateTime LastPacketReceivedUtc => _discoveryService.LastPacketReceivedUtc;
+
     public async Task StartAsync()
     {
         SharedFolderHostStatus = await _sharedFolderHostService.StartAsync(_appCts.Token).ConfigureAwait(false);
@@ -56,12 +61,26 @@ public sealed class YpopupCoordinator : IAsyncDisposable
                                  || !string.Equals(settings.ShareFolderPath, Settings.ShareFolderPath, StringComparison.OrdinalIgnoreCase)
                                  || settings.ShareFolderPort != Settings.ShareFolderPort;
 
+        var restartTcpHost = settings.TcpPort != Settings.TcpPort;
+        var restartDiscovery = settings.DiscoveryPort != Settings.DiscoveryPort
+                                || settings.PreferredLocalIp != Settings.PreferredLocalIp;
+
         _settingsService.Save(settings);
         SettingsSaved?.Invoke();
 
         if (restartShareFolder || (settings.ShareFolderEnabled && !SharedFolderHostStatus.IsRunning))
         {
-            _ = RestartSharedFolderAsync();
+            _ = BackgroundTaskTracker.RunAsync("공유폴더 재시작", () => RestartSharedFolderAsync());
+        }
+
+        if (restartTcpHost)
+        {
+            _ = BackgroundTaskTracker.RunAsync("TCP 호스트 재시작", () => _tcpHostService.RestartAsync(_appCts.Token));
+        }
+
+        if (restartDiscovery)
+        {
+            _ = BackgroundTaskTracker.RunAsync("Discovery 재시작", () => RestartDiscoveryAsync());
         }
     }
 
@@ -78,15 +97,24 @@ public sealed class YpopupCoordinator : IAsyncDisposable
         string relativePath,
         string destinationPath,
         CancellationToken cancellationToken = default)
-    {
-        return SharedFolderClient.DownloadAsync(peer, relativePath, destinationPath, cancellationToken);
-    }
+        => DownloadSharedFileAsync(peer, relativePath, destinationPath, cancellationToken, progress: null);
 
-    public async Task SendMessageAsync(OutgoingMessage message, CancellationToken cancellationToken = default)
-    {
-        await TcpHostService.SendMessageAsync(message, _settingsService.Current, cancellationToken)
-            .ConfigureAwait(false);
-    }
+    public Task DownloadSharedFileAsync(
+        PeerInfo peer,
+        string relativePath,
+        string destinationPath,
+        CancellationToken cancellationToken,
+        IProgress<TransferProgress>? progress)
+        => SharedFolderClient.DownloadAsync(peer, relativePath, destinationPath, cancellationToken, progress);
+
+    public Task SendMessageAsync(OutgoingMessage message, CancellationToken cancellationToken = default)
+        => SendMessageAsync(message, cancellationToken, progress: null);
+
+    public Task SendMessageAsync(
+        OutgoingMessage message,
+        CancellationToken cancellationToken,
+        IProgress<TransferProgress>? progress)
+        => TcpHostService.SendMessageAsync(message, _settingsService.Current, cancellationToken, progress);
 
     private async Task RestartSharedFolderAsync()
     {
@@ -97,7 +125,19 @@ public sealed class YpopupCoordinator : IAsyncDisposable
         catch (Exception ex)
         {
             SharedFolderHostStatus = new SharedFolderHostStartResult(false, ex.Message);
-            System.Diagnostics.Debug.WriteLine($"Shared folder restart failed: {ex.Message}");
+            LogService.Error("Coordinator", $"Shared folder restart: {ex.Message}");
+        }
+    }
+
+    private async Task RestartDiscoveryAsync()
+    {
+        try
+        {
+            await _discoveryService.RestartAsync(_appCts.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            LogService.Error("Coordinator", $"Discovery restart: {ex.Message}");
         }
     }
 
@@ -119,28 +159,21 @@ public sealed class YpopupCoordinator : IAsyncDisposable
 
             if (shouldReply)
             {
-                try
-                {
-                    var peer = _discoveryService.FindPeer(message.SenderId)
-                               ?? new PeerInfo
-                               {
-                                   MachineId = message.SenderId,
-                                   DisplayName = message.SenderName,
-                                   IpAddress = message.SenderIpAddress,
-                                   TcpPort = Settings.TcpPort
-                               };
+                var peer = _discoveryService.FindPeer(message.SenderId)
+                           ?? new PeerInfo
+                           {
+                               MachineId = message.SenderId,
+                               DisplayName = message.SenderName,
+                               IpAddress = message.SenderIpAddress,
+                               TcpPort = Settings.TcpPort
+                           };
 
-                    await SendMessageAsync(new OutgoingMessage
-                    {
-                        Recipient = peer,
-                        Body = Settings.AwayMessage,
-                        IsAutoReply = true
-                    }).ConfigureAwait(false);
-                }
-                catch (Exception ex)
+                _ = BackgroundTaskTracker.RunAsync("자동답장", () => SendMessageAsync(new OutgoingMessage
                 {
-                    System.Diagnostics.Debug.WriteLine($"Auto-reply failed: {ex.Message}");
-                }
+                    Recipient = peer,
+                    Body = Settings.AwayMessage,
+                    IsAutoReply = true
+                }));
             }
         }
 

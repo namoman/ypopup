@@ -7,7 +7,6 @@ var sourcePath = Path.Combine(projectRoot, "ref", "icon.png");
 var assetTargets = new[]
 {
     Path.Combine(projectRoot, "src", "Ypopup.Desktop", "Assets"),
-    Path.Combine(projectRoot, "src", "Ypopup.App", "Assets"),
 };
 
 if (!File.Exists(sourcePath))
