@@ -35,13 +35,9 @@ Write-Host "=== Git status ===" -ForegroundColor Cyan
 Invoke-Git @('status', '--short')
 
 Write-Host "=== Git add ===" -ForegroundColor Cyan
-Invoke-Git @('add', 'README.md', 'walkthrough.md', 'publish.ps1', 'push-github.ps1', '.gitignore')
-Invoke-Git @('add', 'src', 'tools', 'docs\index.html', 'docs\screenshot.png', 'docs\cross-platform-support.md')
+Invoke-Git @('add', 'README.md', 'walkthrough.md', 'TODO.md', 'publish.ps1', 'push-github.ps1', '.gitignore')
+Invoke-Git @('add', 'src', 'tests', 'tools', 'plans', 'docs\index.html', 'docs\cross-platform-support.md', 'docs\screenshot.png')
 
-# 로컬 테스트용 docs/share 는 제외
-if (-not $DryRun) {
-    git reset -- docs/share 2>$null | Out-Null
-}
 
 $staged = git diff --cached --name-only
 if ([string]::IsNullOrWhiteSpace($staged)) {

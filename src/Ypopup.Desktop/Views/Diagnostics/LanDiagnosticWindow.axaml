@@ -87,9 +87,10 @@
             </StackPanel>
         </ScrollViewer>
 
-        <Button Grid.Row="2" x:Name="RefreshButton" Content="새로고침" HorizontalAlignment="Left"
-                Margin="0,12,0,0" Width="100" Click="RefreshButton_Click"/>
-        <Button Grid.Row="2" Content="닫기" HorizontalAlignment="Right"
-                Margin="0,12,0,0" Width="80" Classes="secondary" Click="CloseButton_Click"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,12,0,0">
+            <Button x:Name="RefreshButton" Content="새로고침" Width="100" Click="RefreshButton_Click"/>
+            <Button Content="내보내기" Width="100" Margin="12,0,0,0" Click="ExportButton_Click"/>
+            <Button Content="닫기" HorizontalAlignment="Right" Width="80" Classes="secondary" Click="CloseButton_Click" Margin="70,0,0,0"/>
+        </StackPanel>
     </Grid>
 </Window>

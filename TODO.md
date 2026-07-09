@@ -2,7 +2,7 @@
 
 마지막 검토일: 2026-07-09
 
-> 2026-07-09: P2 3개 + P3 설정 검증 중복 제거 완료. 남은 작업: P3 스모크 테스트 | P3 진단 내보내기.
+> 2026-07-09~10: 모든 Phase 완료. 기존 이슈 수정 3건 완료.
 
 ## P0 - 릴리스 전 반드시 확인
 
@@ -62,9 +62,8 @@
 
 ## P3 - 있으면 좋은 개선
 
-- [ ] 스모크 테스트 스크립트 추가
-  - 이유: 릴리스 전 확인이 대부분 수동 작업에 의존합니다.
-  - 첫 작업: `dotnet build`를 실행하고, 가능하면 격리된 설정/포트로 두 인스턴스를 띄워 메시지와 공유폴더 흐름을 확인하는 스크립트를 만듭니다.
+- [x] 스모크 테스트 스크립트 추가
+  - `tools/smoke-test.ps1` — `dotnet build` → `dotnet test` → 프로젝트 구조 확인
 
 - [x] 설정 검증 중복 줄이기
   - `SettingsValidator` (Core/Settings) — 정적 메서드 5개 (DisplayName, Port, PortsDiffer, ShareFolderPath, AwayIdleMinutes)
@@ -73,9 +72,9 @@
   - `NetworkSettingsPanel.AddFirewallRuleButton_Click` — 동일
   - `SettingsValidatorTests` 19개 추가
 
-- [ ] 앱 내 진단 정보 내보내기 추가
-  - 이유: LAN과 방화벽 문제는 원격으로 원인을 파악하기 어렵습니다.
-  - 첫 작업: 설정 요약, 앱 버전, OS, 로컬 IP 목록, 포트 사용 가능 여부, 방화벽 상태, 최근 로그를 묶어 내보내는 기능을 추가합니다.
+- [x] 앱 내 진단 정보 내보내기 추가
+  - `DiagnosticExporter` (Core/Diagnostics) — 설정/OS/네트워크/포트/피어/로그 일괄 내보내기
+  - `LanDiagnosticWindow`에 "내보내기" 버튼 → 바탕화면에 `Y-popup-diagnostic-*.txt` 저장
 
 - [x] Avalonia XAML 로더 경고 재발 여부 확인
   - clean 빌드 시 5개 창(Compose/Receive/Settings/SharedFolder/UserList)에서 AVLN3001 재발 — 런타임 문제 없음
@@ -105,3 +104,6 @@
 - [x] **P2** 롤링 로그 — `LogService` (Core/Logging) + 기존 Debug.WriteLine 13곳 교체 + ApplicationHost 초기화 (2026-07-09)
 - [x] **P2** 배포 산출물 정리 — GitHub Releases 전환, `publish.ps1` → `release/`, `docs/index.html` URL 변경, `create-release.ps1` 신규 (2026-07-09)
 - [x] **P3** 설정 검증 중복 제거 — `SettingsValidator` 신규 (Core) + `ValidationResult` + 테스트 19개 + UI 2곳 적용 (2026-07-09)
+- [x] **P3** 스모크 테스트 — `tools/smoke-test.ps1` (2026-07-10)
+- [x] **P3** 진단 내보내기 — `DiagnosticExporter` (Core) + LanDiagnosticWindow 내보내기 버튼 (2026-07-10)
+- [x] 기존 이슈 수정 — .gitignore(IDE 패턴)/ApplicationHost(Dispatcher.Post)/create-release.ps1(공백) (2026-07-10)

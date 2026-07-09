@@ -84,12 +84,12 @@ public sealed class ApplicationHost : IAsyncDisposable
         _trayIconManager.Show(
             TrayMenuBuilder.DefaultToolTipText,
             TrayMenuBuilder.Create(
-                () => _windowNavigator?.ShowUserList(),
+                () => Dispatcher.UIThread.Post(() => _windowNavigator?.ShowUserList()),
                 () => Dispatcher.UIThread.Post(() => _ = ShowSettingsAndRefreshAwayAsync()),
                 () => Dispatcher.UIThread.Post(() => _ = ShowLanDiagnosticAsync()),
                 () => Dispatcher.UIThread.Post(() => _ = ShowAboutAsync()),
                 App.ShutdownAppAsync),
-            () => _windowNavigator?.ShowUserList());
+            () => Dispatcher.UIThread.Post(() => _windowNavigator?.ShowUserList()));
     }
 
     private async Task ShowSettingsAndRefreshAwayAsync()

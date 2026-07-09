@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-Set-Location $PSScriptRoot\..
+Set-Location -LiteralPath "$PSScriptRoot\.."
 
 if ([string]::IsNullOrWhiteSpace($Version)) {
     # src/Ypopup.Core/AppInfo.cs 에서 버전 읽기

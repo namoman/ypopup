@@ -591,3 +591,28 @@ tests/Ypopup.Network.Tests/
 ### 검증
 - `dotnet build` — 오류 0
 - `dotnet test` — 75개 녹색 (Core 67 + Network 8)
+
+## 2026-07-10 — 기존 이슈 수정 및 P3 잔여 작업
+
+### 기존 이슈 수정
+
+| 파일 | 이슈 | 수정 |
+|------|------|------|
+| `.gitignore` | IDE 설정·바이너리 패턴 누락 | `.idea/`, `*.DotSettings.user`, `.DS_Store`, `Thumbs.db`, `docs/share/` 추가 |
+| `push-github.ps1` | `git add src tools`로 의도치 않은 바이너리 스테이징 위험 | `tests`, `plans`, `TODO.md` 포함하도록 add 대상 보강, `docs/share` 수동 제거 로직 제거 (.gitignore로 대체) |
+| `ApplicationHost.cs:87,92` | `ShowUserList` 콜백에 `Dispatcher.UIThread.Post` 누락 | 래핑 추가 |
+| `tools/create-release.ps1` | `$PSScriptRoot` 경로 공백 시 오류 | `Set-Location -LiteralPath` 사용 |
+
+### P3 스모크 테스트 (`tools/smoke-test.ps1`)
+- `dotnet build` → `dotnet test` → 10개 프로젝트 파일 존재 확인
+- 실패 시 `exit 1`, 통과 시 녹색 메시지
+
+### P3 진단 내보내기 (`DiagnosticExporter`)
+- **신규**: `src/Ypopup.Core/Diagnostics/DiagnosticExporter.cs` — 정적 `Generate()` 메서드
+  - App 버전, OS(`RuntimeInformation`), 설정, 네트워크 인터페이스, 포트 가용성(TCP/UDP 소켓 바인딩), 피어 목록, 최근 로그 30줄
+- **변경**: `LanDiagnosticWindow.axaml` — "내보내기" 버튼 추가
+- **변경**: `LanDiagnosticWindow.axaml.cs` — 바탕화면에 `Y-popup-diagnostic-*.txt` 저장 후 열기
+
+### 검증
+- `dotnet build` — 오류 0
+- `dotnet test` — 75개 녹색 (Core 67 + Network 8)
