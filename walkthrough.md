@@ -616,3 +616,16 @@ tests/Ypopup.Network.Tests/
 ### 검증
 - `dotnet build` — 오류 0
 - `dotnet test` — 75개 녹색 (Core 67 + Network 8)
+
+## 2026-07-10 — README·소개 페이지 문서 동기화
+
+### 배경
+P0~P3 기능 구현은 완료되었으나, 공개 문서(README, GitHub Pages)에 2026-07-10 추가분(진단 내보내기, 스모크 테스트)과 일부 기능 설명이 빠져 있었음.
+
+### 변경 (Less is more — 문서만 갱신, 코드 변경 없음)
+
+| 파일 | 내용 |
+|------|------|
+| `README.md` | 기능 목록 보강(진단 내보내기, `--tray`, 롤링 로그 7일, 서비스 자동 재시작), 프로젝트 구조에 `smoke-test.ps1`·`DiagnosticExporter`, 빌드 경로 수정, 변경 로그 2026-07-10 추가 |
+| `docs/index.html` | 버전 2.0·macOS 안내, 기능 목록(진단 내보내기·롤링 로그·트레이), 시작하기 04단계(공유폴더·쪽지) 추가 |
+

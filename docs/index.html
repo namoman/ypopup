@@ -785,7 +785,7 @@
 <div class="page-wrap">
 
     <div class="marquee-bar">
-        <span>★ 환영합니다! Y-popup(파란전화기) — 2000년대 X-Popup의 정신을 이은 LAN 쪽지 프로그램 ★ 같은 네트워크 PC끼리 쪽지·파일·공유폴더 ★</span>
+        <span>★ 환영합니다! Y-popup(파란전화기) — 2000년대 X-Popup의 정신을 이은 LAN 쪽지 프로그램 ★ 쪽지·파일·공유폴더·LAN 진단 ★ 서버 없이 같은 네트워크에서 바로 ★</span>
     </div>
 
     <!-- Main window -->
@@ -801,9 +801,10 @@
                         <h1>Windows 11 호환 LAN 메신저, <span>Y-popup</span>(파란전화기)</h1>
                         <p class="intro">
                             2000년대 추억의 <b>'X-Popup (빨간전화기)'</b> LAN 메신저를<br>
-                            최신 규격으로 오마주했습니다.<br><br>
+                            최신 규격으로 오마주했습니다. (<b>버전 2.0</b>)<br><br>
                             같은 네트워크(LAN)에 연결된 PC끼리<br>
-                            <b>복잡한 가입 없이</b> 쪽지와 파일을 빠르게 주고받으세요!
+                            <b>복잡한 가입 없이</b> 쪽지·파일·공유폴더를 빠르게 주고받으세요!<br>
+                            Windows 11 · macOS 지원 (일부 기능은 Windows 전용)
                         </p>
                     </td>
                     <td class="hero-preview">
@@ -961,7 +962,7 @@
                 <p class="download-footnote">
                     <b>독립 실행</b> — .NET 설치 없이 바로 실행 (Windows는 단일 exe, macOS는 zip 압축 해제 후 <code>Y-popup</code> 실행).<br>
                     <b>.NET 8 Runtime</b> — <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank">.NET 8 Runtime</a> 설치 후 사용. Windows는 <code>Y-popup-net8.exe</code> 단일 exe, macOS는 zip 압축 해제 후 실행.<br>
-                    <!-- 다운로드는 GitHub Releases에서 제공됩니다 -->
+                    <b>macOS 참고</b> — 시작 프로그램·방화벽 자동 추가·부재 자동 감지·알림음은 Windows에서만 동작합니다.
                 </p>
                 <div class="download-actions">
                     <a href="#guide" class="xp-btn">사용 방법</a>
@@ -984,9 +985,11 @@
                     <li><b>🔍 자동 감지 (UDP Broadcast)</b> — 계정 가입·서버 설정 없이, 실행만 하면 같은 LAN 사용자 자동 발견</li>
                     <li><b>✉️ 1:1 즉각 팝업 쪽지</b> — 수신 즉시 화면 중앙에 쪽지 팝업! (메신저가 아닌 쪽지 감성)</li>
                     <li><b>📁 파일 드래그 앤 드롭</b> — 쪽지 창에 파일을 끌어다 놓으면 다중 파일 전송 (<b>진행률 표시 + 취소 가능</b>)</li>
-                    <li><b>📊 LAN 진단</b> — 트레이 메뉴 «LAN 진단»에서 선택된 IP, 브로드캐스트 대상, 패킷 시간, 피어 목록 확인</li>
-                    <li><b>🌙 부재중 · 자동 답장</b> — 자리 비움 시 부재 표시 + 자동 응답 메시지</li>
                     <li><b>🗂️ LAN 공유 폴더</b> — exe 옆 <code>share</code> 폴더를 읽기 전용 공개 (TCP 50507), 📁 버튼으로 탐색·다운로드 (<b>진행률 표시</b>)</li>
+                    <li><b>📊 LAN 진단 · 내보내기</b> — 선택된 IP, 브로드캐스트 대상, 패킷 시간, 피어 목록 확인 + 진단 정보를 바탕화면 txt로 저장</li>
+                    <li><b>📝 롤링 로그</b> — <code>%AppData%\Y-popup\logs</code>에 일별 로그 저장 (7일 보관)</li>
+                    <li><b>🌙 부재중 · 자동 답장</b> — 자리 비움 시 부재 표시 + 자동 응답 (유휴 감지는 Windows)</li>
+                    <li><b>☎ 트레이 상주</b> — 파란 전화기 아이콘, Windows 시작 시 트레이 전용 실행(<code>--tray</code>) 지원</li>
                 </ul>
             </fieldset>
         </div>
@@ -1023,7 +1026,17 @@
                     <td>
                         <b>트레이에서 관리</b><br>
                         실행 후 화면 우측 하단 트레이의 <b>파란 전화기</b> 아이콘을 클릭하면<br>
-                        사용자 목록·설정·LAN 진단·정보를 열 수 있습니다.
+                        사용자 목록·설정·LAN 진단·정보를 열 수 있습니다.<br>
+                        탐색이 안 되면 «LAN 진단»에서 네트워크 상태를 확인하고, 필요 시 <b>내보내기</b>로 진단 파일을 저장하세요.
+                    </td>
+                </tr>
+                <tr>
+                    <th>04</th>
+                    <td>
+                        <b>공유폴더 · 쪽지</b><br>
+                        사용자 선택 → <b>쪽지 보내기</b> (파일은 첨부 또는 드래그 앤 드롭).<br>
+                        목록의 <b>📁</b> 아이콘으로 상대 공유폴더를 탐색·다운로드할 수 있습니다.<br>
+                        공유할 파일은 실행 파일 옆 <code>share</code> 폴더에 넣으세요.
                     </td>
                 </tr>
             </table>

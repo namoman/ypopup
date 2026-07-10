@@ -11,12 +11,15 @@
 - 1:1 인스턴트 메시지 (팝업 수신)
 - 파일 첨부 및 드래그 앤 드롭 전송 — **진행률 표시 + 취소 가능**
 - **공유폴더** — LAN 사용자가 내 `share` 폴더에서 파일 다운로드 (읽기 전용, 진행률 표시)
-- 부재 표시 및 자동 답장
+- 부재 표시 및 자동 답장 (Windows: 유휴 자동 감지)
 - 시스템 트레이 상주 (파란 전화기 아이콘)
-- 수신 알림음
+- Windows 시작 시 트레이 전용 실행 (`--tray`)
+- 수신 알림음 (Windows)
 - **LAN 진단 화면** — 선택된 IP, 브로드캐스트 대상, 패킷 시간, 피어 목록
-- **롤링 로그** — `%AppData%\Y-popup\logs` 일별 로그 파일
-- 환경 설정 (프로필, 네트워크, 일반, 부재)
+- **진단 정보 내보내기** — 바탕화면에 `Y-popup-diagnostic-*.txt` 저장 (설정·OS·네트워크·포트·피어·최근 로그)
+- **롤링 로그** — `%AppData%\Y-popup\logs` 일별 로그 파일 (7일 보관)
+- 환경 설정 (프로필, 네트워크, 일반, 부재, 정보)
+- 포트/IP 변경 시 Discovery·TCP·공유폴더 서비스 자동 재시작
 
 ## 요구 사항
 
@@ -42,7 +45,7 @@ Ypopup/
 │   ├── screenshot.png
 │   └── cross-platform-support.md
 ├── src/
-│   ├── Ypopup.Core/         # 모델, 프로토콜, 설정, 로깅, 검증
+│   ├── Ypopup.Core/         # 모델, 프로토콜, 설정, 로깅, 검증, 진단 내보내기
 │   ├── Ypopup.Network/      # LAN 탐색, 메시지/파일, 공유폴더
 │   └── Ypopup.Desktop/      # Avalonia UI (메인 실행 진입점)
 ├── tests/
@@ -50,19 +53,20 @@ Ypopup/
 │   └── Ypopup.Network.Tests/ # 통합 테스트 (xUnit, 8개)
 └── tools/
     ├── generate-app-icon.ps1
-    └── create-release.ps1   # gh release create 자동화
+    ├── create-release.ps1   # gh release create 자동화
+    └── smoke-test.ps1       # build + test + 구조 검증
 ```
 
 | 모듈 | 역할 |
 |------|------|
-| **Ypopup.Core** | `AppSettings`, 프로토콜, `SettingsService`, `LogService`, `SettingsValidator` |
+| **Ypopup.Core** | `AppSettings`, 프로토콜, `SettingsService`, `LogService`, `SettingsValidator`, `DiagnosticExporter` |
 | **Ypopup.Network** | UDP 탐색, TCP 메시지/파일, 공유폴더 HTTP, `ConnectionLimiter`, `BackgroundTaskTracker` |
 | **Ypopup.Desktop** | Avalonia — 트레이, 사용자 목록, 설정, 공유폴더, LAN 진단, 진행률 UI |
 
 ## 빌드 및 실행
 
 ```powershell
-cd D:\sw\dev\Ypopup
+cd E:\dev\projects\ypopup
 dotnet build
 dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 ```
@@ -107,6 +111,7 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 3. 사용자 선택 → **쪽지 보내기** 또는 더블클릭
 4. 파일은 **파일 첨부** 또는 드래그 앤 드롭
 5. 상대 목록의 **📁** 아이콘 → 공유폴더 탐색·다운로드
+6. 탐색이 안 되면 트레이 → **LAN 진단**에서 상태 확인, 필요 시 **내보내기**
 
 ## 공유폴더
 
@@ -151,6 +156,9 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 
 ```powershell
 dotnet test Ypopup.sln
+
+# 빌드 + 테스트 + 프로젝트 구조 일괄 검증
+.\tools\smoke-test.ps1
 ```
 
 | 프로젝트 | 개수 | 유형 |
@@ -162,8 +170,9 @@ dotnet test Ypopup.sln
 
 | 일자 | 변경 |
 |------|------|
-| 2026-07-09 | P2 LAN 진단 화면, P2 롤링 로그, P2 배포 산출물 정리, P3 설정 검증 중복 제거 |
-| 2026-07-08 | P0 자동 테스트 (39개), P2-X 파일 전송 진행률+취소, P1 TCP 동시접속 제한·포트 일관성·백그라운드 실패 추적, P2-C 크로스플랫폼 문서, P3-X XAML 경고 확인 |
+| 2026-07-10 | P3 스모크 테스트(`smoke-test.ps1`), 진단 정보 내보내기(`DiagnosticExporter`), 기존 이슈 수정(.gitignore, ApplicationHost Dispatcher, create-release 경로) |
+| 2026-07-09 | P2 LAN 진단 화면, P2 롤링 로그, P2 배포 산출물 정리(GitHub Releases), P3 설정 검증 중복 제거(`SettingsValidator`) |
+| 2026-07-08 | P0 자동 테스트 (75개), P2-X 파일 전송 진행률+취소, P1 TCP 동시접속 제한·포트 일관성·백그라운드 실패 추적, P2-C 크로스플랫폼 문서, WPF 제거 |
 | 2026-07-05 | push-github.ps1, Windows 시작 시 트레이 전용 실행 |
 | 2026-07-03 | 버전 2.0 릴리스, WPF→Avalonia 설정 패리티, 공유폴더 HTTP 서버, 사용자 목록 UI |
 | 2026-06-29 | X-Popup 클론 초기 구현, 프로젝트 경로 이전, 모듈 분리, SelfContained 배포, 트레이 아이콘 |
