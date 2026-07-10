@@ -1,18 +1,32 @@
-# Y-popup publish: clean → build → docs/
+# Y-popup publish: clean → build → release/
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
 
 $project = 'src/Ypopup.Desktop/Ypopup.Desktop.csproj'
 
-$releaseFiles = @(
-    'release\Y-popup.exe',
-    'release\Y-popup-net8.exe',
-    'release\Y-popup-win-x64-net8.zip',
-    'release\Y-popup-osx-arm64.zip',
-    'release\Y-popup-osx-arm64-net8.zip',
-    'release\Y-popup-osx-x64.zip',
-    'release\Y-popup-osx-x64-net8.zip'
-)
+# OS detection — $IsMacOS available in PowerShell Core 6+ (pwsh on macOS)
+$isMacOS = $IsMacOS -eq $true
+
+# --- Release file list (OS-dependent paths) ---
+if ($isMacOS) {
+    $releaseFiles = @(
+        'release/Y-popup-osx-arm64.dmg',
+        'release/Y-popup-osx-arm64-net8.dmg',
+        'release/Y-popup-osx-x64.dmg',
+        'release/Y-popup-osx-x64-net8.dmg'
+    )
+}
+else {
+    $releaseFiles = @(
+        'release\Y-popup.exe',
+        'release\Y-popup-net8.exe',
+        'release\Y-popup-win-x64-net8.zip',
+        'release\Y-popup-osx-arm64.zip',
+        'release\Y-popup-osx-arm64-net8.zip',
+        'release\Y-popup-osx-x64.zip',
+        'release\Y-popup-osx-x64-net8.zip'
+    )
+}
 
 function Remove-PathIfExists {
     param([string]$Path)
@@ -95,6 +109,77 @@ function New-DocsZip {
     Compress-Archive -Path (Join-Path $SourceFolder '*') -DestinationPath $ZipPath -Force
 }
 
+function New-MacosAppBundle {
+    param(
+        [string]$SourceFolder,
+        [string]$AppPath,
+        [string]$Version = '2.0.0'
+    )
+
+    Remove-PathIfExists $AppPath
+
+    $macOSDir = Join-Path $AppPath 'Contents' 'MacOS'
+    $resDir   = Join-Path $AppPath 'Contents' 'Resources'
+    New-Item -ItemType Directory -Path $macOSDir -Force | Out-Null
+    New-Item -ItemType Directory -Path $resDir   -Force | Out-Null
+
+    # Copy publish output (single-file executable + any extras) into MacOS/
+    Get-ChildItem -Path $SourceFolder | Copy-Item -Destination $macOSDir -Recurse -Force
+
+    # Create Info.plist
+    $plist = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>Y-popup</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.namoman.ypopup</string>
+    <key>CFBundleName</key>
+    <string>Y-popup</string>
+    <key>CFBundleDisplayName</key>
+    <string>Y-popup</string>
+    <key>CFBundleVersion</key>
+    <string>$Version</string>
+    <key>CFBundleShortVersionString</key>
+    <string>$Version</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>10.15</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+</dict>
+</plist>
+"@
+    Set-Content -Path (Join-Path $AppPath 'Contents' 'Info.plist') -Value $plist -Encoding UTF8
+    Write-Host "  created .app bundle: $AppPath"
+}
+
+function New-DmgFromApp {
+    param(
+        [string]$AppPath,
+        [string]$OutputPath,
+        [string]$VolumeName
+    )
+
+    if (-not (Get-Command 'hdiutil' -ErrorAction SilentlyContinue)) {
+        Write-Host "  WARNING: hdiutil not found, creating zip instead" -ForegroundColor Yellow
+        $zipPath = $OutputPath -replace '\.dmg$', '.zip'
+        New-DocsZip -SourceFolder $AppPath -ZipPath $zipPath
+        return
+    }
+
+    if (Test-Path $OutputPath) {
+        Remove-Item -Force $OutputPath
+    }
+
+    Write-Host "  creating DMG: $OutputPath"
+    & hdiutil create -volname $VolumeName -srcfolder $AppPath -ov -format UDZO $OutputPath
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
+
 function Format-Mb {
     param([string]$Path)
     if (-not (Test-Path $Path)) { return 'n/a' }
@@ -108,19 +193,33 @@ function Format-Mb {
     return "{0:N1} MB" -f ($bytes / 1MB)
 }
 
+# ============================================================
+# MAIN
+# ============================================================
+
 Clean-RunningApp
 Clean-BuildCache
 Clean-PublishFolders
 Clean-ReleaseFiles
 
-Write-Host "=== Regenerate icons ===" -ForegroundColor Cyan
-powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\tools\generate-app-icon.ps1"
-if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+# --- Icon (Windows only) ---
+if ($isMacOS) {
+    Write-Host "=== icon generation skipped (macOS) ===" -ForegroundColor DarkYellow
+}
+else {
+    Write-Host "=== Regenerate icons ===" -ForegroundColor Cyan
+    powershell -NoProfile -ExecutionPolicy Bypass -File "$PSScriptRoot\tools\generate-app-icon.ps1"
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+}
 
-Write-Host "=== Windows x64 ===" -ForegroundColor Cyan
-Publish-Target -Rid 'win-x64' -Output 'publish' -SelfContained $true -Compress $true
-Publish-Target -Rid 'win-x64' -Output 'publish-framework' -SelfContained $false -Compress $false
+# --- Windows publish ---
+if (-not $isMacOS) {
+    Write-Host "=== Windows x64 ===" -ForegroundColor Cyan
+    Publish-Target -Rid 'win-x64' -Output 'publish' -SelfContained $true -Compress $true
+    Publish-Target -Rid 'win-x64' -Output 'publish-framework' -SelfContained $false -Compress $false
+}
 
+# --- macOS publish ---
 Write-Host "=== macOS Apple Silicon (arm64) ===" -ForegroundColor Cyan
 Publish-Target -Rid 'osx-arm64' -Output 'publish-osx-arm64' -SelfContained $true -Compress $false
 Publish-Target -Rid 'osx-arm64' -Output 'publish-osx-arm64-framework' -SelfContained $false -Compress $false
@@ -129,27 +228,71 @@ Write-Host "=== macOS Intel (x64) ===" -ForegroundColor Cyan
 Publish-Target -Rid 'osx-x64' -Output 'publish-osx-x64' -SelfContained $true -Compress $false
 Publish-Target -Rid 'osx-x64' -Output 'publish-osx-x64-framework' -SelfContained $false -Compress $false
 
-Write-Host "=== release/ copy ===" -ForegroundColor Cyan
+# --- release/ directory ---
 New-Item -ItemType Directory -Force -Path 'release' | Out-Null
 
-Copy-Item 'publish\Y-popup.exe' 'release\Y-popup.exe' -Force
-New-DocsZip -SourceFolder 'publish-framework' -ZipPath 'release\Y-popup-win-x64-net8.zip'
-New-DocsZip -SourceFolder 'publish-osx-arm64' -ZipPath 'release\Y-popup-osx-arm64.zip'
-New-DocsZip -SourceFolder 'publish-osx-arm64-framework' -ZipPath 'release\Y-popup-osx-arm64-net8.zip'
-New-DocsZip -SourceFolder 'publish-osx-x64' -ZipPath 'release\Y-popup-osx-x64.zip'
-New-DocsZip -SourceFolder 'publish-osx-x64-framework' -ZipPath 'release\Y-popup-osx-x64-net8.zip'
-Copy-Item 'publish-framework\Y-popup.exe' 'release\Y-popup-net8.exe' -Force
+# --- Windows release files ---
+if (-not $isMacOS) {
+    Copy-Item 'publish\Y-popup.exe' 'release\Y-popup.exe' -Force
+    New-DocsZip -SourceFolder 'publish-framework' -ZipPath 'release\Y-popup-win-x64-net8.zip'
+    Copy-Item 'publish-framework\Y-popup.exe' 'release\Y-popup-net8.exe' -Force
+}
 
+# --- macOS packaging ---
+$stagingDir = Join-Path $PSScriptRoot '_staging'
+New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
+
+$macOSVariants = @(
+    @{ Source = 'publish-osx-arm64';            DmgName = 'Y-popup-osx-arm64.dmg' }
+    @{ Source = 'publish-osx-arm64-framework';  DmgName = 'Y-popup-osx-arm64-net8.dmg' }
+    @{ Source = 'publish-osx-x64';              DmgName = 'Y-popup-osx-x64.dmg' }
+    @{ Source = 'publish-osx-x64-framework';    DmgName = 'Y-popup-osx-x64-net8.dmg' }
+)
+
+foreach ($variant in $macOSVariants) {
+    $appPath = Join-Path $stagingDir 'Y-popup.app'
+    Remove-PathIfExists $appPath
+
+    if ($isMacOS) {
+        New-MacosAppBundle -SourceFolder $variant.Source -AppPath $appPath
+        $dmgPath = Join-Path (Join-Path $PSScriptRoot 'release') $variant.DmgName
+        New-DmgFromApp -AppPath $appPath -OutputPath $dmgPath -VolumeName 'Y-popup'
+        Remove-PathIfExists $appPath
+    }
+    else {
+        # Cross-compile from Windows: create zip (hdiutil unavailable)
+        $zipName = $variant.DmgName -replace '\.dmg$', '.zip'
+        New-DocsZip -SourceFolder $variant.Source -ZipPath (Join-Path (Join-Path $PSScriptRoot 'release') $zipName)
+    }
+}
+
+# Clean up staging
+Remove-PathIfExists $stagingDir
+
+# --- Package size table ---
 Write-Host ""
 Write-Host "=== Package sizes ===" -ForegroundColor Green
-@(
-    @{ Label = 'Windows 64-bit standalone'; Path = 'release\Y-popup.exe' },
-    @{ Label = 'Windows 64-bit net8 zip'; Path = 'release\Y-popup-win-x64-net8.zip' },
-    @{ Label = 'macOS arm64 standalone zip'; Path = 'release\Y-popup-osx-arm64.zip' },
-    @{ Label = 'macOS arm64 net8 zip'; Path = 'release\Y-popup-osx-arm64-net8.zip' },
-    @{ Label = 'macOS Intel standalone zip'; Path = 'release\Y-popup-osx-x64.zip' },
-    @{ Label = 'macOS Intel net8 zip'; Path = 'release\Y-popup-osx-x64-net8.zip' }
-) | ForEach-Object {
+
+if ($isMacOS) {
+    $packages = @(
+        @{ Label = 'macOS arm64 standalone'; Path = 'release/Y-popup-osx-arm64.dmg' }
+        @{ Label = 'macOS arm64 net8';       Path = 'release/Y-popup-osx-arm64-net8.dmg' }
+        @{ Label = 'macOS Intel standalone'; Path = 'release/Y-popup-osx-x64.dmg' }
+        @{ Label = 'macOS Intel net8';       Path = 'release/Y-popup-osx-x64-net8.dmg' }
+    )
+}
+else {
+    $packages = @(
+        @{ Label = 'Windows 64-bit standalone';   Path = 'release\Y-popup.exe' }
+        @{ Label = 'Windows 64-bit net8 zip';     Path = 'release\Y-popup-win-x64-net8.zip' }
+        @{ Label = 'macOS arm64 standalone zip';  Path = 'release\Y-popup-osx-arm64.zip' }
+        @{ Label = 'macOS arm64 net8 zip';        Path = 'release\Y-popup-osx-arm64-net8.zip' }
+        @{ Label = 'macOS Intel standalone zip';  Path = 'release\Y-popup-osx-x64.zip' }
+        @{ Label = 'macOS Intel net8 zip';        Path = 'release\Y-popup-osx-x64-net8.zip' }
+    )
+}
+
+$packages | ForEach-Object {
     [PSCustomObject]@{
         Package = $_.Label
         Size    = Format-Mb $_.Path

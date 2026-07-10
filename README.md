@@ -26,7 +26,7 @@
 | 플랫폼 | 비고 |
 |--------|------|
 | **Windows 10 / 11 (64비트)** | 메인 배포 대상 |
-| **macOS (arm64 / x64)** | zip 배포 (GitHub Pages). 일부 기능(시작프로그램, 방화벽, 부재 자동 감지, 알림음)은 Windows에서만 동작합니다. |
+| **macOS (arm64 / x64)** | dmg 배포 (GitHub Releases). 일부 기능(시작프로그램, 방화벽, 부재 자동 감지, 알림음)은 Windows에서만 동작합니다. |
 | **.NET 8 SDK** | 소스 빌드 시에만 필요 |
 
 > 플랫폼별 지원 현황은 [docs/cross-platform-support.md](docs/cross-platform-support.md) 참조. Linux는 빌드/배포하지 않습니다.
@@ -100,7 +100,7 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 |-----------------|------|
 | `Y-popup.exe` | Windows Self-contained (~44MB). **.NET 설치 불필요** |
 | `Y-popup-net8.exe` | Windows Framework-dependent. [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) 필요 |
-| `Y-popup-osx-*.zip` | macOS (arm64 / Intel) |
+| `Y-popup-osx-*.dmg` | macOS (arm64 / Intel) |
 
 다운로드는 [GitHub Releases](https://github.com/namoman/ypopup/releases) 또는 [GitHub Pages](https://namoman.github.io/ypopup/)에서 가능합니다.
 
