@@ -1,13 +1,17 @@
-# ypopup 깃페이지 다운로드 링크 수정 및 원인 분석
+# ypopup 25MB 업로드 용량 제한 원인 분석 및 해결 방안
 
 ## 작업 개요
-깃페이지 다운로드 링크 미작동 원인을 분석하고, `docs/index.html` 내 링크 불일치를 수정하였습니다.
+GitHub에 Release 파일 업로드 중 발생한 `File size too big: 25 MB are allowed, 40 MB were attempted to upload` 오류의 원인을 분석하고 해결 방안을 수립하였습니다.
 
 ## 원인 분석
-1. **GitHub Release 태그/Asset 미업로드 (404 Not Found)**
-   - `docs/index.html`의 다운로드 버튼이 `https://github.com/namoman/ypopup/releases/latest/download/...` URL을 참조하고 있으나, GitHub 저장소에 `v2.1.0` Release 등록 및 실행 파일(Asset) 업로드가 진행되지 않아 404 에러가 발생합니다.
-2. **macOS 링크 확장자 불일치 (.dmg vs .zip)**
-   - `docs/index.html` 내 macOS 다운로드 링크가 `.dmg`로 작성되어 있었으나, 실제 컴파일 산출물(`release/`)은 `.zip` 형태로 생성됩니다.
+1. **GitHub 웹 드래그앤드롭 영역 착오**:
+   - Release 설명란(Markdown 텍스트 박스) 또는 일반 웹 파일 업로드(`upload/main`) 영역에 파일을 올리면 **25MB 제한**이 적용됩니다.
+   - 올바른 위치인 Release 하단의 **Attach binaries** 박스에 올리면 최대 **2GB**까지 가능합니다.
+2. **독립 실행형 파일 용량 (43.9MB)**:
+   - .NET 런타임을 포함한 `Y-popup.exe`는 43.9MB입니다.
+   - `.NET 8 Runtime` 필요 버전인 `Y-popup-net8.exe` 및 `.zip` 파일들은 10MB~12MB 수준입니다.
 
-## 수정 사항
-- `docs/index.html`의 macOS 다운로드 링크 확장자를 `.dmg`에서 `.zip`으로 수정 및 git push 완료.
+## 해결 방안
+- 올바른 Attach binaries 박스 사용 안내
+- 10MB 대 경량 패키지(`net8` 버전) 활용 안내
+- `gh` CLI를 이용한 자동 업로드 명령 안내
