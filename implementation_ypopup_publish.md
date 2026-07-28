@@ -1,12 +1,13 @@
-# ypopup 컴파일 및 GitHub 푸시 구현 계획
+# ypopup 깃페이지 다운로드 링크 수정 및 원인 분석
 
 ## 작업 개요
-ypopup 프로젝트의 변경 사항(버전 2.1.0 업데이트 등)을 컴파일(퍼블리시)하고 git commit & push를 수행합니다.
+깃페이지 다운로드 링크 미작동 원인을 분석하고, `docs/index.html` 내 링크 불일치를 수정하였습니다.
 
-## 실행 절차
-1. `push-github.ps1` 스크립트 실행
-   - `publish.ps1`을 통한 컴파일 및 게시 파일 생성
-   - 변경된 파일 git add
-   - git commit -m "Update version to 2.1.0"
-   - git push origin main
-2. 실행 결과 검증 및 상태 확인
+## 원인 분석
+1. **GitHub Release 태그/Asset 미업로드 (404 Not Found)**
+   - `docs/index.html`의 다운로드 버튼이 `https://github.com/namoman/ypopup/releases/latest/download/...` URL을 참조하고 있으나, GitHub 저장소에 `v2.1.0` Release 등록 및 실행 파일(Asset) 업로드가 진행되지 않아 404 에러가 발생합니다.
+2. **macOS 링크 확장자 불일치 (.dmg vs .zip)**
+   - `docs/index.html` 내 macOS 다운로드 링크가 `.dmg`로 작성되어 있었으나, 실제 컴파일 산출물(`release/`)은 `.zip` 형태로 생성됩니다.
+
+## 수정 사항
+- `docs/index.html`의 macOS 다운로드 링크 확장자를 `.dmg`에서 `.zip`으로 수정 및 git push 완료.
