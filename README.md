@@ -84,14 +84,14 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 
 ```powershell
 # 2. GitHub Release 생성
-.\tools\create-release.ps1 -Version "2.0.0"
+.\tools\create-release.ps1 -Version "2.1.0"
 ```
 
 `create-release.ps1`은 `release/` 폴더의 파일을 `gh release create`로 업로드합니다.
 
 ```powershell
 # 3. 소스 코드만 git push
-.\push-github.ps1 -Message "release: v2.0 update"
+.\push-github.ps1 -Message "release: v2.1 update"
 ```
 
 `push-github.ps1`은 `publish.ps1` 실행 → 소스·docs 웹페이지만 커밋 → `git push`까지 수행합니다. 빌드만 갱신했을 때는 `-SkipPublish`로 push만 할 수 있습니다.

@@ -3,7 +3,7 @@ namespace Ypopup.Core;
 public static class AppInfo
 {
     public const string ProductName = Models.AppConstants.ProductName;
-    public const string Version = "2.0";
+    public const string Version = "2.1";
     public const string Author = "namoman";
     public const string Website = "https://namoman.github.io/ypopup/";
     public const string Email = "namolove@gmail.com";
