@@ -1,0 +1,44 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:chat="using:Ypopup.Desktop.Views.Chat"
+        x:Class="Ypopup.Desktop.Views.Chat.CreateRoomDialog"
+        Title="새 그룹 대화방 만들기 / 단체 쪽지"
+        Width="420" Height="500"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
+        <!-- 1. 방 제목 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+            <TextBlock Text="대화방 제목 (단체 쪽지 시 제목)" FontWeight="SemiBold" Margin="0,0,0,4" />
+            <TextBox x:Name="RoomTitleTextBox" Watermark="예: 병동 간호팀 공지방" />
+        </StackPanel>
+
+        <!-- 2. 사용자 검색 및 전체 선택 버튼 -->
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
+            <TextBox Grid.Column="0" x:Name="SearchBox" Watermark="이름 또는 부서 검색..." TextChanged="SearchBox_TextChanged" Margin="0,0,8,0" />
+            <Button Grid.Column="1" Content="전체 선택" Click="SelectAllButton_Click" Margin="0,0,4,0" />
+            <Button Grid.Column="2" Content="해제" Click="DeselectAllButton_Click" />
+        </Grid>
+
+        <!-- 3. 참여자 리스트 (체크박스) -->
+        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
+            <ListBox x:Name="PeersListBox">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="chat:SelectablePeerItem">
+                        <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                  Content="{Binding DisplayText}"
+                                  HorizontalAlignment="Stretch" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <!-- 4. 하단 버튼 -->
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+            <Button Content="취소" Click="CancelButton_Click" Width="80" HorizontalContentAlignment="Center" />
+            <Button Content="확인" Click="OkButton_Click" Width="80" HorizontalContentAlignment="Center"
+                    Background="#1E88E5" Foreground="White" FontWeight="Bold" />
+        </StackPanel>
+    </Grid>
+</Window>

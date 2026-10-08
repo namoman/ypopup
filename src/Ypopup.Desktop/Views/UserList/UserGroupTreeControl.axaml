@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Ypopup.Desktop.ViewModels"
+             x:Class="Ypopup.Desktop.Views.UserList.UserGroupTreeControl"
+             x:DataType="vm:UserGroupTreeViewModel">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <ItemsControl ItemsSource="{Binding Groups}">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="vm:GroupNodeItem">
+                    <Expander IsExpanded="{Binding IsExpanded, Mode=TwoWay}"
+                              Margin="0,0,0,4"
+                              Padding="4"
+                              HorizontalAlignment="Stretch">
+                        <Expander.Header>
+                            <TextBlock Text="{Binding HeaderText}"
+                                       FontWeight="SemiBold"
+                                       FontSize="13" />
+                        </Expander.Header>
+                        <ListBox ItemsSource="{Binding Members}"
+                                 Background="Transparent"
+                                 BorderThickness="0"
+                                 DoubleTapped="OnMemberDoubleTapped">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate DataType="vm:PeerNodeItem">
+                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="4,2">
+                                        <Border Grid.Column="0"
+                                                Width="8" Height="8"
+                                                CornerRadius="4"
+                                                Background="{Binding IsAway, Converter={x:Null}}"
+                                                Margin="0,0,8,0" />
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding DisplayName}" FontWeight="Medium" FontSize="13" />
+                                            <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="#888888" />
+                                        </StackPanel>
+                                        <TextBlock Grid.Column="2"
+                                                   Text="{Binding StatusText}"
+                                                   FontSize="11"
+                                                   Foreground="#888888"
+                                                   VerticalAlignment="Center" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Expander>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </ScrollViewer>
+</UserControl>

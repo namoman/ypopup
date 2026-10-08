@@ -1,0 +1,78 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Ypopup.Desktop.ViewModels"
+        x:Class="Ypopup.Desktop.Views.Chat.ChatRoomWindow"
+        x:DataType="vm:ChatSessionViewModel"
+        Title="{Binding RoomTitle}"
+        Width="460" Height="620"
+        MinWidth="380" MinHeight="480"
+        WindowStartupLocation="CenterScreen">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+        <!-- 상단 헤더 -->
+        <Border Grid.Row="0" Background="#1E88E5" Padding="16,12">
+            <StackPanel Orientation="Horizontal" Spacing="10">
+                <TextBlock Text="💬" FontSize="18" VerticalAlignment="Center" />
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="{Binding RoomTitle}" FontWeight="Bold" FontSize="15" Foreground="White" />
+                    <TextBlock Text="P2P LAN 암호화 통신" FontSize="11" Foreground="#BBDEFB" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- 메시지 리스트 -->
+        <ScrollViewer Grid.Row="1" x:Name="MessagesScrollViewer" Margin="12">
+            <ItemsControl ItemsSource="{Binding Messages}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:MessageBubbleItem">
+                        <StackPanel Margin="0,4">
+                            <!-- 상대방 이름 (내 메시지가 아닐 때만) -->
+                            <TextBlock Text="{Binding SenderName}"
+                                       FontSize="11"
+                                       Foreground="#666666"
+                                       Margin="4,0,0,2"
+                                       IsVisible="{Binding !IsMine}" />
+
+                            <!-- 말풍선 -->
+                            <Border CornerRadius="8"
+                                    Padding="10,8"
+                                    MaxWidth="320"
+                                    HorizontalAlignment="{Binding IsMine, Converter={x:Null}}"
+                                    Background="{Binding IsMine, Converter={x:Null}}">
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{Binding Content}"
+                                               TextWrapping="Wrap"
+                                               FontSize="13" />
+                                    <TextBlock Text="{Binding FormattedTime}"
+                                               FontSize="10"
+                                               HorizontalAlignment="Right"
+                                               Foreground="#888888" />
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- 하단 입력창 -->
+        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="12" Background="#FAFAFA">
+            <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
+                <TextBox Grid.Column="0"
+                         x:Name="InputTextBox"
+                         Text="{Binding InputText, Mode=TwoWay}"
+                         Watermark="메시지를 입력하세요 (Enter 전송)..."
+                         AcceptsReturn="False"
+                         KeyDown="InputTextBox_KeyDown"
+                         Margin="0,0,8,0" />
+                <Button Grid.Column="1"
+                        Content="전송"
+                        Background="#1E88E5"
+                        Foreground="White"
+                        FontWeight="Bold"
+                        Padding="16,8"
+                        Click="SendButton_Click" />
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
