@@ -629,3 +629,18 @@ P0~P3 기능 구현은 완료되었으나, 공개 문서(README, GitHub Pages)�
 | `README.md` | 기능 목록 보강(진단 내보내기, `--tray`, 롤링 로그 7일, 서비스 자동 재시작), 프로젝트 구조에 `smoke-test.ps1`·`DiagnosticExporter`, 빌드 경로 수정, 변경 로그 2026-07-10 추가 |
 | `docs/index.html` | 버전 2.0·macOS 안내, 기능 목록(진단 내보내기·롤링 로그·트레이), 시작하기 04단계(공유폴더·쪽지) 추가 |
 
+## 2026-10-14 — Pages에 남은 2.0 바이너리 제거 · v2.1.0 배포 정리
+
+### 배경
+`.gitignore`에 `docs/Y-popup*`를 넣었지만 **이미 git에 추적 중이던 2.0 바이너리**가 그대로 남아 GitHub Pages(`/docs`)로 서빙되고 있었음. 페이지 문구는 2.1인데 `docs/Y-popup.exe` 직접 URL은 2.0.0.0이었음.
+
+### 변경 (Less is more — 구버전 산출물 제거 + 배포 경로 단일화)
+
+| 파일 | 내용 |
+|------|------|
+| `docs/Y-popup*` (7개) | git 추적 제거 — Pages에서 바이너리 삭제, 다운로드는 Releases만 |
+| `docs/index.html` | 버전 표기 **2.1.0**, 다운로드 안내(Releases 링크) 추가 |
+| `publish.ps1` | Windows에서 macOS 패키징 시 `.app` 생성 후 zip (페이지 안내와 일치) |
+| `README.md` | macOS dmg→zip, 변경 로그 2.1.0/Pages 정리 반영 |
+| GitHub Release `v2.1.0` | `publish.ps1` 재빌드 자산으로 교체 |
+

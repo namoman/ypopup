@@ -26,7 +26,7 @@
 | 플랫폼 | 비고 |
 |--------|------|
 | **Windows 10 / 11 (64비트)** | 메인 배포 대상 |
-| **macOS (arm64 / x64)** | dmg 배포 (GitHub Releases). 일부 기능(시작프로그램, 방화벽, 부재 자동 감지, 알림음)은 Windows에서만 동작합니다. |
+| **macOS (arm64 / x64)** | zip 배포 (GitHub Releases, `.app` 포함). 일부 기능(시작프로그램, 방화벽, 부재 자동 감지, 알림음)은 Windows에서만 동작합니다. |
 | **.NET 8 SDK** | 소스 빌드 시에만 필요 |
 
 > 플랫폼별 지원 현황은 [docs/cross-platform-support.md](docs/cross-platform-support.md) 참조. Linux는 빌드/배포하지 않습니다.
@@ -100,7 +100,7 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 |-----------------|------|
 | `Y-popup.exe` | Windows Self-contained (~44MB). **.NET 설치 불필요** |
 | `Y-popup-net8.exe` | Windows Framework-dependent. [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) 필요 |
-| `Y-popup-osx-*.dmg` | macOS (arm64 / Intel) |
+| `Y-popup-osx-*.zip` | macOS (arm64 / Intel) — 압축 해제 후 `Y-popup.app` 실행 |
 
 다운로드는 [GitHub Releases](https://github.com/namoman/ypopup/releases) 또는 [GitHub Pages](https://namoman.github.io/ypopup/)에서 가능합니다.
 
@@ -170,6 +170,8 @@ dotnet test Ypopup.sln
 
 | 일자 | 변경 |
 |------|------|
+| 2026-10-14 | Pages `docs/`에 남아 있던 **2.0 바이너리 제거**, 다운로드는 GitHub Releases **v2.1.0**만 사용. macOS zip에 `.app` 포함하도록 배포 수정 |
+| 2026-07-28 | 버전 **2.1.0** 릴리스 |
 | 2026-07-10 | P3 스모크 테스트(`smoke-test.ps1`), 진단 정보 내보내기(`DiagnosticExporter`), 기존 이슈 수정(.gitignore, ApplicationHost Dispatcher, create-release 경로) |
 | 2026-07-09 | P2 LAN 진단 화면, P2 롤링 로그, P2 배포 산출물 정리(GitHub Releases), P3 설정 검증 중복 제거(`SettingsValidator`) |
 | 2026-07-08 | P0 자동 테스트 (75개), P2-X 파일 전송 진행률+취소, P1 TCP 동시접속 제한·포트 일관성·백그라운드 실패 추적, P2-C 크로스플랫폼 문서, WPF 제거 |

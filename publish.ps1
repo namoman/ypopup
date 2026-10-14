@@ -118,10 +118,11 @@ function New-MacosAppBundle {
 
     Remove-PathIfExists $AppPath
 
-    $macOSDir = Join-Path $AppPath 'Contents' 'MacOS'
-    $resDir   = Join-Path $AppPath 'Contents' 'Resources'
+    $contentsDir = Join-Path $AppPath 'Contents'
+    $macOSDir = Join-Path $contentsDir 'MacOS'
+    $resDir = Join-Path $contentsDir 'Resources'
     New-Item -ItemType Directory -Path $macOSDir -Force | Out-Null
-    New-Item -ItemType Directory -Path $resDir   -Force | Out-Null
+    New-Item -ItemType Directory -Path $resDir -Force | Out-Null
 
     # Copy publish output (single-file executable + any extras) into MacOS/
     Get-ChildItem -Path $SourceFolder | Copy-Item -Destination $macOSDir -Recurse -Force
@@ -153,7 +154,7 @@ function New-MacosAppBundle {
 </dict>
 </plist>
 "@
-    Set-Content -Path (Join-Path $AppPath 'Contents' 'Info.plist') -Value $plist -Encoding UTF8
+    Set-Content -Path (Join-Path $contentsDir 'Info.plist') -Value $plist -Encoding UTF8
     Write-Host "  created .app bundle: $AppPath"
 }
 
@@ -253,17 +254,24 @@ foreach ($variant in $macOSVariants) {
     $appPath = Join-Path $stagingDir 'Y-popup.app'
     Remove-PathIfExists $appPath
 
+    New-MacosAppBundle -SourceFolder $variant.Source -AppPath $appPath
+
     if ($isMacOS) {
-        New-MacosAppBundle -SourceFolder $variant.Source -AppPath $appPath
         $dmgPath = Join-Path (Join-Path $PSScriptRoot 'release') $variant.DmgName
         New-DmgFromApp -AppPath $appPath -OutputPath $dmgPath -VolumeName 'Y-popup'
-        Remove-PathIfExists $appPath
     }
     else {
-        # Cross-compile from Windows: create zip (hdiutil unavailable)
+        # Cross-compile from Windows: zip .app (hdiutil unavailable)
         $zipName = $variant.DmgName -replace '\.dmg$', '.zip'
-        New-DocsZip -SourceFolder $variant.Source -ZipPath (Join-Path (Join-Path $PSScriptRoot 'release') $zipName)
+        $zipPath = Join-Path (Join-Path $PSScriptRoot 'release') $zipName
+        if (Test-Path $zipPath) {
+            Remove-Item -Force $zipPath
+        }
+        Compress-Archive -Path $appPath -DestinationPath $zipPath -Force
+        Write-Host "  created zip: $zipPath"
     }
+
+    Remove-PathIfExists $appPath
 }
 
 # Clean up staging
