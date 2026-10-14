@@ -644,3 +644,18 @@ P0~P3 기능 구현은 완료되었으나, 공개 문서(README, GitHub Pages)�
 | `README.md` | macOS dmg→zip, 변경 로그 2.1.0/Pages 정리 반영 |
 | GitHub Release `v2.1.0` | `publish.ps1` 재빌드 자산으로 교체 |
 
+## 2026-10-14 — 단톡방·그룹 카테고리 연동 · v2.2.0 배포
+
+### 배경
+`feature/multichat-grouping`은 모듈·UI 파일만 있고 `UserListWindow`/`YpopupCoordinator`/`TcpHostService`에 연결되어 있지 않아, 머지만으로는 기능이 보이지 않았음.
+
+### 변경 (Less is more — 기존 모듈을 진입점에 연결)
+
+| 파일 | 내용 |
+|------|------|
+| `TcpHostService` | Type≥10 확장 패킷 → `ExtendedPacketReceived`, 레거시 쪽지는 기존 경로 |
+| `YpopupCoordinator` | ChatRoom/Group/PacketRouter/Dispatcher 초기화, 단톡 초대·단체쪽지 API |
+| `WindowNavigator` | `ChatWindowManager`로 단톡방 창 오픈·룸 핸들러 등록 |
+| `UserListWindow` | 부서 아코디언 트리 + 단톡방/단체쪽지 버튼 |
+| `AppInfo`/`csproj`/`docs`/`README` | 버전 **2.2.0** 반영 |
+

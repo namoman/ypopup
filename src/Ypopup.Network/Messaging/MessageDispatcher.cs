@@ -19,6 +19,11 @@ public interface IMessageDispatcher
         ExtendedLanPacket packet,
         IEnumerable<PeerUser> targetPeers,
         CancellationToken ct = default);
+
+    Task<IReadOnlyList<SendResult>> SendPacketAsync(
+        ExtendedLanPacket packet,
+        IEnumerable<PeerUser> targetPeers,
+        CancellationToken ct = default);
 }
 
 public sealed class MessageDispatcher : IMessageDispatcher
@@ -44,6 +49,12 @@ public sealed class MessageDispatcher : IMessageDispatcher
         packet.Type = ExtendedPacketType.MultiCastDirectNotice;
         return await SendToPeersParallelAsync(packet, targetPeers, ct).ConfigureAwait(false);
     }
+
+    public Task<IReadOnlyList<SendResult>> SendPacketAsync(
+        ExtendedLanPacket packet,
+        IEnumerable<PeerUser> targetPeers,
+        CancellationToken ct = default)
+        => SendToPeersParallelAsync(packet, targetPeers, ct);
 
     private static async Task<IReadOnlyList<SendResult>> SendToPeersParallelAsync(
         ExtendedLanPacket packet,

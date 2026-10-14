@@ -14,30 +14,44 @@
                         <Expander.Header>
                             <TextBlock Text="{Binding HeaderText}"
                                        FontWeight="SemiBold"
-                                       FontSize="13" />
+                                       FontSize="13"
+                                       Foreground="#1E293B" />
                         </Expander.Header>
                         <ListBox ItemsSource="{Binding Members}"
                                  Background="Transparent"
                                  BorderThickness="0"
+                                 SelectionChanged="OnMemberSelectionChanged"
                                  DoubleTapped="OnMemberDoubleTapped">
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="vm:PeerNodeItem">
-                                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="4,2">
-                                        <Border Grid.Column="0"
-                                                Width="8" Height="8"
-                                                CornerRadius="4"
-                                                Background="{Binding IsAway, Converter={x:Null}}"
-                                                Margin="0,0,8,0" />
-                                        <StackPanel Grid.Column="1">
-                                            <TextBlock Text="{Binding DisplayName}" FontWeight="Medium" FontSize="13" />
-                                            <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="#888888" />
-                                        </StackPanel>
-                                        <TextBlock Grid.Column="2"
-                                                   Text="{Binding StatusText}"
-                                                   FontSize="11"
-                                                   Foreground="#888888"
-                                                   VerticalAlignment="Center" />
-                                    </Grid>
+                                    <Border CornerRadius="8" Padding="8" Background="Transparent" HorizontalAlignment="Stretch">
+                                        <Grid ColumnDefinitions="Auto,*,Auto">
+                                            <Grid Grid.Column="0" Width="40" Height="40" Margin="0,0,12,0" VerticalAlignment="Center">
+                                                <Ellipse Fill="#E2E8F0" Width="40" Height="40"/>
+                                                <TextBlock Text="👤" Foreground="#64748B" HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center" FontSize="18"/>
+                                                <Ellipse Width="10" Height="10" Fill="#22C55E" Stroke="#FFFFFF" StrokeThickness="1.5"
+                                                         HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                         IsVisible="{Binding !IsAway}"/>
+                                                <Ellipse Width="10" Height="10" Fill="#F59E0B" Stroke="#FFFFFF" StrokeThickness="1.5"
+                                                         HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                                         IsVisible="{Binding IsAway}"/>
+                                            </Grid>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="13.5" Foreground="#1E293B"/>
+                                                <TextBlock Text="{Binding IpAddress}" FontSize="11" Foreground="#64748B" Margin="0,1,0,0"/>
+                                                <TextBlock Text="{Binding StatusText}" FontSize="11" Foreground="#0284C7" Margin="0,2,0,0"/>
+                                            </StackPanel>
+                                            <Button Grid.Column="2"
+                                                    Content="📁"
+                                                    ToolTip.Tip="공유폴더 열기"
+                                                    Classes="icon"
+                                                    Click="ShareFolderButton_Click"
+                                                    Tag="{Binding}"
+                                                    IsVisible="{Binding Peer.HasSharedFolder}"
+                                                    VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>

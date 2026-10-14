@@ -102,4 +102,15 @@ public sealed class ChatRoomManager : IChatRoomManager
             OnRoomRemoved?.Invoke(roomId);
         }
     }
+
+    public async Task<ChatRoom> UpsertRoomAsync(ChatRoom room, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(room);
+        ArgumentException.ThrowIfNullOrWhiteSpace(room.RoomId);
+
+        _rooms[room.RoomId] = room;
+        await _storage.SaveRoomAsync(room, ct).ConfigureAwait(false);
+        OnRoomCreatedOrUpdated?.Invoke(room);
+        return room;
+    }
 }

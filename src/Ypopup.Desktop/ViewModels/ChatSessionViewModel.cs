@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using Avalonia.Layout;
+using Avalonia.Media;
 using Ypopup.Core.Contracts;
 using Ypopup.Core.Models;
 using Ypopup.Network.Messaging;
@@ -7,6 +9,9 @@ namespace Ypopup.Desktop.ViewModels;
 
 public sealed class MessageBubbleItem : ViewModelBase
 {
+    private static readonly IBrush MineBrush = new SolidColorBrush(Color.Parse("#1E88E5"));
+    private static readonly IBrush OtherBrush = new SolidColorBrush(Color.Parse("#EEEEEE"));
+
     public string MessageId { get; }
     public string SenderId { get; }
     public string SenderName { get; }
@@ -16,6 +21,9 @@ public sealed class MessageBubbleItem : ViewModelBase
     public IReadOnlyList<FileAttachmentInfo> Attachments { get; }
 
     public string FormattedTime => Time.ToString("tt h:mm");
+    public HorizontalAlignment BubbleAlignment => IsMine ? HorizontalAlignment.Right : HorizontalAlignment.Left;
+    public IBrush BubbleBackground => IsMine ? MineBrush : OtherBrush;
+    public IBrush ContentForeground => IsMine ? Brushes.White : Brushes.Black;
 
     public MessageBubbleItem(ChatMessage message, string myUserId)
     {

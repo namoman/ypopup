@@ -25,4 +25,6 @@ public sealed class ExtendedLanPacket
     public string? RoomTitle { get; set; }
     public List<string> ParticipantIds { get; set; } = [];
     public DateTime SentAtUtc { get; set; } = DateTime.UtcNow;
+    /// <summary>레거시 1:1 쪽지 자동답장 플래그 (하위 호환).</summary>
+    public bool IsAutoReply { get; set; }
 }

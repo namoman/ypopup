@@ -1,14 +1,23 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Ypopup.Core.Models;
+using Ypopup.Desktop.ViewModels;
 
 namespace Ypopup.Desktop.Views.Chat;
 
-public sealed class SelectablePeerItem
+public sealed class SelectablePeerItem : ViewModelBase
 {
+    private bool _isSelected;
+
     public PeerInfo Peer { get; }
-    public bool IsSelected { get; set; }
-    public string DisplayText => $"[{Peer.Group}] {Peer.DisplayName} ({Peer.IpAddress})";
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetProperty(ref _isSelected, value);
+    }
+
+    public string DisplayText => $"[{(string.IsNullOrWhiteSpace(Peer.Group) ? "미지정" : Peer.Group)}] {Peer.DisplayName} ({Peer.IpAddress})";
 
     public SelectablePeerItem(PeerInfo peer)
     {
@@ -16,7 +25,10 @@ public sealed class SelectablePeerItem
     }
 }
 
-public sealed record CreateRoomDialogResult(string Title, IReadOnlyList<PeerInfo> SelectedPeers);
+public sealed record CreateRoomDialogResult(
+    string Title,
+    string Body,
+    IReadOnlyList<PeerInfo> SelectedPeers);
 
 public partial class CreateRoomDialog : Window
 {
@@ -26,7 +38,7 @@ public partial class CreateRoomDialog : Window
     public CreateRoomDialog()
     {
         InitializeComponent();
-        _allPeers = new List<SelectablePeerItem>();
+        _allPeers = [];
     }
 
     public CreateRoomDialog(IEnumerable<PeerInfo> peers) : this()
@@ -40,8 +52,9 @@ public partial class CreateRoomDialog : Window
         var text = SearchBox?.Text?.Trim() ?? string.Empty;
         var filtered = string.IsNullOrWhiteSpace(text)
             ? _allPeers
-            : _allPeers.Where(p => p.Peer.DisplayName.Contains(text, StringComparison.OrdinalIgnoreCase) ||
-                                   p.Peer.Group.Contains(text, StringComparison.OrdinalIgnoreCase)).ToList();
+            : _allPeers.Where(p =>
+                p.Peer.DisplayName.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                p.Peer.Group.Contains(text, StringComparison.OrdinalIgnoreCase)).ToList();
 
         PeersListBox.ItemsSource = filtered;
     }
@@ -54,6 +67,7 @@ public partial class CreateRoomDialog : Window
         {
             item.IsSelected = true;
         }
+
         ApplyFilter();
     }
 
@@ -63,6 +77,7 @@ public partial class CreateRoomDialog : Window
         {
             item.IsSelected = false;
         }
+
         ApplyFilter();
     }
 
@@ -76,8 +91,9 @@ public partial class CreateRoomDialog : Window
     {
         var selected = _allPeers.Where(p => p.IsSelected).Select(p => p.Peer).ToList();
         var title = RoomTitleTextBox.Text?.Trim() ?? string.Empty;
+        var body = MessageBodyTextBox.Text?.Trim() ?? string.Empty;
 
-        Result = new CreateRoomDialogResult(title, selected);
+        Result = new CreateRoomDialogResult(title, body, selected);
         Close();
     }
 }

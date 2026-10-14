@@ -21,6 +21,7 @@ public sealed class TcpHostService : IAsyncDisposable
     private int _disposed;
 
     public event Action<ReceivedMessage>? MessageReceived;
+    public event Action<ExtendedLanPacket>? ExtendedPacketReceived;
 
     public TcpHostService(SettingsService settingsService)
     {
@@ -110,13 +111,25 @@ public sealed class TcpHostService : IAsyncDisposable
         try
         {
             await using var stream = client.GetStream();
-            var packet = await PacketCodec.ReadPacketAsync(stream, cancellationToken).ConfigureAwait(false);
-            if (packet is null || packet.Type != PacketType.TextMessage)
+            // Extended/Legacy 동일 프레이밍(4바이트 길이+JSON). Type>=10 은 멀티챗 확장 패킷.
+            var extended = await ExtendedPacketCodec.ReadPacketAsync(stream, cancellationToken).ConfigureAwait(false);
+            if (extended is null)
             {
                 return;
             }
 
-            foreach (var attachment in packet.Attachments)
+            if ((int)extended.Type >= 10)
+            {
+                ExtendedPacketReceived?.Invoke(extended);
+                return;
+            }
+
+            if (extended.Type != ExtendedPacketType.TextMessage)
+            {
+                return;
+            }
+
+            foreach (var attachment in extended.Attachments)
             {
                 var safeName = FileNameSanitizer.Sanitize(attachment.FileName);
                 var finalPath = FileNameSanitizer.GetUniquePath(Path.Combine(_settingsService.Current.ReceiveDirectory, safeName));
@@ -138,13 +151,13 @@ public sealed class TcpHostService : IAsyncDisposable
 
             MessageReceived?.Invoke(new ReceivedMessage
             {
-                MessageId = packet.MessageId,
-                SenderId = packet.SenderId,
-                SenderName = packet.SenderName,
+                MessageId = extended.MessageId,
+                SenderId = extended.SenderId,
+                SenderName = extended.SenderName,
                 SenderIpAddress = ResolveClientIpAddress(client),
-                Body = packet.Body,
+                Body = extended.Body,
                 SavedFilePaths = savedPaths,
-                IsAutoReply = packet.IsAutoReply
+                IsAutoReply = extended.IsAutoReply
             });
         }
         catch (Exception ex)

@@ -8,6 +8,9 @@
 ## 기능
 
 - UDP 브로드캐스트 기반 사용자 자동 탐색
+- **부서/그룹 카테고리** — 사용자 목록 아코디언 분류
+- **단톡방** — 다자간 실시간 그룹 대화 (로컬 저장)
+- **단체 쪽지** — 다중 수신자 일괄 발송
 - 1:1 인스턴트 메시지 (팝업 수신)
 - 파일 첨부 및 드래그 앤 드롭 전송 — **진행률 표시 + 취소 가능**
 - **공유폴더** — LAN 사용자가 내 `share` 폴더에서 파일 다운로드 (읽기 전용, 진행률 표시)
@@ -84,14 +87,14 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 
 ```powershell
 # 2. GitHub Release 생성
-.\tools\create-release.ps1 -Version "2.1.0"
+.\tools\create-release.ps1 -Version "2.2.0"
 ```
 
 `create-release.ps1`은 `release/` 폴더의 파일을 `gh release create`로 업로드합니다.
 
 ```powershell
 # 3. 소스 코드만 git push
-.\push-github.ps1 -Message "release: v2.1 update"
+.\push-github.ps1 -Message "release: v2.2 update"
 ```
 
 `push-github.ps1`은 `publish.ps1` 실행 → 소스·docs 웹페이지만 커밋 → `git push`까지 수행합니다. 빌드만 갱신했을 때는 `-SkipPublish`로 push만 할 수 있습니다.
@@ -170,7 +173,8 @@ dotnet test Ypopup.sln
 
 | 일자 | 변경 |
 |------|------|
-| 2026-10-14 | Pages `docs/`에 남아 있던 **2.0 바이너리 제거**, 다운로드는 GitHub Releases **v2.1.0**만 사용. macOS zip에 `.app` 포함하도록 배포 수정 |
+| 2026-10-14 | 버전 **2.2.0** — 부서/그룹 카테고리, 단톡방, 단체 쪽지 연동·배포 |
+| 2026-10-14 | Pages `docs/`에 남아 있던 **2.0 바이너리 제거**, 다운로드는 GitHub Releases만 사용. macOS zip에 `.app` 포함 |
 | 2026-07-28 | 버전 **2.1.0** 릴리스 |
 | 2026-07-10 | P3 스모크 테스트(`smoke-test.ps1`), 진단 정보 내보내기(`DiagnosticExporter`), 기존 이슈 수정(.gitignore, ApplicationHost Dispatcher, create-release 경로) |
 | 2026-07-09 | P2 LAN 진단 화면, P2 롤링 로그, P2 배포 산출물 정리(GitHub Releases), P3 설정 검증 중복 제거(`SettingsValidator`) |
