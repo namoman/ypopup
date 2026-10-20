@@ -659,3 +659,13 @@ P0~P3 기능 구현은 완료되었으나, 공개 문서(README, GitHub Pages)�
 | `UserListWindow` | 부서 아코디언 트리 + 단톡방/단체쪽지 버튼 |
 | `AppInfo`/`csproj`/`docs`/`README` | 버전 **2.2.0** 반영 |
 
+## 2026-10-20 — 배포 파일명에 버전 접미사
+
+### 배경
+다운로드 파일명이 `Y-popup.exe`로 고정되어 받아 둔 파일이 어느 버전인지 구분되지 않았음.
+
+### 변경
+- `publish.ps1`이 csproj `<Version>`을 읽어 산출물 이름 끝에 붙임 (`Y-popup-2.2.0.exe`, `Y-popup-osx-arm64-2.2.0.zip` 등)
+- 같은 실행에서 `docs/index.html` 다운로드 링크·버튼 문구도 그 파일명으로 갱신
+- 앱 내부 실행 파일명(`Y-popup.exe`, `Y-popup.app`)은 유지 |
+

@@ -4,27 +4,45 @@ Set-Location $PSScriptRoot
 
 $project = 'src/Ypopup.Desktop/Ypopup.Desktop.csproj'
 
+$csprojText = Get-Content -LiteralPath $project -Raw
+if ($csprojText -notmatch '<Version>([^<]+)</Version>') {
+    throw "csproj에서 Version을 찾지 못했습니다: $project"
+}
+$appVersion = $Matches[1].Trim()
+
+# 다운로드 파일명 끝에 버전. 앱 번들/프로세스 이름(Y-popup)은 유지.
+$artifact = @{
+    WinExe        = "Y-popup-$appVersion.exe"
+    WinNet8       = "Y-popup-net8-$appVersion.exe"
+    WinNet8Zip    = "Y-popup-win-x64-net8-$appVersion.zip"
+    OsxArm64      = "Y-popup-osx-arm64-$appVersion"
+    OsxArm64Net8  = "Y-popup-osx-arm64-net8-$appVersion"
+    OsxX64        = "Y-popup-osx-x64-$appVersion"
+    OsxX64Net8    = "Y-popup-osx-x64-net8-$appVersion"
+}
+
 # OS detection — $IsMacOS available in PowerShell Core 6+ (pwsh on macOS)
 $isMacOS = $IsMacOS -eq $true
+$macExt = if ($isMacOS) { 'dmg' } else { 'zip' }
 
 # --- Release file list (OS-dependent paths) ---
 if ($isMacOS) {
     $releaseFiles = @(
-        'release/Y-popup-osx-arm64.dmg',
-        'release/Y-popup-osx-arm64-net8.dmg',
-        'release/Y-popup-osx-x64.dmg',
-        'release/Y-popup-osx-x64-net8.dmg'
+        "release/$($artifact.OsxArm64).dmg",
+        "release/$($artifact.OsxArm64Net8).dmg",
+        "release/$($artifact.OsxX64).dmg",
+        "release/$($artifact.OsxX64Net8).dmg"
     )
 }
 else {
     $releaseFiles = @(
-        'release\Y-popup.exe',
-        'release\Y-popup-net8.exe',
-        'release\Y-popup-win-x64-net8.zip',
-        'release\Y-popup-osx-arm64.zip',
-        'release\Y-popup-osx-arm64-net8.zip',
-        'release\Y-popup-osx-x64.zip',
-        'release\Y-popup-osx-x64-net8.zip'
+        "release\$($artifact.WinExe)",
+        "release\$($artifact.WinNet8)",
+        "release\$($artifact.WinNet8Zip)",
+        "release\$($artifact.OsxArm64).zip",
+        "release\$($artifact.OsxArm64Net8).zip",
+        "release\$($artifact.OsxX64).zip",
+        "release\$($artifact.OsxX64Net8).zip"
     )
 }
 
@@ -96,17 +114,63 @@ function Publish-Target {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
+function Compress-ReleaseArchive {
+    param(
+        [string]$SourcePath,
+        [string]$ZipPath
+    )
+
+    $attempts = 3
+    for ($i = 1; $i -le $attempts; $i++) {
+        try {
+            if (Test-Path $ZipPath) {
+                Remove-Item -Force $ZipPath
+            }
+
+            Compress-Archive -Path $SourcePath -DestinationPath $ZipPath -Force
+            return
+        }
+        catch {
+            if ($i -eq $attempts) { throw }
+            Write-Host "  zip retry $i : $($_.Exception.Message)" -ForegroundColor Yellow
+            Start-Sleep -Seconds 2
+        }
+    }
+}
+
 function New-DocsZip {
     param(
         [string]$SourceFolder,
         [string]$ZipPath
     )
 
-    if (Test-Path $ZipPath) {
-        Remove-Item -Force $ZipPath
+    Compress-ReleaseArchive -SourcePath (Join-Path $SourceFolder '*') -ZipPath $ZipPath
+}
+
+function Update-DownloadPage {
+    param([string]$Version)
+
+    $htmlPath = Join-Path $PSScriptRoot 'docs\index.html'
+    if (-not (Test-Path $htmlPath)) { return }
+
+    $html = Get-Content -LiteralPath $htmlPath -Raw -Encoding UTF8
+    $replacements = @(
+        @{ Pattern = 'Y-popup-osx-arm64-net8(?:-\d+\.\d+\.\d+)?\.(?:zip|dmg)'; Name = "Y-popup-osx-arm64-net8-$Version.zip" }
+        @{ Pattern = 'Y-popup-osx-x64-net8(?:-\d+\.\d+\.\d+)?\.(?:zip|dmg)';   Name = "Y-popup-osx-x64-net8-$Version.zip" }
+        @{ Pattern = 'Y-popup-osx-arm64(?:-\d+\.\d+\.\d+)?\.(?:zip|dmg)';      Name = "Y-popup-osx-arm64-$Version.zip" }
+        @{ Pattern = 'Y-popup-osx-x64(?:-\d+\.\d+\.\d+)?\.(?:zip|dmg)';        Name = "Y-popup-osx-x64-$Version.zip" }
+        @{ Pattern = 'Y-popup-win-x64-net8(?:-\d+\.\d+\.\d+)?\.zip';           Name = "Y-popup-win-x64-net8-$Version.zip" }
+        @{ Pattern = 'Y-popup-net8(?:-\d+\.\d+\.\d+)?\.exe';                   Name = "Y-popup-net8-$Version.exe" }
+        @{ Pattern = 'Y-popup(?:-\d+\.\d+\.\d+)?\.exe';                        Name = "Y-popup-$Version.exe" }
+    )
+
+    foreach ($item in $replacements) {
+        $html = [regex]::Replace($html, $item.Pattern, [System.Text.RegularExpressions.MatchEvaluator]{ $item.Name })
     }
 
-    Compress-Archive -Path (Join-Path $SourceFolder '*') -DestinationPath $ZipPath -Force
+    $utf8 = New-Object System.Text.UTF8Encoding $false
+    [System.IO.File]::WriteAllText((Resolve-Path $htmlPath), $html, $utf8)
+    Write-Host "  docs/index.html download names -> $Version"
 }
 
 function New-MacosAppBundle {
@@ -234,9 +298,9 @@ New-Item -ItemType Directory -Force -Path 'release' | Out-Null
 
 # --- Windows release files ---
 if (-not $isMacOS) {
-    Copy-Item 'publish\Y-popup.exe' 'release\Y-popup.exe' -Force
-    New-DocsZip -SourceFolder 'publish-framework' -ZipPath 'release\Y-popup-win-x64-net8.zip'
-    Copy-Item 'publish-framework\Y-popup.exe' 'release\Y-popup-net8.exe' -Force
+    Copy-Item 'publish\Y-popup.exe' "release\$($artifact.WinExe)" -Force
+    New-DocsZip -SourceFolder 'publish-framework' -ZipPath "release\$($artifact.WinNet8Zip)"
+    Copy-Item 'publish-framework\Y-popup.exe' "release\$($artifact.WinNet8)" -Force
 }
 
 # --- macOS packaging ---
@@ -244,10 +308,10 @@ $stagingDir = Join-Path $PSScriptRoot '_staging'
 New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
 
 $macOSVariants = @(
-    @{ Source = 'publish-osx-arm64';            DmgName = 'Y-popup-osx-arm64.dmg' }
-    @{ Source = 'publish-osx-arm64-framework';  DmgName = 'Y-popup-osx-arm64-net8.dmg' }
-    @{ Source = 'publish-osx-x64';              DmgName = 'Y-popup-osx-x64.dmg' }
-    @{ Source = 'publish-osx-x64-framework';    DmgName = 'Y-popup-osx-x64-net8.dmg' }
+    @{ Source = 'publish-osx-arm64';            DmgName = "$($artifact.OsxArm64).$macExt" }
+    @{ Source = 'publish-osx-arm64-framework';  DmgName = "$($artifact.OsxArm64Net8).$macExt" }
+    @{ Source = 'publish-osx-x64';              DmgName = "$($artifact.OsxX64).$macExt" }
+    @{ Source = 'publish-osx-x64-framework';    DmgName = "$($artifact.OsxX64Net8).$macExt" }
 )
 
 foreach ($variant in $macOSVariants) {
@@ -264,10 +328,7 @@ foreach ($variant in $macOSVariants) {
         # Cross-compile from Windows: zip .app (hdiutil unavailable)
         $zipName = $variant.DmgName -replace '\.dmg$', '.zip'
         $zipPath = Join-Path (Join-Path $PSScriptRoot 'release') $zipName
-        if (Test-Path $zipPath) {
-            Remove-Item -Force $zipPath
-        }
-        Compress-Archive -Path $appPath -DestinationPath $zipPath -Force
+        Compress-ReleaseArchive -SourcePath $appPath -ZipPath $zipPath
         Write-Host "  created zip: $zipPath"
     }
 
@@ -283,20 +344,21 @@ Write-Host "=== Package sizes ===" -ForegroundColor Green
 
 if ($isMacOS) {
     $packages = @(
-        @{ Label = 'macOS arm64 standalone'; Path = 'release/Y-popup-osx-arm64.dmg' }
-        @{ Label = 'macOS arm64 net8';       Path = 'release/Y-popup-osx-arm64-net8.dmg' }
-        @{ Label = 'macOS Intel standalone'; Path = 'release/Y-popup-osx-x64.dmg' }
-        @{ Label = 'macOS Intel net8';       Path = 'release/Y-popup-osx-x64-net8.dmg' }
+        @{ Label = 'macOS arm64 standalone'; Path = "release/$($artifact.OsxArm64).dmg" }
+        @{ Label = 'macOS arm64 net8';       Path = "release/$($artifact.OsxArm64Net8).dmg" }
+        @{ Label = 'macOS Intel standalone'; Path = "release/$($artifact.OsxX64).dmg" }
+        @{ Label = 'macOS Intel net8';       Path = "release/$($artifact.OsxX64Net8).dmg" }
     )
 }
 else {
     $packages = @(
-        @{ Label = 'Windows 64-bit standalone';   Path = 'release\Y-popup.exe' }
-        @{ Label = 'Windows 64-bit net8 zip';     Path = 'release\Y-popup-win-x64-net8.zip' }
-        @{ Label = 'macOS arm64 standalone zip';  Path = 'release\Y-popup-osx-arm64.zip' }
-        @{ Label = 'macOS arm64 net8 zip';        Path = 'release\Y-popup-osx-arm64-net8.zip' }
-        @{ Label = 'macOS Intel standalone zip';  Path = 'release\Y-popup-osx-x64.zip' }
-        @{ Label = 'macOS Intel net8 zip';        Path = 'release\Y-popup-osx-x64-net8.zip' }
+        @{ Label = 'Windows 64-bit standalone';   Path = "release\$($artifact.WinExe)" }
+        @{ Label = 'Windows 64-bit net8 exe';     Path = "release\$($artifact.WinNet8)" }
+        @{ Label = 'Windows 64-bit net8 zip';     Path = "release\$($artifact.WinNet8Zip)" }
+        @{ Label = 'macOS arm64 standalone zip';  Path = "release\$($artifact.OsxArm64).zip" }
+        @{ Label = 'macOS arm64 net8 zip';        Path = "release\$($artifact.OsxArm64Net8).zip" }
+        @{ Label = 'macOS Intel standalone zip';  Path = "release\$($artifact.OsxX64).zip" }
+        @{ Label = 'macOS Intel net8 zip';        Path = "release\$($artifact.OsxX64Net8).zip" }
     )
 }
 
@@ -308,6 +370,10 @@ $packages | ForEach-Object {
     }
 } | Format-Table -AutoSize
 
+if (-not $isMacOS) {
+    Update-DownloadPage -Version $appVersion
+}
+
 Write-Host ""
-Write-Host "=== 릴리스 파일이 release/ 폴더에 생성되었습니다 ===" -ForegroundColor Green
-Write-Host "GitHub Releases 업로드: gh release create v2.x.x release/* --title \"v2.x.x\"" -ForegroundColor Yellow
+Write-Host "=== 릴리스 파일이 release/ 폴더에 생성되었습니다 ($appVersion) ===" -ForegroundColor Green
+Write-Host "GitHub Releases 업로드: gh release create v$appVersion release/* --title `"v$appVersion`"" -ForegroundColor Yellow

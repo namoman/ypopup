@@ -101,15 +101,15 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 
 | GitHub Releases | 설명 |
 |-----------------|------|
-| `Y-popup.exe` | Windows Self-contained (~44MB). **.NET 설치 불필요** |
-| `Y-popup-net8.exe` | Windows Framework-dependent. [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) 필요 |
-| `Y-popup-osx-*.zip` | macOS (arm64 / Intel) — 압축 해제 후 `Y-popup.app` 실행 |
+| `Y-popup-<버전>.exe` | Windows Self-contained (~44MB). **.NET 설치 불필요** |
+| `Y-popup-net8-<버전>.exe` | Windows Framework-dependent. [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) 필요 |
+| `Y-popup-osx-*-<버전>.zip` | macOS (arm64 / Intel) — 압축 해제 후 `Y-popup.app` 실행 |
 
 다운로드는 [GitHub Releases](https://github.com/namoman/ypopup/releases) 또는 [GitHub Pages](https://namoman.github.io/ypopup/)에서 가능합니다.
 
 ## 사용 방법
 
-1. 사용할 PC마다 `Y-popup.exe` 실행
+1. 사용할 PC마다 `Y-popup-<버전>.exe` 실행
 2. 트레이 아이콘 클릭 → **사용자 목록** 확인 (헤더에 본인 **표시 이름** 표시)
 3. 사용자 선택 → **쪽지 보내기** 또는 더블클릭
 4. 파일은 **파일 첨부** 또는 드래그 앤 드롭
