@@ -11,7 +11,7 @@ public partial class AboutSettingsPanel : UserControl
     public AboutSettingsPanel()
     {
         InitializeComponent();
-        VersionTextBlock.Text = AppInfo.VersionDisplay;
+        VersionTextBlock.Text = $"v{AppInfo.Version}";
     }
 
     private void EmailLink_Click(object? sender, RoutedEventArgs e)
@@ -19,6 +19,9 @@ public partial class AboutSettingsPanel : UserControl
 
     private void WebsiteLink_Click(object? sender, RoutedEventArgs e)
         => OpenLink(AppInfo.Website);
+
+    private void RepositoryLink_Click(object? sender, RoutedEventArgs e)
+        => OpenLink(AppInfo.Repository);
 
     private static void OpenLink(string uri)
     {

@@ -26,7 +26,7 @@ public static class DialogHelper
             SizeToContent = SizeToContent.Height,
             WindowStartupLocation = owner is null ? WindowStartupLocation.CenterScreen : WindowStartupLocation.CenterOwner,
             CanResize = false,
-            Background = new SolidColorBrush(Color.Parse("#F8FAFC"))
+            Background = new SolidColorBrush(Color.Parse("#F3F5F9"))
         };
         dialog.Content = BuildContent(message, () => dialog.Close());
 

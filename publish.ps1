@@ -168,7 +168,8 @@ function Update-DownloadPage {
         $html = [regex]::Replace($html, $item.Pattern, [System.Text.RegularExpressions.MatchEvaluator]{ $item.Name })
     }
 
-    $html = [regex]::Replace($html, '\uBC84\uC804 \d+\.\d+\.\d+', "버전 $Version")
+    $versionLabel = [char]0xBC84 + [char]0xC804
+    $html = [regex]::Replace($html, '\uBC84\uC804 \d+\.\d+\.\d+', "$versionLabel $Version")
     $html = [regex]::Replace($html, 'v\d+\.\d+\.\d+', "v$Version")
 
     $utf8 = New-Object System.Text.UTF8Encoding $false
@@ -180,7 +181,7 @@ function New-MacosAppBundle {
     param(
         [string]$SourceFolder,
         [string]$AppPath,
-        [string]$Version = '2.2.1'
+        [string]$Version = '2.2.2'
     )
 
     Remove-PathIfExists $AppPath

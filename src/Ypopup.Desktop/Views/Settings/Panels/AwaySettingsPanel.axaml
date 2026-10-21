@@ -1,9 +1,12 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Ypopup.Desktop.Views.Settings.Panels.AwaySettingsPanel">
-    <StackPanel Margin="12">
-        <TextBlock Text="설정한 시간 동안 입력이 없으면 사용자 목록에 부재로 표시되고,&#x0a;수신 쪽지에 자동 답장이 발송됩니다."
-                   Foreground="#64748B" TextWrapping="Wrap" Margin="0,0,0,12"/>
+    <StackPanel Margin="4,8,4,4">
+        <Border Background="#EFF6FF" BorderBrush="#DBEAFE" BorderThickness="1"
+                CornerRadius="8" Padding="10,8" Margin="0,0,0,12">
+            <TextBlock Text="설정한 시간 동안 입력이 없으면 사용자 목록에 부재로 표시되고, 수신 쪽지에 자동 답장이 발송됩니다."
+                       Foreground="#1E3A8A" FontSize="12" TextWrapping="Wrap"/>
+        </Border>
         <StackPanel Orientation="Horizontal" Margin="0,0,0,12" VerticalAlignment="Center">
             <CheckBox x:Name="AwayIdleCheckBox" VerticalAlignment="Center"/>
             <TextBox x:Name="AwayIdleMinutesTextBox" Width="40" Margin="8,0,8,0"

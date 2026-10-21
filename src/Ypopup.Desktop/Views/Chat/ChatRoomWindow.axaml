@@ -9,13 +9,12 @@
         WindowStartupLocation="CenterScreen">
 
     <Grid RowDefinitions="Auto,*,Auto">
-        <!-- 상단 헤더 -->
-        <Border Grid.Row="0" Background="#1E88E5" Padding="16,12">
+        <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="16,12">
             <StackPanel Orientation="Horizontal" Spacing="10">
                 <TextBlock Text="💬" FontSize="18" VerticalAlignment="Center" />
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding RoomTitle}" FontWeight="Bold" FontSize="15" Foreground="White" />
-                    <TextBlock Text="P2P LAN 암호화 통신" FontSize="11" Foreground="#BBDEFB" />
+                    <TextBlock Text="{Binding RoomTitle}" FontWeight="Bold" FontSize="15" Foreground="#1E293B" />
+                    <TextBlock Text="P2P LAN 암호화 통신" FontSize="11" Foreground="#64748B" />
                 </StackPanel>
             </StackPanel>
         </Border>
@@ -57,7 +56,7 @@
         </ScrollViewer>
 
         <!-- 하단 입력창 -->
-        <Border Grid.Row="2" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="12" Background="#FAFAFA">
+        <Border Grid.Row="2" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="12" Background="#FFFFFF">
             <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto">
                 <TextBox Grid.Column="0"
                          x:Name="InputTextBox"
@@ -68,9 +67,6 @@
                          Margin="0,0,8,0" />
                 <Button Grid.Column="1"
                         Content="전송"
-                        Background="#1E88E5"
-                        Foreground="White"
-                        FontWeight="Bold"
                         Padding="16,8"
                         Click="SendButton_Click" />
             </Grid>

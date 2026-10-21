@@ -2,7 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Ypopup.Desktop.Views.Settings.Panels.GeneralSettingsPanel">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="12">
+        <StackPanel Margin="4,8,4,4">
             <CheckBox x:Name="KeepWindowTopmostCheckBox" Content="창을 항상 위에 표시 (Topmost)" Margin="0,0,0,8"/>
             <CheckBox x:Name="RunAtStartupCheckBox"
                       Content="Windows 시작 시 자동 실행 (트레이에만 표시)"
@@ -10,7 +10,7 @@
             <CheckBox x:Name="CloseComposeAfterSendCheckBox" Content="전송 후 작성 창 닫기" Margin="0,0,0,8"/>
             <CheckBox x:Name="CloseReceiveOnReplyCheckBox" Content="답장 시 수신 창 닫기" Margin="0,0,0,16"/>
 
-            <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,0,12">
+            <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,12">
                 <StackPanel>
                     <TextBlock Text="공유폴더" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     <CheckBox x:Name="ShareFolderEnabledCheckBox"
@@ -29,7 +29,7 @@
                 </StackPanel>
             </Border>
 
-            <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,0,12">
+            <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,12">
                 <StackPanel>
                     <TextBlock Text="수신 알림" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     <CheckBox x:Name="SoundEnabledCheckBox" Content="알림음 사용" Margin="0,0,0,4"/>
@@ -38,7 +38,7 @@
                 </StackPanel>
             </Border>
 
-            <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8" Margin="0,0,0,12">
+            <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="12" Margin="0,0,0,12">
                 <StackPanel>
                     <TextBlock Text="수신 파일" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     <TextBlock Text="받은 파일 저장 위치. 기본: exe 위치\down"
@@ -50,7 +50,7 @@
                 </StackPanel>
             </Border>
 
-            <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8">
+            <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Padding="12">
                 <StackPanel>
                     <TextBlock Text="쪽지 글꼴" FontWeight="SemiBold" Margin="0,0,0,8"/>
                     <TextBlock x:Name="FontPreviewTextBlock" Margin="0,0,0,8"/>

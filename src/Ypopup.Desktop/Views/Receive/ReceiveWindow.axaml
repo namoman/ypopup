@@ -21,24 +21,24 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Background="#EF4444" CornerRadius="12,12,0,0"
-                    PointerPressed="TitleBar_PointerPressed">
+            <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1"
+                    CornerRadius="12,12,0,0" PointerPressed="TitleBar_PointerPressed">
                 <Grid Margin="12,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="☎" Foreground="White" FontSize="16" Margin="0,0,8,0"/>
-                        <TextBlock Text="쪽지가 도착했습니다" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                        <TextBlock Text="☎" Foreground="#2563EB" FontSize="16" Margin="0,0,8,0"/>
+                        <TextBlock Text="쪽지가 도착했습니다" Foreground="#1E293B" FontWeight="SemiBold" FontSize="13"/>
                     </StackPanel>
-                    <Button Content="✕" HorizontalAlignment="Right" Foreground="White"
+                    <Button Content="✕" HorizontalAlignment="Right"
                             Classes="popup-header" Click="CloseButton_Click"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Row="1" Background="#FFF7ED" Padding="14,10" BorderBrush="#FED7AA" BorderThickness="0,0,0,1">
-                <TextBlock x:Name="SenderTextBlock" Foreground="#9A3412" FontWeight="SemiBold" FontSize="12.5"/>
+            <Border Grid.Row="1" Background="#EFF6FF" Padding="14,10" BorderBrush="#DBEAFE" BorderThickness="0,0,0,1">
+                <TextBlock x:Name="SenderTextBlock" Foreground="#1E3A8A" FontWeight="SemiBold" FontSize="12.5"/>
             </Border>
 
-            <Border Grid.Row="2" Background="#FFFBEB" Margin="14,12,14,0" CornerRadius="8"
-                    BorderBrush="#FDE68A" BorderThickness="1">
+            <Border Grid.Row="2" Background="#FFFFFF" Margin="14,12,14,0" CornerRadius="8"
+                    BorderBrush="#E2E8F0" BorderThickness="1">
                 <TextBox x:Name="MessageTextBox"
                          IsReadOnly="True"
                          Background="Transparent"

@@ -7,7 +7,7 @@
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         ShowInTaskbar="False"
-        Background="#F8FAFC"
+        Background="#F3F5F9"
         Foreground="#1E293B">
     <Grid Margin="20">
         <Grid.RowDefinitions>

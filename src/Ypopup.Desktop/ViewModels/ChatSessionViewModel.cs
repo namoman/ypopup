@@ -9,8 +9,8 @@ namespace Ypopup.Desktop.ViewModels;
 
 public sealed class MessageBubbleItem : ViewModelBase
 {
-    private static readonly IBrush MineBrush = new SolidColorBrush(Color.Parse("#1E88E5"));
-    private static readonly IBrush OtherBrush = new SolidColorBrush(Color.Parse("#EEEEEE"));
+    private static readonly IBrush MineBrush = new SolidColorBrush(Color.Parse("#2563EB"));
+    private static readonly IBrush OtherBrush = new SolidColorBrush(Color.Parse("#FFFFFF"));
 
     public string MessageId { get; }
     public string SenderId { get; }

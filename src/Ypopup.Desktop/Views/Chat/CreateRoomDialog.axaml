@@ -24,11 +24,11 @@
 
         <Grid Grid.Row="2" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
             <TextBox Grid.Column="0" x:Name="SearchBox" Watermark="이름 또는 부서 검색..." TextChanged="SearchBox_TextChanged" Margin="0,0,8,0" />
-            <Button Grid.Column="1" Content="전체 선택" Click="SelectAllButton_Click" Margin="0,0,4,0" />
-            <Button Grid.Column="2" Content="해제" Click="DeselectAllButton_Click" />
+            <Button Grid.Column="1" Content="전체 선택" Classes="secondary" Click="SelectAllButton_Click" Margin="0,0,4,0" />
+            <Button Grid.Column="2" Content="해제" Classes="secondary" Click="DeselectAllButton_Click" />
         </Grid>
 
-        <Border Grid.Row="3" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4">
+        <Border Grid.Row="3" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="10" Background="#FFFFFF">
             <ListBox x:Name="PeersListBox">
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="chat:SelectablePeerItem">
@@ -41,9 +41,8 @@
         </Border>
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
-            <Button Content="취소" Click="CancelButton_Click" Width="80" HorizontalContentAlignment="Center" />
-            <Button Content="확인" Click="OkButton_Click" Width="80" HorizontalContentAlignment="Center"
-                    Background="#1E88E5" Foreground="White" FontWeight="Bold" />
+            <Button Content="취소" Classes="secondary" Click="CancelButton_Click" Width="80" HorizontalContentAlignment="Center" />
+            <Button Content="확인" Click="OkButton_Click" Width="80" HorizontalContentAlignment="Center" />
         </StackPanel>
     </Grid>
 </Window>

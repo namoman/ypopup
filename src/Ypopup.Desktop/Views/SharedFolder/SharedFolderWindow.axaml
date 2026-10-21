@@ -7,7 +7,7 @@
         Width="480"
         Height="460"
         WindowStartupLocation="CenterScreen"
-        Background="#F8FAFC"
+        Background="#F3F5F9"
         Foreground="#1E293B">
     <Grid Margin="12">
         <Grid.RowDefinitions>
@@ -21,7 +21,7 @@
         <TextBlock x:Name="TitleTextBlock" Grid.Row="0" FontWeight="SemiBold" FontSize="14" Margin="0,0,0,8"/>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,8">
-            <Button Content="↑ 상위" Click="UpButton_Click" Margin="0,0,8,0" Padding="10,4"/>
+            <Button Content="↑ 상위" Classes="secondary" Click="UpButton_Click" Margin="0,0,8,0" Padding="10,4"/>
             <TextBlock x:Name="PathTextBlock" VerticalAlignment="Center" Foreground="#64748B"
                        TextTrimming="CharacterEllipsis"/>
         </StackPanel>

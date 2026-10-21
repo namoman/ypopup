@@ -3,19 +3,21 @@
         xmlns:panels="using:Ypopup.Desktop.Views.Settings.Panels"
         x:Class="Ypopup.Desktop.Views.Settings.SettingsWindow"
         Title="Y-popup 설정"
-        Width="500"
-        Height="480"
+        Classes="settings"
+        Width="520"
+        Height="520"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
-        Background="#F8FAFC"
+        Background="#F3F5F9"
         Foreground="#1E293B">
-    <Grid Margin="12">
+    <Grid Margin="16,12,16,14">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TabControl x:Name="SettingsTabControl" Grid.Row="0" SelectionChanged="SettingsTabControl_SelectionChanged">
+        <TabControl x:Name="SettingsTabControl" Grid.Row="0" Classes="fluent"
+                    SelectionChanged="SettingsTabControl_SelectionChanged">
             <TabItem Header="프로필">
                 <panels:ProfileSettingsPanel x:Name="ProfilePanel"/>
             </TabItem>
@@ -33,9 +35,11 @@
             </TabItem>
         </TabControl>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="취소" Width="80" Click="CancelButton_Click" Margin="0,0,8,0" Classes="secondary"/>
-            <Button Content="저장" Width="80" IsDefault="True" Click="SaveButton_Click"/>
-        </StackPanel>
+        <Border Grid.Row="1" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Margin="0,8,0,0" Padding="0,12,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="취소" Width="84" Click="CancelButton_Click" Margin="0,0,8,0" Classes="secondary"/>
+                <Button Content="저장" Width="84" IsDefault="True" Click="SaveButton_Click" Classes="accent"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

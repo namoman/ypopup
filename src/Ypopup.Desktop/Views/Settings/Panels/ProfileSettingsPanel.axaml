@@ -2,8 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Ypopup.Desktop.Views.Settings.Panels.ProfileSettingsPanel">
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="12">
-            <TextBlock Text="LAN에 공개되는 내 정보 (UDP Announce)" Foreground="#64748B" Margin="0,0,0,12"/>
+        <StackPanel Margin="4,8,4,4">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>

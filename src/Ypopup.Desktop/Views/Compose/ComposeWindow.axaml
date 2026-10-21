@@ -23,22 +23,22 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Background="#EF4444" CornerRadius="12,12,0,0"
-                    PointerPressed="TitleBar_PointerPressed">
+            <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1"
+                    CornerRadius="12,12,0,0" PointerPressed="TitleBar_PointerPressed">
                 <Grid Margin="12,0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="☎" Foreground="White" FontSize="16" Margin="0,0,8,0"/>
-                        <TextBlock x:Name="HeaderTitleTextBlock" Text="쪽지 보내기" Foreground="White" FontWeight="SemiBold" FontSize="13"/>
+                        <TextBlock Text="☎" Foreground="#2563EB" FontSize="16" Margin="0,0,8,0"/>
+                        <TextBlock x:Name="HeaderTitleTextBlock" Text="쪽지 보내기" Foreground="#1E293B" FontWeight="SemiBold" FontSize="13"/>
                     </StackPanel>
-                    <Button Content="✕" HorizontalAlignment="Right" Foreground="White"
+                    <Button Content="✕" HorizontalAlignment="Right"
                             Classes="popup-header" Click="CloseButton_Click"/>
                 </Grid>
             </Border>
 
-            <Border Grid.Row="1" Background="#FFF7ED" Padding="14,8" BorderBrush="#FED7AA" BorderThickness="0,0,0,1">
+            <Border Grid.Row="1" Background="#EFF6FF" Padding="14,8" BorderBrush="#DBEAFE" BorderThickness="0,0,0,1">
                 <Grid ColumnDefinitions="*,Auto">
                     <StackPanel Grid.Column="0" Margin="0,0,8,0">
-                        <TextBlock Text="받는 사람" Foreground="#9A3412" FontSize="11" Margin="0,0,0,4"/>
+                        <TextBlock Text="받는 사람" Foreground="#1E3A8A" FontSize="11" Margin="0,0,0,4"/>
                         <ScrollViewer MaxHeight="72" HorizontalScrollBarVisibility="Disabled">
                             <ItemsControl x:Name="RecipientList">
                                 <ItemsControl.ItemsPanel>
@@ -48,9 +48,9 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="models:PeerInfo">
-                                        <Border Background="#FFEDD5" CornerRadius="10" Padding="8,2" Margin="0,0,4,4">
+                                        <Border Background="#DBEAFE" CornerRadius="10" Padding="8,2" Margin="0,0,4,4">
                                             <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="{Binding DisplayName}" Foreground="#9A3412" FontSize="12" VerticalAlignment="Center"/>
+                                                <TextBlock Text="{Binding DisplayName}" Foreground="#1E40AF" FontSize="12" VerticalAlignment="Center"/>
                                                 <Button Content="×" Classes="icon" Padding="4,0" Margin="4,0,0,0"
                                                         Tag="{Binding}" Click="RemoveRecipient_Click"/>
                                             </StackPanel>
@@ -65,8 +65,8 @@
                 </Grid>
             </Border>
 
-            <Border Grid.Row="2" Background="#FFFBEB" Margin="14,12,14,0" CornerRadius="8"
-                    BorderBrush="#FDE68A" BorderThickness="1"
+            <Border Grid.Row="2" Background="#FFFFFF" Margin="14,12,14,0" CornerRadius="8"
+                    BorderBrush="#E2E8F0" BorderThickness="1"
                     DragDrop.AllowDrop="True" DragDrop.DragOver="OnDragOver" DragDrop.Drop="OnDrop">
                 <TextBox x:Name="MessageTextBox"
                          Background="Transparent"
