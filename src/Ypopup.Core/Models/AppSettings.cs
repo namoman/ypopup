@@ -23,6 +23,7 @@ public sealed class AppSettings
 
     // UDP Announce 프로필
     public string DisplayName { get; set; } = AppConstants.DefaultDisplayName;
+    public string JobTitle { get; set; } = string.Empty;
     public string Group { get; set; } = string.Empty;
     public string Memo { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

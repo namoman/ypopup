@@ -16,8 +16,10 @@ public sealed class LanPacket
     public string Body { get; set; } = string.Empty;
     public int TcpPort { get; set; }
     public string Group { get; set; } = string.Empty;
+    public string JobTitle { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Memo { get; set; } = string.Empty;
+    public string AvatarHash { get; set; } = string.Empty;
     public string AdvertisedIp { get; set; } = string.Empty;
     public bool IsAway { get; set; }
     public bool IsAutoReply { get; set; }
@@ -41,8 +43,10 @@ public sealed class PeerInfo
     public required string IpAddress { get; set; }
     public int TcpPort { get; set; }
     public string Group { get; set; } = string.Empty;
+    public string JobTitle { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string Memo { get; set; } = string.Empty;
+    public string AvatarHash { get; set; } = string.Empty;
     public bool IsAway { get; set; }
     public bool ShareFolderEnabled { get; set; }
     public int ShareFolderPort { get; set; }

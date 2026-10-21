@@ -1,0 +1,34 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Ypopup.Desktop.Views.UserList.PeerProfileWindow"
+        Title="프로필"
+        Width="320"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        Background="#F3F5F9">
+    <StackPanel Margin="20,16,20,16">
+        <Border Width="72" Height="72" CornerRadius="36" ClipToBounds="True" Background="#E2E8F0"
+                HorizontalAlignment="Center">
+            <Grid>
+                <TextBlock x:Name="AvatarPlaceholder" Text="👤" FontSize="28" Foreground="#64748B"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Image x:Name="AvatarImage" Stretch="UniformToFill"/>
+            </Grid>
+        </Border>
+        <TextBlock x:Name="NameText" FontSize="18" FontWeight="SemiBold" Foreground="#1E293B"
+                   HorizontalAlignment="Center" Margin="0,10,0,2" TextTrimming="CharacterEllipsis"/>
+        <TextBlock x:Name="StatusText" FontSize="12" HorizontalAlignment="Center" Margin="0,0,0,12"/>
+
+        <TextBlock Text="직급" FontSize="11" Foreground="#94A3B8"/>
+        <TextBlock x:Name="JobTitleText" FontSize="13" Foreground="#1E293B" TextWrapping="Wrap" Margin="0,0,0,8"/>
+        <TextBlock Text="그룹" FontSize="11" Foreground="#94A3B8"/>
+        <TextBlock x:Name="GroupText" FontSize="13" Foreground="#1E293B" TextWrapping="Wrap" Margin="0,0,0,8"/>
+        <TextBlock Text="이메일" FontSize="11" Foreground="#94A3B8"/>
+        <TextBlock x:Name="EmailText" FontSize="13" Foreground="#1E293B" TextWrapping="Wrap" Margin="0,0,0,8"/>
+        <TextBlock Text="메모" FontSize="11" Foreground="#94A3B8"/>
+        <TextBlock x:Name="MemoText" FontSize="13" Foreground="#1E293B" TextWrapping="Wrap" Margin="0,0,0,14"/>
+
+        <Button Content="닫기" Classes="secondary" HorizontalAlignment="Right" Width="72" Click="CloseButton_Click"/>
+    </StackPanel>
+</Window>

@@ -180,8 +180,10 @@ public sealed class DiscoveryService : IAsyncDisposable
             SenderName = settings.DisplayName,
             TcpPort = settings.TcpPort,
             Group = settings.Group,
+            JobTitle = settings.JobTitle,
             Email = settings.Email,
             Memo = settings.Memo,
+            AvatarHash = AvatarStore.CurrentHash(),
             AdvertisedIp = LocalNetworkHelper.ResolvePreferredIp(settings.PreferredLocalIp),
             IsAway = _isAwayProvider(),
             ShareFolderEnabled = shareFolderActive,
@@ -252,8 +254,10 @@ public sealed class DiscoveryService : IAsyncDisposable
             IpAddress = ResolvePeerIpAddress(packet, remoteEndPoint),
             TcpPort = packet.TcpPort > 0 ? packet.TcpPort : settings.TcpPort,
             Group = packet.Group,
+            JobTitle = packet.JobTitle,
             Email = packet.Email,
             Memo = packet.Memo,
+            AvatarHash = packet.AvatarHash,
             IsAway = packet.IsAway,
             ShareFolderEnabled = packet.ShareFolderEnabled,
             ShareFolderPort = packet.ShareFolderPort,
@@ -295,8 +299,10 @@ public sealed class DiscoveryService : IAsyncDisposable
                || existing.IpAddress != updated.IpAddress
                || existing.TcpPort != updated.TcpPort
                || existing.Group != updated.Group
+               || existing.JobTitle != updated.JobTitle
                || existing.Email != updated.Email
                || existing.Memo != updated.Memo
+               || existing.AvatarHash != updated.AvatarHash
                || existing.IsAway != updated.IsAway
                || existing.ShareFolderEnabled != updated.ShareFolderEnabled
                || existing.ShareFolderPort != updated.ShareFolderPort;

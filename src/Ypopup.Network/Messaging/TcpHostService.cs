@@ -118,6 +118,12 @@ public sealed class TcpHostService : IAsyncDisposable
                 return;
             }
 
+            if (extended.Type == ExtendedPacketType.AvatarRequest)
+            {
+                await WriteAvatarResponseAsync(stream, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
             if ((int)extended.Type >= 10)
             {
                 ExtendedPacketReceived?.Invoke(extended);
@@ -229,6 +235,60 @@ public sealed class TcpHostService : IAsyncDisposable
         {
             await PacketCodec.WriteFileAsync(stream, path, cancellationToken, progress).ConfigureAwait(false);
         }
+    }
+
+    public static async Task<byte[]?> RequestAvatarAsync(
+        PeerInfo peer,
+        AppSettings settings,
+        CancellationToken cancellationToken)
+    {
+        using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        timeoutCts.CancelAfter(TimeSpan.FromSeconds(4));
+
+        using var client = new TcpClient();
+        await client.ConnectAsync(
+                NetworkAddressHelper.ParseConnectableAddress(peer.IpAddress),
+                peer.TcpPort,
+                timeoutCts.Token)
+            .ConfigureAwait(false);
+
+        await using var stream = client.GetStream();
+        var request = new ExtendedLanPacket
+        {
+            Type = ExtendedPacketType.AvatarRequest,
+            SenderId = settings.MachineId,
+            SenderName = settings.DisplayName
+        };
+        await ExtendedPacketCodec.WritePacketAsync(stream, request, timeoutCts.Token).ConfigureAwait(false);
+
+        var response = await ExtendedPacketCodec.ReadPacketAsync(stream, timeoutCts.Token).ConfigureAwait(false);
+        if (response is null || string.IsNullOrWhiteSpace(response.Body))
+        {
+            return null;
+        }
+
+        byte[] bytes;
+        try
+        {
+            bytes = Convert.FromBase64String(response.Body);
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+
+        return bytes.Length == 0 || bytes.Length > AvatarStore.MaxBytes ? null : bytes;
+    }
+
+    private static async Task WriteAvatarResponseAsync(Stream stream, CancellationToken cancellationToken)
+    {
+        var bytes = AvatarStore.ReadBytes();
+        var reply = new ExtendedLanPacket
+        {
+            Type = ExtendedPacketType.AvatarRequest,
+            Body = bytes is { Length: > 0 } ? Convert.ToBase64String(bytes) : string.Empty
+        };
+        await ExtendedPacketCodec.WritePacketAsync(stream, reply, cancellationToken).ConfigureAwait(false);
     }
 
     private static string ResolveClientIpAddress(TcpClient client)

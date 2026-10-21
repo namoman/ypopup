@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Avalonia.Media.Imaging;
 using Ypopup.Core.Models;
 
 namespace Ypopup.Desktop.ViewModels;
@@ -6,12 +7,14 @@ namespace Ypopup.Desktop.ViewModels;
 public sealed class PeerNodeItem : ViewModelBase
 {
     private bool _isChecked;
+    private Bitmap? _avatar;
 
     public PeerInfo Peer { get; }
     public string DisplayName => Peer.DisplayName;
     public string IpAddress => Peer.IpAddress;
     public bool IsAway => Peer.IsAway;
-    public string StatusText => Peer.IsAway ? "부재중" : "온라인";
+    public Bitmap? Avatar => _avatar;
+    public bool HasAvatar => _avatar is not null;
 
     public bool IsChecked
     {
@@ -19,9 +22,29 @@ public sealed class PeerNodeItem : ViewModelBase
         set => SetProperty(ref _isChecked, value);
     }
 
-    public PeerNodeItem(PeerInfo peer)
+    public PeerNodeItem(PeerInfo peer, byte[]? avatarPng = null)
     {
         Peer = peer;
+        if (avatarPng is { Length: > 0 })
+        {
+            SetAvatar(avatarPng);
+        }
+    }
+
+    public void SetAvatar(byte[] png)
+    {
+        var next = new Bitmap(new MemoryStream(png));
+        var previous = _avatar;
+        _avatar = next;
+        OnPropertyChanged(nameof(Avatar));
+        OnPropertyChanged(nameof(HasAvatar));
+        previous?.Dispose();
+    }
+
+    public void ReleaseAvatar()
+    {
+        _avatar?.Dispose();
+        _avatar = null;
     }
 }
 
@@ -72,8 +95,9 @@ public sealed class UserGroupTreeViewModel : ViewModelBase
 {
     public ObservableCollection<GroupNodeItem> Groups { get; } = new();
 
-    public void UpdatePeers(IEnumerable<PeerInfo> peers)
+    public void UpdatePeers(IEnumerable<PeerInfo> peers, Func<PeerInfo, byte[]?>? avatarLookup = null)
     {
+        ReleaseAvatars();
         var peerList = peers.ToList();
         var grouped = peerList.GroupBy(p => string.IsNullOrWhiteSpace(p.Group) ? "기타/미지정" : p.Group.Trim())
                               .OrderBy(g => g.Key, StringComparer.CurrentCultureIgnoreCase);
@@ -85,10 +109,30 @@ public sealed class UserGroupTreeViewModel : ViewModelBase
             var node = new GroupNodeItem(g.Key, g.Key, isExpanded: true);
             foreach (var peer in g.OrderBy(p => p.DisplayName, StringComparer.CurrentCultureIgnoreCase))
             {
-                node.Members.Add(new PeerNodeItem(peer));
+                node.Members.Add(new PeerNodeItem(peer, avatarLookup?.Invoke(peer)));
             }
             node.NotifyMembersChanged();
             Groups.Add(node);
+        }
+    }
+
+    public void ReleaseAvatars()
+    {
+        foreach (var member in Groups.SelectMany(group => group.Members))
+        {
+            member.ReleaseAvatar();
+        }
+    }
+
+    public void ApplyAvatar(string machineId, string avatarHash, byte[] png)
+    {
+        foreach (var member in Groups.SelectMany(group => group.Members))
+        {
+            if (string.Equals(member.Peer.MachineId, machineId, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(member.Peer.AvatarHash, avatarHash, StringComparison.Ordinal))
+            {
+                member.SetAvatar(png);
+            }
         }
     }
 }

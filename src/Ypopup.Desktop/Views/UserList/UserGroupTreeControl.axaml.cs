@@ -11,6 +11,7 @@ public partial class UserGroupTreeControl : UserControl
     public event Action<PeerInfo>? PeerSelected;
     public event Action<PeerInfo>? PeerDoubleTapped;
     public event Action<PeerInfo>? ShareFolderRequested;
+    public event Action<PeerInfo>? AvatarRequested;
 
     public UserGroupTreeControl()
     {
@@ -31,6 +32,20 @@ public partial class UserGroupTreeControl : UserControl
         {
             PeerDoubleTapped?.Invoke(node.Peer);
         }
+    }
+
+    private void AvatarButton_Click(object? sender, RoutedEventArgs e)
+    {
+        e.Handled = true;
+        if (sender is Button { Tag: PeerNodeItem node })
+        {
+            AvatarRequested?.Invoke(node.Peer);
+        }
+    }
+
+    private void AvatarButton_DoubleTapped(object? sender, TappedEventArgs e)
+    {
+        e.Handled = true;
     }
 
     private void ShareFolderButton_Click(object? sender, RoutedEventArgs e)

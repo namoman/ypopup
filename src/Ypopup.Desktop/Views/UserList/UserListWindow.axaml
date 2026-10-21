@@ -39,14 +39,26 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <StackPanel Orientation="Horizontal">
-                    <Border Width="36" Height="36" Background="#2563EB" CornerRadius="10" Margin="0,0,12,0">
-                        <TextBlock Text="☎" Foreground="White" FontSize="20" FontWeight="Bold"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,2"/>
+                <Grid ColumnDefinitions="Auto,*">
+                    <Border Width="36" Height="36" CornerRadius="18" Margin="0,0,10,0" Background="Transparent"
+                            Cursor="Hand" ToolTip.Tip="내 프로필" PointerPressed="SelfAvatar_PointerPressed">
+                        <Panel>
+                            <Border CornerRadius="18" ClipToBounds="True" Background="#E2E8F0">
+                                <Grid>
+                                    <TextBlock x:Name="SelfAvatarPlaceholder" Text="👤" FontSize="16" Foreground="#64748B"
+                                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Image x:Name="SelfAvatarImage" Stretch="UniformToFill" IsVisible="False"/>
+                                </Grid>
+                            </Border>
+                            <Ellipse x:Name="SelfStatusOnline" Width="10" Height="10" Fill="#22C55E" Stroke="White" StrokeThickness="2"
+                                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-1,-1" IsHitTestVisible="False"/>
+                            <Ellipse x:Name="SelfStatusAway" Width="10" Height="10" Fill="#F59E0B" Stroke="White" StrokeThickness="2"
+                                     HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,-1,-1" IsHitTestVisible="False" IsVisible="False"/>
+                        </Panel>
                     </Border>
-                    <TextBlock x:Name="DisplayNameTextBlock" FontSize="22" FontWeight="Bold"
-                               Foreground="#1E293B" VerticalAlignment="Center"/>
-                </StackPanel>
+                    <TextBlock x:Name="DisplayNameTextBlock" Grid.Column="1" FontSize="16" FontWeight="SemiBold"
+                               Foreground="#1E293B" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                </Grid>
                 <Button Grid.Column="1" Classes="icon" Click="SettingsButton_Click">
                     <TextBlock Text="⚙" FontSize="18" Foreground="#64748B"/>
                 </Button>
@@ -65,7 +77,7 @@
 
             <Border Grid.Row="3" Margin="12,0,12,8"
                     Background="#F1F5F9" CornerRadius="10"
-                    BorderBrush="#E2E8F0" BorderThickness="1" Padding="4">
+                    BorderBrush="#E2E8F0" BorderThickness="1" Padding="2">
                 <userlist:UserGroupTreeControl x:Name="GroupTreeControl"/>
             </Border>
 

@@ -8,7 +8,8 @@ public enum ExtendedPacketType
     GroupChatMessage = 10,
     RoomInvite = 11,
     RoomLeave = 12,
-    MultiCastDirectNotice = 13
+    MultiCastDirectNotice = 13,
+    AvatarRequest = 14
 }
 
 public sealed class ExtendedLanPacket

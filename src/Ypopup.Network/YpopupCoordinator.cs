@@ -26,6 +26,7 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     private readonly CancellationTokenSource _appCts = new();
     private readonly Dictionary<string, DateTime> _lastAutoReplyTimes = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, byte> _leaveNotified = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, byte[]> _avatarCache = new(StringComparer.Ordinal);
     private int _disposed;
 
     public SharedFolderHostStartResult SharedFolderHostStatus { get; private set; } = new(false);
@@ -71,6 +72,48 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     public IPacketRouter PacketRouter => _packetRouter;
 
     public IReadOnlyList<PeerInfo> GetPeers() => _discoveryService.GetPeers();
+
+    public byte[]? TryGetCachedAvatar(PeerInfo peer)
+    {
+        if (string.IsNullOrWhiteSpace(peer.AvatarHash))
+        {
+            return null;
+        }
+
+        return _avatarCache.TryGetValue(AvatarCacheKey(peer), out var bytes) ? bytes : null;
+    }
+
+    public async Task<byte[]?> GetPeerAvatarAsync(PeerInfo peer, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(peer.AvatarHash))
+        {
+            return null;
+        }
+
+        var key = AvatarCacheKey(peer);
+        if (_avatarCache.TryGetValue(key, out var cached))
+        {
+            return cached;
+        }
+
+        try
+        {
+            var bytes = await TcpHostService.RequestAvatarAsync(peer, Settings, cancellationToken).ConfigureAwait(false);
+            if (bytes is { Length: > 0 })
+            {
+                _avatarCache[key] = bytes;
+            }
+
+            return bytes;
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            LogService.Warning("Avatar", $"{peer.DisplayName} 프로필 사진을 받지 못했습니다: {ex.Message}");
+            return null;
+        }
+    }
+
+    private static string AvatarCacheKey(PeerInfo peer) => $"{peer.MachineId}|{peer.AvatarHash}";
 
     public DateTime LastAnnounceSentUtc => _discoveryService.LastAnnounceSentUtc;
     public DateTime LastPacketReceivedUtc => _discoveryService.LastPacketReceivedUtc;

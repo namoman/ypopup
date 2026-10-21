@@ -171,6 +171,16 @@ public sealed class SettingsEditor
                             || discoveryPort != _originalSettings.DiscoveryPort
                             || shareFolderPort != _originalSettings.ShareFolderPort;
 
+        try
+        {
+            profilePanel.CommitAvatar();
+        }
+        catch (Exception ex)
+        {
+            await DialogHelper.ShowWarningAsync(owner, "Y-popup", $"프로필 사진을 저장하지 못했습니다.\n\n{ex.Message}");
+            return false;
+        }
+
         _coordinator.SaveSettings(_workingSettings);
 
         if (_workingSettings.ShareFolderEnabled && !_coordinator.SharedFolderHostStatus.IsRunning)
@@ -195,6 +205,7 @@ public sealed class SettingsEditor
         {
             MachineId = source.MachineId,
             DisplayName = source.DisplayName,
+            JobTitle = source.JobTitle,
             PreferredLocalIp = source.PreferredLocalIp,
             Group = source.Group,
             OnlySameGroup = source.OnlySameGroup,
