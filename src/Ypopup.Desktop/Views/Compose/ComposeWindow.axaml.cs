@@ -3,37 +3,107 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
+using Ypopup.Core.Logging;
 using Ypopup.Core.Models;
 using Ypopup.Desktop.Controls;
 using Ypopup.Desktop.Helpers;
+using Ypopup.Desktop.Views.Chat;
 using Ypopup.Network;
 
 namespace Ypopup.Desktop.Views.Compose;
 
+public enum ComposeSendMode
+{
+    Direct,
+    Notice
+}
+
 public partial class ComposeWindow : Window
 {
     private readonly YpopupCoordinator _coordinator;
-    private readonly PeerInfo _recipient;
+    private readonly ObservableCollection<PeerInfo> _recipients = [];
     private readonly ObservableCollection<string> _attachments = [];
+    private readonly ComposeSendMode _mode;
     private CancellationTokenSource? _sendCts;
 
     public ComposeWindow(YpopupCoordinator coordinator, PeerInfo recipient)
+        : this(coordinator, [recipient], ComposeSendMode.Direct)
+    {
+    }
+
+    public ComposeWindow(YpopupCoordinator coordinator, IReadOnlyList<PeerInfo> recipients, ComposeSendMode mode)
     {
         InitializeComponent();
         _coordinator = coordinator;
-        _recipient = recipient;
+        _mode = mode;
         Topmost = _coordinator.Settings.KeepWindowTopmost;
 
-        RecipientTextBlock.Text = $"받는 사람: {recipient.DisplayName}  ({recipient.IpAddress})";
+        foreach (var peer in recipients)
+        {
+            AddRecipient(peer);
+        }
+
+        RecipientList.ItemsSource = _recipients;
         AttachmentListBox.ItemsSource = _attachments;
         MessageFontHelper.Apply(_coordinator.Settings, MessageTextBox);
         UpdateAttachmentSummary();
+
+        if (_mode == ComposeSendMode.Notice)
+        {
+            HeaderTitleTextBlock.Text = "단체 쪽지";
+            Title = "Y-popup - 단체 쪽지";
+            AttachButton.IsVisible = false;
+        }
 
         ProgressBarControl.CancelRequested += OnCancelRequested;
 
         DragDrop.SetAllowDrop(this, true);
         this.AddHandler(DragDrop.DragOverEvent, OnDragOver);
         this.AddHandler(DragDrop.DropEvent, OnDrop);
+    }
+
+    private void AddRecipient(PeerInfo peer)
+    {
+        if (_recipients.Any(item => string.Equals(item.MachineId, peer.MachineId, StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        _recipients.Add(peer);
+    }
+
+    private async void AddRecipient_Click(object? sender, RoutedEventArgs e)
+    {
+        var candidates = _coordinator.GetPeers()
+            .Where(peer => _recipients.All(item =>
+                !string.Equals(item.MachineId, peer.MachineId, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        if (candidates.Count == 0)
+        {
+            await DialogHelper.ShowInfoAsync(this, "Y-popup", "더 추가할 LAN 사용자가 없습니다.");
+            return;
+        }
+
+        var dialog = new CreateRoomDialog(candidates, pickOnly: true);
+        await dialog.ShowDialog(this);
+        if (dialog.Result is null)
+        {
+            return;
+        }
+
+        foreach (var peer in dialog.Result.SelectedPeers)
+        {
+            AddRecipient(peer);
+        }
+    }
+
+    private void RemoveRecipient_Click(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: PeerInfo peer })
+        {
+            _recipients.Remove(peer);
+        }
     }
 
     private void UpdateAttachmentSummary()
@@ -142,13 +212,19 @@ public partial class ComposeWindow : Window
     private async void SendButton_Click(object? sender, RoutedEventArgs e)
     {
         var body = MessageTextBox.Text?.Trim() ?? string.Empty;
+        if (_recipients.Count == 0)
+        {
+            await DialogHelper.ShowInfoAsync(this, "Y-popup", "받는 사람을 한 명 이상 선택하세요.");
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(body) && _attachments.Count == 0)
         {
             await DialogHelper.ShowInfoAsync(this, "Y-popup", "쪽지 내용 또는 첨부파일을 입력하세요.");
             return;
         }
 
-        var hasAttachments = _attachments.Count > 0;
+        var hasAttachments = _mode == ComposeSendMode.Direct && _attachments.Count > 0;
         if (hasAttachments)
         {
             BeginTransfer();
@@ -159,21 +235,18 @@ public partial class ComposeWindow : Window
 
         try
         {
-            IProgress<TransferProgress>? progress = hasAttachments
-                ? new Progress<TransferProgress>(OnTransferProgress)
-                : null;
-
-            await _coordinator.SendMessageAsync(
-                new OutgoingMessage
-                {
-                    Recipient = _recipient,
-                    Body = body,
-                    AttachmentPaths = _attachments.ToList()
-                },
-                _sendCts.Token,
-                progress);
-
+            var failed = await SendToRecipientsAsync(body, hasAttachments, _sendCts.Token);
             EndTransfer();
+
+            if (failed.Count > 0)
+            {
+                LogService.Warning("Compose", $"동보 전송 일부 실패: {failed.Count}/{_recipients.Count}");
+                await DialogHelper.ShowErrorAsync(
+                    this,
+                    "Y-popup",
+                    $"일부 전송에 실패했습니다.\n\n{string.Join("\n", failed)}");
+                return;
+            }
 
             if (_coordinator.Settings.CloseComposeWindowAfterSend)
             {
@@ -194,6 +267,7 @@ public partial class ComposeWindow : Window
         catch (Exception ex)
         {
             EndTransfer();
+            LogService.Error("Compose", $"전송 실패: {ex.Message}");
             await DialogHelper.ShowErrorAsync(
                 this,
                 "Y-popup",
@@ -205,6 +279,63 @@ public partial class ComposeWindow : Window
             _sendCts?.Dispose();
             _sendCts = null;
         }
+    }
+
+    private async Task<List<string>> SendToRecipientsAsync(string body, bool hasAttachments, CancellationToken cancellationToken)
+    {
+        var failed = new List<string>();
+        var targets = _recipients.ToList();
+
+        if (_mode == ComposeSendMode.Notice)
+        {
+            var results = await _coordinator.SendMulticastNoticeAsync(body, targets, cancellationToken);
+            failed.AddRange(results.Where(result => !result.IsSuccess).Select(result =>
+            {
+                var name = targets.FirstOrDefault(peer =>
+                    string.Equals(peer.MachineId, result.PeerId, StringComparison.OrdinalIgnoreCase))?.DisplayName
+                    ?? result.PeerId;
+                return $"{name}: {result.ErrorMessage}";
+            }));
+            return failed;
+        }
+
+        IProgress<TransferProgress>? progress = hasAttachments
+            ? new Progress<TransferProgress>(OnTransferProgress)
+            : null;
+        var attachments = _attachments.ToList();
+
+        for (var index = 0; index < targets.Count; index++)
+        {
+            var peer = targets[index];
+            if (targets.Count > 1)
+            {
+                ProgressBarControl.FileName = $"{peer.DisplayName} ({index + 1}/{targets.Count})";
+            }
+
+            try
+            {
+                await _coordinator.SendMessageAsync(
+                    new OutgoingMessage
+                    {
+                        Recipient = peer,
+                        Body = body,
+                        AttachmentPaths = attachments
+                    },
+                    cancellationToken,
+                    progress);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                LogService.Warning("Compose", $"{peer.DisplayName} 전송 실패: {ex.Message}");
+                failed.Add($"{peer.DisplayName}: {ex.Message}");
+            }
+        }
+
+        return failed;
     }
 
     private void BeginTransfer()

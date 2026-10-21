@@ -168,6 +168,9 @@ function Update-DownloadPage {
         $html = [regex]::Replace($html, $item.Pattern, [System.Text.RegularExpressions.MatchEvaluator]{ $item.Name })
     }
 
+    $html = [regex]::Replace($html, '\uBC84\uC804 \d+\.\d+\.\d+', "버전 $Version")
+    $html = [regex]::Replace($html, 'v\d+\.\d+\.\d+', "v$Version")
+
     $utf8 = New-Object System.Text.UTF8Encoding $false
     [System.IO.File]::WriteAllText((Resolve-Path $htmlPath), $html, $utf8)
     Write-Host "  docs/index.html download names -> $Version"
@@ -177,7 +180,7 @@ function New-MacosAppBundle {
     param(
         [string]$SourceFolder,
         [string]$AppPath,
-        [string]$Version = '2.2.0'
+        [string]$Version = '2.2.1'
     )
 
     Remove-PathIfExists $AppPath
@@ -318,7 +321,7 @@ foreach ($variant in $macOSVariants) {
     $appPath = Join-Path $stagingDir 'Y-popup.app'
     Remove-PathIfExists $appPath
 
-    New-MacosAppBundle -SourceFolder $variant.Source -AppPath $appPath
+    New-MacosAppBundle -SourceFolder $variant.Source -AppPath $appPath -Version $appVersion
 
     if ($isMacOS) {
         $dmgPath = Join-Path (Join-Path $PSScriptRoot 'release') $variant.DmgName

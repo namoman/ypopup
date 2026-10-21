@@ -14,6 +14,7 @@ public partial class ProfileSettingsPanel : UserControl
     {
         DisplayNameTextBox.Text = settings.DisplayName;
         GroupTextBox.Text = settings.Group;
+        OnlySameGroupCheckBox.IsChecked = settings.OnlySameGroup;
         EmailTextBox.Text = settings.Email;
         MemoTextBox.Text = settings.Memo;
     }
@@ -22,6 +23,7 @@ public partial class ProfileSettingsPanel : UserControl
     {
         settings.DisplayName = DisplayNameTextBox.Text?.Trim() ?? string.Empty;
         settings.Group = GroupTextBox.Text?.Trim() ?? string.Empty;
+        settings.OnlySameGroup = OnlySameGroupCheckBox.IsChecked == true;
         settings.Email = EmailTextBox.Text?.Trim() ?? string.Empty;
         settings.Memo = MemoTextBox.Text?.Trim() ?? string.Empty;
     }

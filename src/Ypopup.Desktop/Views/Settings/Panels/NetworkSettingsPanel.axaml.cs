@@ -41,7 +41,6 @@ public partial class NetworkSettingsPanel : UserControl
         DiscoveryPortTextBox.Text = settings.DiscoveryPort.ToString();
         TcpPortTextBox.Text = settings.TcpPort.ToString();
         ShareFolderPortTextBox.Text = settings.ShareFolderPort.ToString();
-        OnlySameGroupCheckBox.IsChecked = settings.OnlySameGroup;
         _previewSettings = settings;
         RefreshFirewallStatus();
     }
@@ -64,8 +63,6 @@ public partial class NetworkSettingsPanel : UserControl
         {
             settings.ShareFolderPort = shareFolderPort;
         }
-
-        settings.OnlySameGroup = OnlySameGroupCheckBox.IsChecked == true;
     }
 
     public string DiscoveryPortText => DiscoveryPortTextBox.Text ?? string.Empty;

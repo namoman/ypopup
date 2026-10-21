@@ -8,12 +8,12 @@
         WindowStartupLocation="CenterOwner">
 
     <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="16">
-        <StackPanel Grid.Row="0" Margin="0,0,0,12">
+        <StackPanel x:Name="TitlePanel" Grid.Row="0" Margin="0,0,0,12">
             <TextBlock Text="대화방 제목" FontWeight="SemiBold" Margin="0,0,0,4" />
             <TextBox x:Name="RoomTitleTextBox" Watermark="예: 개발팀 단톡방" />
         </StackPanel>
 
-        <StackPanel Grid.Row="1" Margin="0,0,0,12">
+        <StackPanel x:Name="BodyPanel" Grid.Row="1" Margin="0,0,0,12">
             <TextBlock Text="메시지 내용 (단체 쪽지)" FontWeight="SemiBold" Margin="0,0,0,4" />
             <TextBox x:Name="MessageBodyTextBox"
                      Watermark="단체 쪽지일 때 내용을 입력하세요"

@@ -1,10 +1,11 @@
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Ypopup.Core.Logging;
 using Ypopup.Core.Models;
 using Ypopup.Desktop.Helpers;
 using Ypopup.Desktop.ViewModels;
-using Ypopup.Desktop.Views.Chat;
 using Ypopup.Desktop.Views.Compose;
 using Ypopup.Desktop.Views.Settings;
 using Ypopup.Desktop.Views.SharedFolder;
@@ -17,15 +18,13 @@ public partial class UserListWindow : Window
 {
     private readonly YpopupCoordinator _coordinator;
     private readonly UserGroupTreeViewModel _groupTreeViewModel = new();
-    private PeerInfo? _selectedPeer;
 
     public UserListWindow(YpopupCoordinator coordinator, WindowNavigator _)
     {
         InitializeComponent();
         _coordinator = coordinator;
         GroupTreeControl.DataContext = _groupTreeViewModel;
-        GroupTreeControl.PeerSelected += peer => _selectedPeer = peer;
-        GroupTreeControl.PeerDoubleTapped += OpenComposeWindow;
+        GroupTreeControl.PeerDoubleTapped += peer => OpenCompose([peer], ComposeSendMode.Direct);
         GroupTreeControl.ShareFolderRequested += OpenShareFolder;
         Topmost = _coordinator.Settings.KeepWindowTopmost;
         UpdateDisplayName();
@@ -47,6 +46,9 @@ public partial class UserListWindow : Window
 
     private void ApplyFilter()
     {
+        var checkedIds = GetCheckedPeers()
+            .Select(peer => peer.MachineId)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
         var text = SearchTextBox.Text?.Trim() ?? string.Empty;
         var peers = _coordinator.GetPeers()
             .OrderBy(peer => peer.DisplayName, StringComparer.CurrentCultureIgnoreCase);
@@ -60,11 +62,22 @@ public partial class UserListWindow : Window
             ).ToList();
 
         _groupTreeViewModel.UpdatePeers(filtered);
+        foreach (var member in _groupTreeViewModel.Groups.SelectMany(group => group.Members))
+        {
+            member.IsChecked = checkedIds.Contains(member.Peer.MachineId);
+        }
     }
 
-    private void OpenComposeWindow(PeerInfo peer)
+    private List<PeerInfo> GetCheckedPeers()
+        => _groupTreeViewModel.Groups
+            .SelectMany(group => group.Members)
+            .Where(member => member.IsChecked)
+            .Select(member => member.Peer)
+            .ToList();
+
+    private void OpenCompose(IReadOnlyList<PeerInfo> peers, ComposeSendMode mode)
     {
-        var composeWindow = new ComposeWindow(_coordinator, peer);
+        var composeWindow = new ComposeWindow(_coordinator, peers, mode);
         composeWindow.Show();
         composeWindow.Activate();
     }
@@ -78,88 +91,62 @@ public partial class UserListWindow : Window
 
     private async void SendButton_Click(object? sender, RoutedEventArgs e)
     {
-        if (_selectedPeer is null)
+        var selected = GetCheckedPeers();
+        if (selected.Count == 0)
         {
             await DialogHelper.ShowInfoAsync(this, "Y-popup", "쪽지를 보낼 사용자를 선택하세요.");
             return;
         }
 
-        OpenComposeWindow(_selectedPeer);
+        if (selected.Count == 1)
+        {
+            OpenCompose(selected, ComposeSendMode.Direct);
+            return;
+        }
+
+        ShowSendMenu(selected);
     }
 
-    private async void CreateRoomButton_Click(object? sender, RoutedEventArgs e)
+    private void ShowSendMenu(IReadOnlyList<PeerInfo> selected)
     {
-        var peers = _coordinator.GetPeers().ToList();
-        if (peers.Count == 0)
-        {
-            await DialogHelper.ShowInfoAsync(this, "Y-popup", "초대할 LAN 사용자가 없습니다.");
-            return;
-        }
+        var note = new MenuItem { Header = $"쪽지 보내기 ({selected.Count}명)" };
+        note.Click += (_, _) => OpenCompose(selected, ComposeSendMode.Direct);
 
-        var dialog = new CreateRoomDialog(peers);
-        await dialog.ShowDialog(this);
-        if (dialog.Result is null || dialog.Result.SelectedPeers.Count == 0)
-        {
-            return;
-        }
+        var room = new MenuItem { Header = "단톡방" };
+        room.Click += async (_, _) => await CreateGroupRoomAsync(selected);
 
+        var notice = new MenuItem { Header = "단체 쪽지" };
+        notice.Click += (_, _) => OpenCompose(selected, ComposeSendMode.Notice);
+
+        var flyout = new MenuFlyout
+        {
+            Placement = PlacementMode.TopEdgeAlignedLeft,
+            Items = { note, room, notice }
+        };
+        flyout.ShowAt(SendButton);
+    }
+
+    private async Task CreateGroupRoomAsync(IReadOnlyList<PeerInfo> selected)
+    {
         try
         {
-            await _coordinator.CreateGroupRoomAndInviteAsync(
-                dialog.Result.Title,
-                dialog.Result.SelectedPeers);
-            // GroupRoomOpened 이벤트로 채팅창 오픈
+            await _coordinator.CreateGroupRoomAndInviteAsync(BuildRoomTitle(selected), selected);
         }
         catch (Exception ex)
         {
+            LogService.Error("UserList", $"단톡방 생성 실패: {ex.Message}");
             await DialogHelper.ShowErrorAsync(this, "Y-popup", $"단톡방을 만들지 못했습니다.\n\n{ex.Message}");
         }
     }
 
-    private async void MulticastButton_Click(object? sender, RoutedEventArgs e)
+    private static string BuildRoomTitle(IReadOnlyList<PeerInfo> peers)
     {
-        var peers = _coordinator.GetPeers().ToList();
-        if (peers.Count == 0)
+        if (peers.Count <= 2)
         {
-            await DialogHelper.ShowInfoAsync(this, "Y-popup", "보낼 LAN 사용자가 없습니다.");
-            return;
+            return string.Join(", ", peers.Select(peer => peer.DisplayName));
         }
 
-        var dialog = new CreateRoomDialog(peers)
-        {
-            Title = "단체 쪽지 보내기"
-        };
-        await dialog.ShowDialog(this);
-        if (dialog.Result is null || dialog.Result.SelectedPeers.Count == 0)
-        {
-            return;
-        }
-
-        var body = dialog.Result.Body;
-        if (string.IsNullOrWhiteSpace(body))
-        {
-            body = dialog.Result.Title;
-        }
-
-        if (string.IsNullOrWhiteSpace(body))
-        {
-            await DialogHelper.ShowInfoAsync(this, "Y-popup", "단체 쪽지 내용을 입력하세요.");
-            return;
-        }
-
-        try
-        {
-            var results = await _coordinator.SendMulticastNoticeAsync(body, dialog.Result.SelectedPeers);
-            var ok = results.Count(r => r.IsSuccess);
-            await DialogHelper.ShowInfoAsync(
-                this,
-                "Y-popup",
-                $"단체 쪽지 전송 완료: 성공 {ok} / 전체 {results.Count}");
-        }
-        catch (Exception ex)
-        {
-            await DialogHelper.ShowErrorAsync(this, "Y-popup", $"단체 쪽지 전송 실패.\n\n{ex.Message}");
-        }
+        return $"{peers[0].DisplayName}, {peers[1].DisplayName} 외 {peers.Count - 2}명";
     }
 
     private void RefreshButton_Click(object? sender, RoutedEventArgs e) => RefreshPeers();

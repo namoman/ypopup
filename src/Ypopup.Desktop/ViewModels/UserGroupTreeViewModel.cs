@@ -5,11 +5,19 @@ namespace Ypopup.Desktop.ViewModels;
 
 public sealed class PeerNodeItem : ViewModelBase
 {
+    private bool _isChecked;
+
     public PeerInfo Peer { get; }
     public string DisplayName => Peer.DisplayName;
     public string IpAddress => Peer.IpAddress;
     public bool IsAway => Peer.IsAway;
     public string StatusText => Peer.IsAway ? "부재중" : "온라인";
+
+    public bool IsChecked
+    {
+        get => _isChecked;
+        set => SetProperty(ref _isChecked, value);
+    }
 
     public PeerNodeItem(PeerInfo peer)
     {

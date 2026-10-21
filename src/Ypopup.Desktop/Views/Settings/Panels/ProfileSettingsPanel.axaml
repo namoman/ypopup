@@ -10,6 +10,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -20,10 +21,12 @@
                 <TextBox x:Name="DisplayNameTextBox" Grid.Row="0" Grid.Column="1" Margin="0,0,0,8"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="그룹" VerticalAlignment="Center"/>
                 <TextBox x:Name="GroupTextBox" Grid.Row="1" Grid.Column="1" Margin="0,0,0,8"/>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="이메일" VerticalAlignment="Center"/>
-                <TextBox x:Name="EmailTextBox" Grid.Row="2" Grid.Column="1" Margin="0,0,0,8"/>
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="메모" VerticalAlignment="Top" Margin="0,4,0,0"/>
-                <TextBox x:Name="MemoTextBox" Grid.Row="3" Grid.RowSpan="2" Grid.Column="1"
+                <CheckBox x:Name="OnlySameGroupCheckBox" Grid.Row="2" Grid.Column="1"
+                          Content="같은 그룹 사용자만 목록에 표시" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="이메일" VerticalAlignment="Center"/>
+                <TextBox x:Name="EmailTextBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="메모" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                <TextBox x:Name="MemoTextBox" Grid.Row="4" Grid.RowSpan="2" Grid.Column="1"
                          MinHeight="100" AcceptsReturn="True" TextWrapping="Wrap"
                          ScrollViewer.VerticalScrollBarVisibility="Auto"/>
             </Grid>

@@ -33,6 +33,7 @@ public sealed record CreateRoomDialogResult(
 public partial class CreateRoomDialog : Window
 {
     private readonly List<SelectablePeerItem> _allPeers;
+    private readonly bool _pickOnly;
     public CreateRoomDialogResult? Result { get; private set; }
 
     public CreateRoomDialog()
@@ -41,9 +42,21 @@ public partial class CreateRoomDialog : Window
         _allPeers = [];
     }
 
-    public CreateRoomDialog(IEnumerable<PeerInfo> peers) : this()
+    public CreateRoomDialog(IEnumerable<PeerInfo> peers) : this(peers, pickOnly: false)
     {
+    }
+
+    public CreateRoomDialog(IEnumerable<PeerInfo> peers, bool pickOnly) : this()
+    {
+        _pickOnly = pickOnly;
         _allPeers = peers.Select(p => new SelectablePeerItem(p)).ToList();
+        if (_pickOnly)
+        {
+            Title = "받는 사람 추가";
+            TitlePanel.IsVisible = false;
+            BodyPanel.IsVisible = false;
+        }
+
         ApplyFilter();
     }
 

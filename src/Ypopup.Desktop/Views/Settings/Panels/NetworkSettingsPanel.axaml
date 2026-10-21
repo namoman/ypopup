@@ -13,7 +13,6 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="110"/>
@@ -30,8 +29,6 @@
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="TCP 공유폴더 포트" VerticalAlignment="Center"
                            ToolTip.Tip="공유폴더 HTTP 서비스 포트"/>
                 <TextBox x:Name="ShareFolderPortTextBox" Grid.Row="3" Grid.Column="1" Margin="0,0,0,8"/>
-                <CheckBox x:Name="OnlySameGroupCheckBox" Grid.Row="4" Grid.Column="1"
-                          Content="같은 그룹 사용자만 목록에 표시"/>
             </Grid>
             <Border BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="8">
                 <StackPanel>

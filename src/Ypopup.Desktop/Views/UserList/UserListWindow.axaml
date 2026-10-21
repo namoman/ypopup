@@ -3,8 +3,8 @@
         xmlns:userlist="using:Ypopup.Desktop.Views.UserList"
         x:Class="Ypopup.Desktop.Views.UserList.UserListWindow"
         Title="Y-popup - 사용자 목록"
-        Width="360"
-        Height="560"
+        Width="340"
+        Height="520"
         WindowStartupLocation="CenterScreen"
         CanResize="False"
         SystemDecorations="None"
@@ -70,18 +70,13 @@
             </Border>
 
             <Grid Grid.Row="4" Margin="16,8,16,16" VerticalAlignment="Center">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
-                    <Button Content="쪽지 보내기" Click="SendButton_Click" Width="110" Margin="0,0,6,0"/>
-                    <Button Content="단톡방" Click="CreateRoomButton_Click" Width="70" Margin="0,0,6,0"
-                            Classes="secondary"/>
-                    <Button Content="단체쪽지" Click="MulticastButton_Click" Width="80"
-                            Classes="secondary"/>
-                </StackPanel>
-                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="SendButton" Content="쪽지 보내기" Click="SendButton_Click"
+                        HorizontalAlignment="Left" VerticalAlignment="Center" Width="130"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                     <Button Content="새로고침" Click="RefreshButton_Click" Margin="0,0,8,0"
                             Classes="secondary" Width="80"/>
                     <Button Content="닫기" Click="CloseButton_Click" Classes="secondary" Width="70"/>
