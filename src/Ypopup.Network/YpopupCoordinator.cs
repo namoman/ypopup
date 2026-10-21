@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Ypopup.Core.Contracts;
 using Ypopup.Core.Helpers;
 using Ypopup.Core.Logging;
@@ -24,6 +25,7 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     private readonly GroupManager _groupManager;
     private readonly CancellationTokenSource _appCts = new();
     private readonly Dictionary<string, DateTime> _lastAutoReplyTimes = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, byte> _leaveNotified = new(StringComparer.OrdinalIgnoreCase);
     private int _disposed;
 
     public SharedFolderHostStartResult SharedFolderHostStatus { get; private set; } = new(false);
@@ -32,6 +34,7 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     public event Action<ReceivedMessage>? MessageReceived;
     public event Action? SettingsSaved;
     public event Action<ChatRoom>? GroupRoomOpened;
+    public event Action<string, string, string>? ParticipantLeft;
 
     public YpopupCoordinator()
     {
@@ -212,7 +215,145 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     }
 
     private void HandleExtendedPacketReceived(ExtendedLanPacket packet)
-        => _packetRouter.RouteIncomingPacket(packet);
+    {
+        if (packet.Type == ExtendedPacketType.RoomLeave)
+        {
+            _ = BackgroundTaskTracker.RunAsync("룸 나가기", () => HandleRoomLeaveAsync(packet));
+            return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(packet.RoomId)
+            && packet.Type != ExtendedPacketType.RoomInvite)
+        {
+            _ = BackgroundTaskTracker.RunAsync("룸 패킷", () => RouteRoomPacketAsync(packet));
+            return;
+        }
+
+        _packetRouter.RouteIncomingPacket(packet);
+    }
+
+    private async Task RouteRoomPacketAsync(ExtendedLanPacket packet)
+    {
+        if (await _chatStorage.IsRoomLeftAsync(packet.RoomId!, _appCts.Token).ConfigureAwait(false))
+        {
+            await NotifyAlreadyLeftAsync(packet).ConfigureAwait(false);
+            return;
+        }
+
+        _packetRouter.RouteIncomingPacket(packet);
+    }
+
+    public async Task LeaveGroupRoomAsync(string roomId, CancellationToken cancellationToken = default)
+    {
+        var room = await _chatRoomManager.GetRoomAsync(roomId, cancellationToken).ConfigureAwait(false);
+        if (room is null || room.Type != RoomType.GroupChat)
+        {
+            return;
+        }
+
+        var packet = new ExtendedLanPacket
+        {
+            Type = ExtendedPacketType.RoomLeave,
+            RoomId = room.RoomId,
+            RoomTitle = room.Title,
+            SenderId = Settings.MachineId,
+            SenderName = Settings.DisplayName,
+            ParticipantIds = room.ParticipantIds.ToList(),
+            Body = $"{Settings.DisplayName}님이 나갔습니다."
+        };
+
+        var targets = GetPeerUsers()
+            .Where(p => room.ParticipantIds.Contains(p.UserId, StringComparer.OrdinalIgnoreCase)
+                        && !string.Equals(p.UserId, Settings.MachineId, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (targets.Count > 0)
+        {
+            try
+            {
+                await _messageDispatcher.SendPacketAsync(packet, targets, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                LogService.Warning("Coordinator", $"단톡방 나가기 알림 실패: {ex.Message}");
+            }
+        }
+
+        await _chatStorage.MarkRoomLeftAsync(roomId, cancellationToken).ConfigureAwait(false);
+        await _chatRoomManager.LeaveRoomAsync(roomId, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task HandleRoomLeaveAsync(ExtendedLanPacket packet)
+    {
+        if (string.IsNullOrWhiteSpace(packet.RoomId)
+            || string.Equals(packet.SenderId, Settings.MachineId, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        if (await _chatStorage.IsRoomLeftAsync(packet.RoomId, _appCts.Token).ConfigureAwait(false))
+        {
+            return;
+        }
+
+        var room = await _chatRoomManager.GetRoomAsync(packet.RoomId, _appCts.Token).ConfigureAwait(false);
+        if (room is null)
+        {
+            return;
+        }
+
+        var remaining = room.ParticipantIds
+            .Where(id => !string.Equals(id, packet.SenderId, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+        await _chatRoomManager.UpsertRoomAsync(room with { ParticipantIds = remaining }, _appCts.Token)
+            .ConfigureAwait(false);
+
+        var name = string.IsNullOrWhiteSpace(packet.SenderName) ? "참여자" : packet.SenderName;
+        var notice = new ChatMessage(
+            MessageId: packet.MessageId,
+            RoomId: packet.RoomId,
+            SenderId: packet.SenderId,
+            SenderName: name,
+            Content: $"{name}님이 나갔습니다.",
+            Type: MessageType.SystemNotice,
+            TimestampUtc: packet.SentAtUtc == default ? DateTime.UtcNow : packet.SentAtUtc);
+        await _chatStorage.AppendMessageAsync(notice, _appCts.Token).ConfigureAwait(false);
+        ParticipantLeft?.Invoke(packet.RoomId, packet.SenderId, name);
+    }
+
+    private async Task NotifyAlreadyLeftAsync(ExtendedLanPacket packet)
+    {
+        if (packet.Type != ExtendedPacketType.GroupChatMessage
+            || string.IsNullOrWhiteSpace(packet.SenderId)
+            || string.IsNullOrWhiteSpace(packet.RoomId))
+        {
+            return;
+        }
+
+        var key = $"{packet.RoomId}|{packet.SenderId}";
+        if (!_leaveNotified.TryAdd(key, 0))
+        {
+            return;
+        }
+
+        var peer = GetPeers().FirstOrDefault(p =>
+            string.Equals(p.MachineId, packet.SenderId, StringComparison.OrdinalIgnoreCase));
+        if (peer is null)
+        {
+            return;
+        }
+
+        var leave = new ExtendedLanPacket
+        {
+            Type = ExtendedPacketType.RoomLeave,
+            RoomId = packet.RoomId,
+            RoomTitle = packet.RoomTitle,
+            SenderId = Settings.MachineId,
+            SenderName = Settings.DisplayName,
+            Body = $"{Settings.DisplayName}님이 나갔습니다."
+        };
+        await _messageDispatcher.SendPacketAsync(leave, [ToPeerUser(peer)], _appCts.Token).ConfigureAwait(false);
+    }
 
     private void HandleExtendedDirectNotice(ExtendedLanPacket packet)
     {
@@ -244,6 +385,7 @@ public sealed class YpopupCoordinator : IAsyncDisposable
 
     private async Task AcceptRoomInviteAsync(ExtendedLanPacket packet)
     {
+        await _chatStorage.ClearRoomLeftAsync(packet.RoomId!, _appCts.Token).ConfigureAwait(false);
         var room = new ChatRoom(
             RoomId: packet.RoomId!,
             Title: string.IsNullOrWhiteSpace(packet.RoomTitle) ? "그룹 대화" : packet.RoomTitle!,

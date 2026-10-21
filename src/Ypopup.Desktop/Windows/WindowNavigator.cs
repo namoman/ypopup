@@ -25,6 +25,14 @@ public sealed class WindowNavigator
         _chatWindowManager = new ChatWindowManager(CreateChatRoomWindow);
         _coordinator.GroupRoomOpened += room =>
             Dispatcher.UIThread.Post(() => OpenGroupRoom(room));
+        _coordinator.ParticipantLeft += (roomId, userId, name) =>
+            Dispatcher.UIThread.Post(() =>
+            {
+                if (_chatWindowManager.GetRoomWindow(roomId)?.DataContext is ChatSessionViewModel vm)
+                {
+                    vm.NoteParticipantLeft(userId, name);
+                }
+            });
     }
 
     public void RefreshUserListIfOpen()
@@ -86,7 +94,10 @@ public sealed class WindowNavigator
             viewModel.AddIncomingMessage(msg);
         });
 
-        var window = new ChatRoomWindow(viewModel);
+        Func<Task>? leaveRoom = room.Type == RoomType.GroupChat
+            ? () => _coordinator.LeaveGroupRoomAsync(room.RoomId)
+            : null;
+        var window = new ChatRoomWindow(viewModel, leaveRoom);
         window.Closed += (_, _) => _coordinator.PacketRouter.UnregisterRoomHandler(room.RoomId);
         return window;
     }

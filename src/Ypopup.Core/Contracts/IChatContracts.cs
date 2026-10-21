@@ -33,6 +33,9 @@ public interface IChatStorageRepository
     Task<ChatRoom?> LoadRoomAsync(string roomId, CancellationToken ct = default);
     Task<IReadOnlyList<ChatRoom>> LoadAllRoomsAsync(CancellationToken ct = default);
     Task DeleteRoomAsync(string roomId, CancellationToken ct = default);
+    Task MarkRoomLeftAsync(string roomId, CancellationToken ct = default);
+    Task ClearRoomLeftAsync(string roomId, CancellationToken ct = default);
+    Task<bool> IsRoomLeftAsync(string roomId, CancellationToken ct = default);
 
     Task AppendMessageAsync(ChatMessage message, CancellationToken ct = default);
     Task<IReadOnlyList<ChatMessage>> GetRecentMessagesAsync(string roomId, int count = 50, CancellationToken ct = default);

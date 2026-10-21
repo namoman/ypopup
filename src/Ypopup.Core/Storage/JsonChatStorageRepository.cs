@@ -29,6 +29,7 @@ public sealed class JsonChatStorageRepository : IChatStorageRepository
     }
 
     private string RoomsFilePath => Path.Combine(_basePath, "rooms.json");
+    private string LeftRoomsFilePath => Path.Combine(_basePath, "left-rooms.json");
     private string GroupsFilePath => Path.Combine(_basePath, "groups.json");
     private string GetMessageFilePath(string roomId) => Path.Combine(_basePath, "messages", $"{roomId}.jsonl");
 
@@ -105,6 +106,72 @@ public sealed class JsonChatStorageRepository : IChatStorageRepository
         {
             _lock.Release();
         }
+    }
+
+    public async Task MarkRoomLeftAsync(string roomId, CancellationToken ct = default)
+    {
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var left = await LoadLeftRoomsInternalAsync(ct).ConfigureAwait(false);
+            left.Add(roomId);
+            await SaveLeftRoomsInternalAsync(left, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task ClearRoomLeftAsync(string roomId, CancellationToken ct = default)
+    {
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var left = await LoadLeftRoomsInternalAsync(ct).ConfigureAwait(false);
+            if (left.Remove(roomId))
+            {
+                await SaveLeftRoomsInternalAsync(left, ct).ConfigureAwait(false);
+            }
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task<bool> IsRoomLeftAsync(string roomId, CancellationToken ct = default)
+    {
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var left = await LoadLeftRoomsInternalAsync(ct).ConfigureAwait(false);
+            return left.Contains(roomId);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private async Task<HashSet<string>> LoadLeftRoomsInternalAsync(CancellationToken ct)
+    {
+        if (!File.Exists(LeftRoomsFilePath))
+        {
+            return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var json = await File.ReadAllTextAsync(LeftRoomsFilePath, ct).ConfigureAwait(false);
+        var ids = string.IsNullOrWhiteSpace(json)
+            ? []
+            : JsonSerializer.Deserialize<List<string>>(json, JsonOptions) ?? [];
+        return new HashSet<string>(ids, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private Task SaveLeftRoomsInternalAsync(HashSet<string> left, CancellationToken ct)
+    {
+        var json = JsonSerializer.Serialize(left.ToList(), JsonOptions);
+        return File.WriteAllTextAsync(LeftRoomsFilePath, json, ct);
     }
 
     public async Task AppendMessageAsync(ChatMessage message, CancellationToken ct = default)

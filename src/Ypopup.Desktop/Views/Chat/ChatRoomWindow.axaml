@@ -10,13 +10,17 @@
 
     <Grid RowDefinitions="Auto,*,Auto">
         <Border Grid.Row="0" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="16,12">
-            <StackPanel Orientation="Horizontal" Spacing="10">
-                <TextBlock Text="💬" FontSize="18" VerticalAlignment="Center" />
-                <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="{Binding RoomTitle}" FontWeight="Bold" FontSize="15" Foreground="#1E293B" />
-                    <TextBlock Text="P2P LAN 암호화 통신" FontSize="11" Foreground="#64748B" />
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                    <TextBlock Text="💬" FontSize="18" VerticalAlignment="Center" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding RoomTitle}" FontWeight="Bold" FontSize="15" Foreground="#1E293B" />
+                        <TextBlock Text="P2P LAN 암호화 통신" FontSize="11" Foreground="#64748B" />
+                    </StackPanel>
                 </StackPanel>
-            </StackPanel>
+                <Button x:Name="LeaveButton" Grid.Column="1" Content="나가기" Classes="secondary"
+                        IsVisible="False" VerticalAlignment="Center" Click="LeaveButton_Click"/>
+            </Grid>
         </Border>
 
         <!-- 메시지 리스트 -->
@@ -25,15 +29,21 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="vm:MessageBubbleItem">
                         <StackPanel Margin="0,4">
-                            <!-- 상대방 이름 (내 메시지가 아닐 때만) -->
+                            <TextBlock Text="{Binding Content}"
+                                       FontSize="11"
+                                       Foreground="#64748B"
+                                       HorizontalAlignment="Center"
+                                       Margin="0,4"
+                                       IsVisible="{Binding IsSystem}" />
                             <TextBlock Text="{Binding SenderName}"
                                        FontSize="11"
                                        Foreground="#666666"
                                        Margin="4,0,0,2"
-                                       IsVisible="{Binding !IsMine}" />
+                                       IsVisible="{Binding ShowSender}" />
 
                             <!-- 말풍선 -->
                             <Border CornerRadius="8"
+                                    IsVisible="{Binding !IsSystem}"
                                     Padding="10,8"
                                     MaxWidth="320"
                                     HorizontalAlignment="{Binding BubbleAlignment}"

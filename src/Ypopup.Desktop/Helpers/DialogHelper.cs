@@ -16,6 +16,67 @@ public static class DialogHelper
     public static Task ShowErrorAsync(Window? owner, string title, string message)
         => ShowAsync(owner, title, message);
 
+    public static async Task<bool> ShowConfirmAsync(Window owner, string title, string message, string confirmText)
+    {
+        var confirmed = false;
+        var dialog = new Window
+        {
+            Title = title,
+            Width = 380,
+            MinWidth = 280,
+            SizeToContent = SizeToContent.Height,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            CanResize = false,
+            Background = new SolidColorBrush(Color.Parse("#F3F5F9"))
+        };
+
+        var messageBlock = new TextBlock
+        {
+            Text = message,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(20, 20, 20, 12),
+            Foreground = new SolidColorBrush(Color.Parse("#1E293B"))
+        };
+
+        var cancelButton = new Button
+        {
+            Content = "취소",
+            Width = 80,
+            IsCancel = true
+        };
+        cancelButton.Classes.Add("secondary");
+        cancelButton.Click += (_, _) => dialog.Close();
+
+        var confirmButton = new Button
+        {
+            Content = confirmText,
+            Width = 80,
+            Margin = new Thickness(8, 0, 0, 0),
+            IsDefault = true
+        };
+        confirmButton.Click += (_, _) =>
+        {
+            confirmed = true;
+            dialog.Close();
+        };
+
+        var buttons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(20, 0, 20, 16),
+            Children = { cancelButton, confirmButton }
+        };
+
+        dialog.Content = new StackPanel
+        {
+            Children = { messageBlock, buttons }
+        };
+
+        await dialog.ShowDialog(owner);
+        return confirmed;
+    }
+
     private static async Task ShowAsync(Window? owner, string title, string message)
     {
         var dialog = new Window
