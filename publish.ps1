@@ -181,7 +181,7 @@ function New-MacosAppBundle {
     param(
         [string]$SourceFolder,
         [string]$AppPath,
-        [string]$Version = '2.2.2'
+        [string]$Version = '2.2.3'
     )
 
     Remove-PathIfExists $AppPath

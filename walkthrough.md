@@ -683,7 +683,7 @@ P0~P3 기능 구현은 완료되었으나, 공개 문서(README, GitHub Pages)�
 | `ComposeWindow` | 받는 사람 추가·제거, 여러 명에게 같은 쪽지 전송 |
 | `ProfileSettingsPanel` | «같은 그룹 사용자만 목록에 표시»를 그룹명 아래, 입력칸과 같은 열에 배치 |
 | `NetworkSettingsPanel` | 해당 체크박스 제거 |
-| `AppInfo` / csproj | 배포 버전 **2.2.1**, 이후 UI 정리 배포 **2.2.2** |
+| `AppInfo` / csproj | 배포 버전 **2.2.1**, UI 정리 **2.2.2**, 단톡방 나가기 **2.2.3** |
 
 ## 2026-10-21 — 사용자 선택 하이라이트
 

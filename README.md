@@ -87,7 +87,7 @@ dotnet run --project src\Ypopup.Desktop\Ypopup.Desktop.csproj -c Release
 
 ```powershell
 # 2. GitHub Release 생성
-.\tools\create-release.ps1 -Version "2.2.2"
+.\tools\create-release.ps1 -Version "2.2.3"
 ```
 
 `create-release.ps1`은 `release/` 폴더의 파일을 `gh release create`로 업로드합니다.
@@ -173,6 +173,7 @@ dotnet test Ypopup.sln
 
 | 일자 | 변경 |
 |------|------|
+| 2026-10-21 | 버전 **2.2.3** — 단톡방 나가기 |
 | 2026-10-21 | 버전 **2.2.2** — 설정·쪽지·목록을 Fluent 톤으로 정리, 정보 탭은 표기만 |
 | 2026-10-21 | 버전 **2.2.1** — 쪽지 보내기 펼침 메뉴, 동보 전송, 그룹 필터를 프로필 입력칸에 맞춤 |
 | 2026-10-14 | 버전 **2.2.0** — 부서/그룹 카테고리, 단톡방, 단체 쪽지 연동·배포 |
