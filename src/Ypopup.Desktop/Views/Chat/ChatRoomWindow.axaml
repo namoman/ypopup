@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Ypopup.Desktop.Controls"
         xmlns:vm="using:Ypopup.Desktop.ViewModels"
         x:Class="Ypopup.Desktop.Views.Chat.ChatRoomWindow"
         x:DataType="vm:ChatSessionViewModel"
@@ -49,14 +50,18 @@
                                     HorizontalAlignment="{Binding BubbleAlignment}"
                                     Background="{Binding BubbleBackground}">
                                 <StackPanel Spacing="4">
-                                    <TextBlock Text="{Binding Content}"
-                                               TextWrapping="Wrap"
-                                               FontSize="13"
-                                               Foreground="{Binding ContentForeground}" />
+                                    <controls:MessageBodyText Message="{Binding Content}"
+                                                              FontSize="13"
+                                                              Foreground="{Binding ContentForeground}" />
                                     <TextBlock Text="{Binding FormattedTime}"
                                                FontSize="10"
                                                HorizontalAlignment="Right"
                                                Foreground="#888888" />
+                                    <TextBlock Text="{Binding ReadCountText}"
+                                               FontSize="10"
+                                               HorizontalAlignment="Right"
+                                               Foreground="{Binding ReadCountForeground}"
+                                               IsVisible="{Binding ShowReadCount}" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>

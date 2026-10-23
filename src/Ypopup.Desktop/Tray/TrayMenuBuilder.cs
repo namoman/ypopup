@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Ypopup.Core;
 
 namespace Ypopup.Desktop.Tray;
 
@@ -39,6 +38,5 @@ public static class TrayMenuBuilder
         return menu;
     }
 
-    public static string DefaultToolTipText =>
-        $"Y-popup - LAN 메신저 ({AppInfo.ContactSummary})";
+    public static string DefaultToolTipText => "Y-popup\nLAN Messenger";
 }

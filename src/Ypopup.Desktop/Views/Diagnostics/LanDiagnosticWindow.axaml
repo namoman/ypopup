@@ -34,6 +34,10 @@
                             <TextBlock x:Name="BroadcastTextBlock" Grid.Column="1" FontFamily="Consolas"/>
                         </Grid>
                         <Grid ColumnDefinitions="Auto,*">
+                            <TextBlock Text="멀티캐스트:" Foreground="#64748B" MinWidth="120"/>
+                            <TextBlock x:Name="MulticastTextBlock" Grid.Column="1" FontFamily="Consolas"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="Auto,*">
                             <TextBlock Text="발견(UDP) 포트:" Foreground="#64748B" MinWidth="120"/>
                             <TextBlock x:Name="DiscoveryPortTextBlock" Grid.Column="1"/>
                         </Grid>

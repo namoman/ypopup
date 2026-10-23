@@ -1,7 +1,10 @@
 using System.Collections.ObjectModel;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Threading;
 using Ypopup.Core.Contracts;
+using Ypopup.Core.Logging;
+using Ypopup.Core.Messaging;
 using Ypopup.Core.Models;
 using Ypopup.Network.Messaging;
 
@@ -21,11 +24,29 @@ public sealed class MessageBubbleItem : ViewModelBase
     public bool IsSystem { get; }
     public bool ShowSender => !IsMine && !IsSystem;
     public IReadOnlyList<FileAttachmentInfo> Attachments { get; }
+    private int _readCount;
 
     public string FormattedTime => Time.ToString("tt h:mm");
     public HorizontalAlignment BubbleAlignment => IsMine ? HorizontalAlignment.Right : HorizontalAlignment.Left;
     public IBrush BubbleBackground => IsMine ? MineBrush : OtherBrush;
     public IBrush ContentForeground => IsMine ? Brushes.White : Brushes.Black;
+    public int ReadCount => _readCount;
+    public string ReadCountText => _readCount > 0 ? $"읽음 {_readCount}" : string.Empty;
+    public bool ShowReadCount => !IsSystem && _readCount > 0;
+    public IBrush ReadCountForeground => IsMine
+        ? new SolidColorBrush(Color.Parse("#DBEAFE"))
+        : new SolidColorBrush(Color.Parse("#64748B"));
+
+    public void SetReadCount(int count)
+    {
+        if (!SetProperty(ref _readCount, count))
+        {
+            return;
+        }
+
+        OnPropertyChanged(nameof(ReadCountText));
+        OnPropertyChanged(nameof(ShowReadCount));
+    }
 
     public MessageBubbleItem(ChatMessage message, string myUserId)
     {
@@ -104,19 +125,55 @@ public sealed class ChatSessionViewModel : ViewModelBase
     public async Task LoadRecentMessagesAsync()
     {
         var list = await _storage.GetRecentMessagesAsync(_room.RoomId);
+        var readers = await _storage.LoadReadersAsync(_room.RoomId);
+        var seenByMe = new List<string>();
         Messages.Clear();
         foreach (var msg in list)
         {
-            Messages.Add(new MessageBubbleItem(msg, _myUserId));
+            var item = new MessageBubbleItem(msg, _myUserId);
+            readers.TryGetValue(msg.MessageId, out var readerIds);
+            item.SetReadCount(ReadReceipt.CountOthers(readerIds, msg.SenderId));
+            Messages.Add(item);
+            if (!item.IsMine && !item.IsSystem)
+            {
+                seenByMe.Add(msg.MessageId);
+            }
+        }
+
+        if (seenByMe.Count > 0)
+        {
+            await PublishReadAsync(seenByMe);
         }
     }
 
     public void AddIncomingMessage(ChatMessage msg)
     {
-        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        Dispatcher.UIThread.Post(() =>
         {
-            Messages.Add(new MessageBubbleItem(msg, _myUserId));
+            var item = new MessageBubbleItem(msg, _myUserId);
+            Messages.Add(item);
+            if (!item.IsMine && !item.IsSystem)
+            {
+                _ = PublishReadAsync([msg.MessageId]);
+            }
         });
+    }
+
+    public void NoteRead(string readerId, string? body)
+    {
+        if (string.IsNullOrWhiteSpace(readerId)
+            || string.Equals(readerId, _myUserId, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        var ids = ReadReceipt.ReadMessageIds(body);
+        if (ids.Count == 0)
+        {
+            return;
+        }
+
+        _ = SaveReadAsync(readerId, ids);
     }
 
     public async Task SendMessageAsync()
@@ -157,5 +214,64 @@ public sealed class ChatSessionViewModel : ViewModelBase
         };
 
         _ = _dispatcher.DispatchRoomMessageAsync(_room.RoomId, packet, targetPeers);
+    }
+
+    private async Task PublishReadAsync(IReadOnlyList<string> messageIds)
+    {
+        try
+        {
+            await SaveReadAsync(_myUserId, messageIds);
+            var targets = _peersProvider()
+                .Where(peer => _participantIds.Contains(peer.UserId, StringComparer.OrdinalIgnoreCase)
+                               && !string.Equals(peer.UserId, _myUserId, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            if (targets.Count == 0)
+            {
+                return;
+            }
+
+            var packet = new ExtendedLanPacket
+            {
+                Type = ExtendedPacketType.MessageRead,
+                RoomId = _room.RoomId,
+                SenderId = _myUserId,
+                SenderName = _myDisplayName,
+                Body = ReadReceipt.WriteMessageIds(messageIds),
+                ParticipantIds = _participantIds.ToList()
+            };
+            await _dispatcher.SendPacketAsync(packet, targets);
+        }
+        catch (Exception ex)
+        {
+            LogService.Warning("Chat", $"읽음 전송 실패: {ex.Message}");
+        }
+    }
+
+    private async Task SaveReadAsync(string readerId, IReadOnlyList<string> messageIds)
+    {
+        try
+        {
+            await _storage.AddReadersAsync(_room.RoomId, messageIds, readerId);
+            var readers = await _storage.LoadReadersAsync(_room.RoomId);
+            await Dispatcher.UIThread.InvokeAsync(() => ApplyReadCounts(readers));
+        }
+        catch (Exception ex)
+        {
+            LogService.Warning("Chat", $"읽음 저장 실패: {ex.Message}");
+        }
+    }
+
+    private void ApplyReadCounts(IReadOnlyDictionary<string, IReadOnlyList<string>> readers)
+    {
+        foreach (var item in Messages)
+        {
+            if (item.IsSystem)
+            {
+                continue;
+            }
+
+            readers.TryGetValue(item.MessageId, out var readerIds);
+            item.SetReadCount(ReadReceipt.CountOthers(readerIds, item.SenderId));
+        }
     }
 }

@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using Ypopup.Core.Contracts;
 using Ypopup.Core.Helpers;
 using Ypopup.Core.Logging;
+using Ypopup.Core.Messaging;
 using Ypopup.Core.Models;
 using Ypopup.Core.Sharing;
 using Ypopup.Core.Settings;
@@ -117,6 +118,7 @@ public sealed class YpopupCoordinator : IAsyncDisposable
 
     public DateTime LastAnnounceSentUtc => _discoveryService.LastAnnounceSentUtc;
     public DateTime LastPacketReceivedUtc => _discoveryService.LastPacketReceivedUtc;
+    public string MulticastStatus => _discoveryService.MulticastStatus;
 
     public async Task StartAsync()
     {
@@ -445,6 +447,18 @@ public sealed class YpopupCoordinator : IAsyncDisposable
     {
         if (string.IsNullOrWhiteSpace(packet.RoomId))
         {
+            return;
+        }
+
+        if (packet.Type == ExtendedPacketType.MessageRead)
+        {
+            var ids = ReadReceipt.ReadMessageIds(packet.Body);
+            if (!string.IsNullOrWhiteSpace(packet.SenderId) && ids.Count > 0)
+            {
+                await _chatStorage.AddReadersAsync(packet.RoomId, ids, packet.SenderId, _appCts.Token)
+                    .ConfigureAwait(false);
+            }
+
             return;
         }
 

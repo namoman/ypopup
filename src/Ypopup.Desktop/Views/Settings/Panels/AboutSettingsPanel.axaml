@@ -29,7 +29,7 @@
                 <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="88,*">
                     <TextBlock Grid.Row="0" Text="제작자" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,0,8"/>
                     <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,8">
-                        <TextBlock Text="namoman" VerticalAlignment="Center"/>
+                        <Button Content="namoman" Classes="link" VerticalAlignment="Center" Click="AuthorLink_Click"/>
                         <Button Content="namolove@gmail.com" Classes="link" Margin="8,0,0,0"
                                 VerticalAlignment="Center" Click="EmailLink_Click"/>
                     </StackPanel>
@@ -46,6 +46,17 @@
                     <TextBlock Grid.Row="3" Grid.Column="1" Text="MIT" VerticalAlignment="Center"/>
                 </Grid>
             </Border>
+
+            <StackPanel Margin="0,12,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="CheckUpdateButton" Content="업데이트 확인" Classes="secondary"
+                            Click="CheckUpdateButton_Click"/>
+                    <Button x:Name="DownloadUpdateButton" Content="받기" Classes="accent"
+                            Margin="8,0,0,0" IsVisible="False" Click="DownloadUpdateButton_Click"/>
+                </StackPanel>
+                <TextBlock x:Name="UpdateStatusText" FontSize="12" Foreground="#64748B"
+                           TextWrapping="Wrap" Margin="0,8,0,0"/>
+            </StackPanel>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

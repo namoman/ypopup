@@ -30,6 +30,11 @@
                                  BorderThickness="0"
                                  SelectionChanged="OnMemberSelectionChanged"
                                  DoubleTapped="OnMemberDoubleTapped">
+                            <ListBox.Styles>
+                                <Style Selector="ListBoxItem" x:DataType="vm:PeerNodeItem">
+                                    <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}"/>
+                                </Style>
+                            </ListBox.Styles>
                             <ListBox.ItemTemplate>
                                 <DataTemplate DataType="vm:PeerNodeItem">
                                     <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto" VerticalAlignment="Center">

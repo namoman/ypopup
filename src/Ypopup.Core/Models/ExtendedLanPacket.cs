@@ -9,7 +9,8 @@ public enum ExtendedPacketType
     RoomInvite = 11,
     RoomLeave = 12,
     MultiCastDirectNotice = 13,
-    AvatarRequest = 14
+    AvatarRequest = 14,
+    MessageRead = 15
 }
 
 public sealed class ExtendedLanPacket

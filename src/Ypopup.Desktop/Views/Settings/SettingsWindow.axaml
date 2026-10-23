@@ -21,14 +21,14 @@
             <TabItem Header="프로필">
                 <panels:ProfileSettingsPanel x:Name="ProfilePanel"/>
             </TabItem>
-            <TabItem Header="네트워크">
-                <panels:NetworkSettingsPanel x:Name="NetworkPanel"/>
-            </TabItem>
             <TabItem Header="일반">
                 <panels:GeneralSettingsPanel x:Name="GeneralPanel"/>
             </TabItem>
             <TabItem Header="부재">
                 <panels:AwaySettingsPanel x:Name="AwayPanel"/>
+            </TabItem>
+            <TabItem Header="네트워크">
+                <panels:NetworkSettingsPanel x:Name="NetworkPanel"/>
             </TabItem>
             <TabItem Header="About">
                 <panels:AboutSettingsPanel x:Name="AboutPanel"/>

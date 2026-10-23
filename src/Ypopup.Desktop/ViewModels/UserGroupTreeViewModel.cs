@@ -7,6 +7,7 @@ namespace Ypopup.Desktop.ViewModels;
 public sealed class PeerNodeItem : ViewModelBase
 {
     private bool _isChecked;
+    private bool _isSelected;
     private Bitmap? _avatar;
 
     public PeerInfo Peer { get; }
@@ -20,6 +21,12 @@ public sealed class PeerNodeItem : ViewModelBase
     {
         get => _isChecked;
         set => SetProperty(ref _isChecked, value);
+    }
+
+    public bool IsSelected
+    {
+        get => _isSelected;
+        set => SetProperty(ref _isSelected, value);
     }
 
     public PeerNodeItem(PeerInfo peer, byte[]? avatarPng = null)
@@ -121,6 +128,18 @@ public sealed class UserGroupTreeViewModel : ViewModelBase
         foreach (var member in Groups.SelectMany(group => group.Members))
         {
             member.ReleaseAvatar();
+        }
+    }
+
+    public PeerInfo? SelectedPeer =>
+        Groups.SelectMany(group => group.Members).FirstOrDefault(member => member.IsSelected)?.Peer;
+
+    public void SelectMachine(string? machineId)
+    {
+        foreach (var member in Groups.SelectMany(group => group.Members))
+        {
+            member.IsSelected = machineId is not null
+                && string.Equals(member.Peer.MachineId, machineId, StringComparison.OrdinalIgnoreCase);
         }
     }
 

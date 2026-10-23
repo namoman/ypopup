@@ -9,6 +9,7 @@ public static class AppConstants
     public const string StartupRegistryValueName = "Y-popup";
     public const int DefaultTcpPort = 50506;
     public const int DefaultDiscoveryPort = 50505;
+    public const string DiscoveryMulticastAddress = "239.255.50.5";
     public const int DefaultShareFolderPort = 50507;
     public const string DefaultShareFolderName = "share";
     public const string DefaultDisplayName = "홍길동";

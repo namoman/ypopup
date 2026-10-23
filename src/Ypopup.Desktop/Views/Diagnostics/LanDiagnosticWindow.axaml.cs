@@ -29,6 +29,7 @@ public partial class LanDiagnosticWindow : Window
         BroadcastTextBlock.Text = broadcasts.Count > 0
             ? string.Join(", ", broadcasts)
             : "255.255.255.255";
+        MulticastTextBlock.Text = _coordinator.MulticastStatus;
 
         DiscoveryPortTextBlock.Text = settings.DiscoveryPort.ToString();
         TcpPortTextBlock.Text = settings.TcpPort.ToString();
@@ -76,7 +77,7 @@ public partial class LanDiagnosticWindow : Window
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "Y-popup", "logs");
 
-            var report = DiagnosticExporter.Generate(settings, peers, logDir);
+            var report = DiagnosticExporter.Generate(settings, peers, logDir, _coordinator.MulticastStatus);
 
             var desktop = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
             var filePath = Path.Combine(desktop, $"Y-popup-diagnostic-{DateTime.Now:yyyyMMdd-HHmmss}.txt");

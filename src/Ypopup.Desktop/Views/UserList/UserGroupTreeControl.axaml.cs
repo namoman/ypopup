@@ -20,10 +20,17 @@ public partial class UserGroupTreeControl : UserControl
 
     private void OnMemberSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (sender is ListBox { SelectedItem: PeerNodeItem node })
+        if (sender is not ListBox { SelectedItem: PeerNodeItem node })
         {
-            PeerSelected?.Invoke(node.Peer);
+            return;
         }
+
+        if (DataContext is UserGroupTreeViewModel viewModel)
+        {
+            viewModel.SelectMachine(node.Peer.MachineId);
+        }
+
+        PeerSelected?.Invoke(node.Peer);
     }
 
     private void OnMemberDoubleTapped(object? sender, TappedEventArgs e)

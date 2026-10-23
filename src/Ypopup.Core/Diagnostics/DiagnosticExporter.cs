@@ -10,7 +10,11 @@ namespace Ypopup.Core.Diagnostics;
 
 public static class DiagnosticExporter
 {
-    public static string Generate(AppSettings settings, IReadOnlyList<PeerInfo> peers, string? logDirectory = null)
+    public static string Generate(
+        AppSettings settings,
+        IReadOnlyList<PeerInfo> peers,
+        string? logDirectory = null,
+        string? multicastStatus = null)
     {
         var sb = new StringBuilder();
         var now = DateTime.Now;
@@ -51,6 +55,7 @@ public static class DiagnosticExporter
 
         var broadcasts = LocalNetworkHelper.GetLocalSubnetBroadcastAddresses();
         sb.AppendLine($"Broadcast targets: {(broadcasts.Count > 0 ? string.Join(", ", broadcasts) : "255.255.255.255")}");
+        sb.AppendLine($"Multicast: {multicastStatus ?? AppConstants.DiscoveryMulticastAddress}");
         sb.AppendLine();
 
         sb.AppendLine("--- Port Availability ---");

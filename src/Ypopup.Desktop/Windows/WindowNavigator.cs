@@ -76,6 +76,12 @@ public sealed class WindowNavigator
 
         _coordinator.PacketRouter.RegisterRoomHandler(room.RoomId, packet =>
         {
+            if (packet.Type == ExtendedPacketType.MessageRead)
+            {
+                viewModel.NoteRead(packet.SenderId, packet.Body);
+                return;
+            }
+
             if (packet.Type != ExtendedPacketType.GroupChatMessage)
             {
                 return;

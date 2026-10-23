@@ -39,6 +39,8 @@ public interface IChatStorageRepository
 
     Task AppendMessageAsync(ChatMessage message, CancellationToken ct = default);
     Task<IReadOnlyList<ChatMessage>> GetRecentMessagesAsync(string roomId, int count = 50, CancellationToken ct = default);
+    Task AddReadersAsync(string roomId, IReadOnlyCollection<string> messageIds, string readerId, CancellationToken ct = default);
+    Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> LoadReadersAsync(string roomId, CancellationToken ct = default);
 
     Task SaveGroupsAsync(IEnumerable<UserGroup> groups, CancellationToken ct = default);
     Task<IReadOnlyList<UserGroup>> LoadGroupsAsync(CancellationToken ct = default);

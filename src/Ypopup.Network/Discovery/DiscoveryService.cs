@@ -20,11 +20,13 @@ public sealed class DiscoveryService : IAsyncDisposable
     private Task? _listenTask;
     private Task? _announceTask;
     private int _disposed;
+    private int _multicastJoined;
     private long _lastAnnounceSentTicks;
     private long _lastPacketReceivedTicks;
 
     public DateTime LastAnnounceSentUtc => new(Interlocked.Read(ref _lastAnnounceSentTicks));
     public DateTime LastPacketReceivedUtc => new(Interlocked.Read(ref _lastPacketReceivedTicks));
+    public string MulticastStatus { get; private set; } = $"{AppConstants.DiscoveryMulticastAddress} (대기)";
 
     public event Action<IReadOnlyList<PeerInfo>>? PeersChanged;
 
@@ -71,6 +73,7 @@ public sealed class DiscoveryService : IAsyncDisposable
         {
             EnableBroadcast = true
         };
+        JoinMulticast(_udpClient);
 
         _listenTask = ListenLoopAsync(_cts.Token);
         _announceTask = AnnounceLoopAsync(_cts.Token);
@@ -89,6 +92,7 @@ public sealed class DiscoveryService : IAsyncDisposable
             await _cts.CancelAsync().ConfigureAwait(false);
         }
 
+        LeaveMulticast(_udpClient);
         _udpClient.Dispose();
         _udpClient = null;
 
@@ -193,30 +197,63 @@ public sealed class DiscoveryService : IAsyncDisposable
         Interlocked.Exchange(ref _lastAnnounceSentTicks, DateTime.UtcNow.Ticks);
 
         var payload = PacketCodec.Serialize(packet);
-        var broadcastIps = LocalNetworkHelper.GetLocalSubnetBroadcastAddresses();
+        var targets = DiscoveryAnnounceTargets.Build(
+            LocalNetworkHelper.GetLocalSubnetBroadcastAddresses(),
+            settings.DiscoveryPort);
 
-        if (broadcastIps.Count == 0)
+        foreach (var endpoint in targets)
         {
-            var endpoint = new IPEndPoint(IPAddress.Broadcast, settings.DiscoveryPort);
-            _udpClient.Send(payload, payload.Length, endpoint);
-        }
-        else
-        {
-            foreach (var ipStr in broadcastIps)
+            try
             {
-                if (IPAddress.TryParse(ipStr, out var ip))
-                {
-                    try
-                    {
-                        var endpoint = new IPEndPoint(ip, settings.DiscoveryPort);
-                        _udpClient.Send(payload, payload.Length, endpoint);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogService.Warning("Discovery", $"Send announce to {ipStr}: {ex.Message}");
-                    }
-                }
+                _udpClient.Send(payload, payload.Length, endpoint);
             }
+            catch (Exception ex)
+            {
+                LogService.Warning("Discovery", $"Send announce to {endpoint.Address}: {ex.Message}");
+            }
+        }
+    }
+
+    private void JoinMulticast(UdpClient client)
+    {
+        var localText = LocalNetworkHelper.ResolvePreferredIp(_settingsService.Current.PreferredLocalIp);
+        if (!IPAddress.TryParse(localText, out var local) || IPAddress.IsLoopback(local))
+        {
+            MulticastStatus = $"{AppConstants.DiscoveryMulticastAddress} (건너뜀)";
+            return;
+        }
+
+        try
+        {
+            // TTL 1: 그룹 알림이 첫 라우터를 넘지 않게 한다.
+            client.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastTimeToLive, 1);
+            client.Client.SetSocketOption(SocketOptionLevel.IP, SocketOptionName.MulticastInterface, local.GetAddressBytes());
+            client.JoinMulticastGroup(DiscoveryAnnounceTargets.MulticastGroup, local);
+            _multicastJoined = 1;
+            MulticastStatus = $"{AppConstants.DiscoveryMulticastAddress} (가입됨)";
+        }
+        catch (Exception ex)
+        {
+            _multicastJoined = 0;
+            MulticastStatus = $"{AppConstants.DiscoveryMulticastAddress} (가입 실패)";
+            LogService.Warning("Discovery", $"Multicast join {localText}: {ex.Message}");
+        }
+    }
+
+    private void LeaveMulticast(UdpClient client)
+    {
+        if (Interlocked.Exchange(ref _multicastJoined, 0) == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            client.DropMulticastGroup(DiscoveryAnnounceTargets.MulticastGroup);
+        }
+        catch (Exception ex)
+        {
+            LogService.Warning("Discovery", $"Multicast leave: {ex.Message}");
         }
     }
 

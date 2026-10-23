@@ -74,6 +74,7 @@ public partial class UserListWindow : Window
         var checkedIds = GetCheckedPeers()
             .Select(peer => peer.MachineId)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var selectedId = _groupTreeViewModel.SelectedPeer?.MachineId;
         var text = SearchTextBox.Text?.Trim() ?? string.Empty;
         var peers = _coordinator.GetPeers()
             .OrderBy(peer => peer.DisplayName, StringComparer.CurrentCultureIgnoreCase);
@@ -92,6 +93,8 @@ public partial class UserListWindow : Window
         {
             member.IsChecked = checkedIds.Contains(member.Peer.MachineId);
         }
+
+        _groupTreeViewModel.SelectMachine(selectedId);
     }
 
     private List<PeerInfo> GetCheckedPeers()
@@ -211,20 +214,26 @@ public partial class UserListWindow : Window
 
     private async void SendButton_Click(object? sender, RoutedEventArgs e)
     {
-        var selected = GetCheckedPeers();
-        if (selected.Count == 0)
+        var checkedPeers = GetCheckedPeers();
+        if (checkedPeers.Count >= 2)
         {
-            await DialogHelper.ShowInfoAsync(this, "Y-popup", "쪽지를 보낼 사용자를 선택하세요.");
+            ShowSendMenu(checkedPeers);
             return;
         }
 
-        if (selected.Count == 1)
+        if (_groupTreeViewModel.SelectedPeer is { } clicked)
         {
-            OpenCompose(selected, ComposeSendMode.Direct);
+            OpenCompose([clicked], ComposeSendMode.Direct);
             return;
         }
 
-        ShowSendMenu(selected);
+        if (checkedPeers.Count == 1)
+        {
+            OpenCompose(checkedPeers, ComposeSendMode.Direct);
+            return;
+        }
+
+        await DialogHelper.ShowInfoAsync(this, "Y-popup", "쪽지를 보낼 사용자를 선택하세요.");
     }
 
     private void ShowSendMenu(IReadOnlyList<PeerInfo> selected)

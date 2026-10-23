@@ -18,6 +18,12 @@ public static class MessageFontHelper
         }
     }
 
+    public static void Apply(AppSettings settings, TextBlock text)
+    {
+        text.FontFamily = new FontFamily(settings.MessageFontFamily);
+        text.FontSize = settings.MessageFontSize > 0 ? settings.MessageFontSize : 13;
+    }
+
     public static void ApplyPreview(AppSettings settings, TextBlock preview)
     {
         preview.FontFamily = new FontFamily(settings.MessageFontFamily);

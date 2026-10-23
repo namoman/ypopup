@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:Ypopup.Desktop.Controls"
         x:Class="Ypopup.Desktop.Views.Receive.ReceiveWindow"
         Title="Y-popup - 쪽지 수신"
         Width="400"
@@ -39,12 +40,9 @@
 
             <Border Grid.Row="2" Background="#FFFFFF" Margin="14,12,14,0" CornerRadius="8"
                     BorderBrush="#E2E8F0" BorderThickness="1">
-                <TextBox x:Name="MessageTextBox"
-                         IsReadOnly="True"
-                         Background="Transparent"
-                         BorderThickness="0"
-                         Padding="10,8"
-                         TextWrapping="Wrap"/>
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <controls:MessageBodyText x:Name="MessageBody" Padding="10,8"/>
+                </ScrollViewer>
             </Border>
 
             <ListBox x:Name="AttachmentListBox"

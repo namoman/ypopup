@@ -32,8 +32,8 @@ public partial class ReceiveWindow : Window
         SenderTextBlock.Text = message.IsAutoReply
             ? $"보낸 사람: {message.SenderName} (부재중 자동답장)"
             : $"보낸 사람: {message.SenderName}";
-        MessageTextBox.Text = string.IsNullOrWhiteSpace(message.Body) ? "(첨부파일만 전송됨)" : message.Body;
-        MessageFontHelper.Apply(_coordinator.Settings, MessageTextBox);
+        MessageBody.Message = string.IsNullOrWhiteSpace(message.Body) ? "(첨부파일만 전송됨)" : message.Body;
+        MessageFontHelper.Apply(_coordinator.Settings, MessageBody);
         AttachmentListBox.ItemsSource = message.SavedFilePaths;
         AttachmentListBox.IsVisible = message.SavedFilePaths.Count > 0;
     }

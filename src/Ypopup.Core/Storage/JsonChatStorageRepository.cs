@@ -26,12 +26,14 @@ public sealed class JsonChatStorageRepository : IChatStorageRepository
 
         Directory.CreateDirectory(_basePath);
         Directory.CreateDirectory(Path.Combine(_basePath, "messages"));
+        Directory.CreateDirectory(Path.Combine(_basePath, "reads"));
     }
 
     private string RoomsFilePath => Path.Combine(_basePath, "rooms.json");
     private string LeftRoomsFilePath => Path.Combine(_basePath, "left-rooms.json");
     private string GroupsFilePath => Path.Combine(_basePath, "groups.json");
     private string GetMessageFilePath(string roomId) => Path.Combine(_basePath, "messages", $"{roomId}.jsonl");
+    private string GetReadersFilePath(string roomId) => Path.Combine(_basePath, "reads", $"{roomId}.json");
 
     public async Task SaveRoomAsync(ChatRoom room, CancellationToken ct = default)
     {
@@ -225,6 +227,99 @@ public sealed class JsonChatStorageRepository : IChatStorageRepository
         {
             _lock.Release();
         }
+    }
+
+    public async Task AddReadersAsync(
+        string roomId,
+        IReadOnlyCollection<string> messageIds,
+        string readerId,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(roomId)
+            || string.IsNullOrWhiteSpace(readerId)
+            || messageIds.Count == 0)
+        {
+            return;
+        }
+
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var map = await LoadReadersInternalAsync(roomId, ct).ConfigureAwait(false);
+            var changed = false;
+            foreach (var messageId in messageIds)
+            {
+                if (string.IsNullOrWhiteSpace(messageId))
+                {
+                    continue;
+                }
+
+                if (!map.TryGetValue(messageId, out var readers))
+                {
+                    readers = [];
+                    map[messageId] = readers;
+                }
+
+                if (readers.Any(id => string.Equals(id, readerId, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                readers.Add(readerId);
+                changed = true;
+            }
+
+            if (!changed)
+            {
+                return;
+            }
+
+            var json = JsonSerializer.Serialize(map, JsonOptions);
+            await File.WriteAllTextAsync(GetReadersFilePath(roomId), json, ct).ConfigureAwait(false);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> LoadReadersAsync(
+        string roomId,
+        CancellationToken ct = default)
+    {
+        await _lock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            var map = await LoadReadersInternalAsync(roomId, ct).ConfigureAwait(false);
+            return map.ToDictionary(
+                pair => pair.Key,
+                pair => (IReadOnlyList<string>)pair.Value,
+                StringComparer.OrdinalIgnoreCase);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    private async Task<Dictionary<string, List<string>>> LoadReadersInternalAsync(string roomId, CancellationToken ct)
+    {
+        var path = GetReadersFilePath(roomId);
+        if (!File.Exists(path))
+        {
+            return new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var json = await File.ReadAllTextAsync(path, ct).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        }
+
+        var loaded = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json, JsonOptions);
+        return loaded is null
+            ? new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase)
+            : new Dictionary<string, List<string>>(loaded, StringComparer.OrdinalIgnoreCase);
     }
 
     public async Task SaveGroupsAsync(IEnumerable<UserGroup> groups, CancellationToken ct = default)
