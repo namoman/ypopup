@@ -46,7 +46,11 @@ public partial class UserListWindow : Window
 
     public void RefreshPeers()
     {
-        Topmost = _coordinator.Settings.KeepWindowTopmost;
+        if (!WindowDialogHelper.IsTopmostSuppressed)
+        {
+            Topmost = _coordinator.Settings.KeepWindowTopmost;
+        }
+
         UpdateDisplayName();
         ApplyFilter();
     }

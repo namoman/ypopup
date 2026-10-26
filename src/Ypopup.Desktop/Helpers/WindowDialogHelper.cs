@@ -2,28 +2,45 @@ using Avalonia.Controls;
 
 namespace Ypopup.Desktop.Helpers;
 
-/// <summary>Topmost 부모 창 위에 모달 대화상자를 안정적으로 표시합니다.</summary>
+/// <summary>
+/// 모달을 띄운 동안 소유 창의 Topmost를 끄고, 그 사이 목록 갱신이 다시 켜지 못하게 합니다.
+/// </summary>
 public static class WindowDialogHelper
 {
+    private static int _suppressCount;
+
+    public static bool IsTopmostSuppressed => _suppressCount > 0;
+
     public static async Task ShowDialogAsync(Window dialog, Window owner)
     {
-        var restoreOwnerTopmost = owner.Topmost;
-        if (restoreOwnerTopmost)
+        var isOutermost = _suppressCount == 0;
+        var restore = new List<Window>();
+        for (Window? window = owner; window is not null; window = window.Owner as Window)
         {
-            owner.Topmost = false;
+            if (!window.Topmost)
+            {
+                continue;
+            }
+
+            window.Topmost = false;
+            restore.Add(window);
         }
 
         dialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
-
+        _suppressCount++;
         try
         {
             await dialog.ShowDialog(owner);
         }
         finally
         {
-            if (restoreOwnerTopmost)
+            _suppressCount--;
+            if (isOutermost)
             {
-                owner.Topmost = true;
+                foreach (var window in restore)
+                {
+                    window.Topmost = true;
+                }
             }
         }
     }

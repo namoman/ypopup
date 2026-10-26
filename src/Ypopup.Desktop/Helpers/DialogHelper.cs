@@ -73,7 +73,7 @@ public static class DialogHelper
             Children = { messageBlock, buttons }
         };
 
-        await dialog.ShowDialog(owner);
+        await WindowDialogHelper.ShowDialogAsync(dialog, owner);
         return confirmed;
     }
 
@@ -93,7 +93,7 @@ public static class DialogHelper
 
         if (owner is not null)
         {
-            await dialog.ShowDialog(owner);
+            await WindowDialogHelper.ShowDialogAsync(dialog, owner);
         }
         else
         {
