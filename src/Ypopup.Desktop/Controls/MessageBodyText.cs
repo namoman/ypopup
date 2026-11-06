@@ -20,10 +20,15 @@ public class MessageBodyText : SelectableTextBlock
     private Point _pressPoint;
     private bool _linkPress;
 
+    // 파생 타입이면 Fluent의 SelectableTextBlock 스타일(SelectionBrush 등)이 빠진다.
+    protected override Type StyleKeyOverride => typeof(SelectableTextBlock);
+
     static MessageBodyText()
     {
         MessageProperty.Changed.AddClassHandler<MessageBodyText>((control, _) => control.Rebuild());
         ForegroundProperty.Changed.AddClassHandler<MessageBodyText>((control, _) => control.Rebuild());
+        // OverrideDefaultValue<SelectableTextBlock>은 파생 클래스에 적용되지 않는다.
+        FocusableProperty.OverrideDefaultValue<MessageBodyText>(true);
     }
 
     public MessageBodyText()
